@@ -1,0 +1,55 @@
+{
+	"origin":[100,100,100],
+	"origin_x":95,
+	"origin_y":60,
+	"origin_z":-160,
+	"n_height":120,
+	"n_width":120,
+	"width_x":190,
+	"anteriorBar_xmin":35,
+	"anteriorBar_ymax":55,
+	"frameSystemPoints":{
+		"localizer_3":{
+			"c": {
+					"top":[origin_x-width_x, origin_y, (origin[0]+origin_z)+n_height],
+					"bot":[origin_x-width_x, origin_y, origin[0]+origin_z],
+				},
+			"mid":{
+				"top":"a",
+				"bot":"c"
+			},
+			"a": {
+				"top":[origin_x-width_x, origin_y-n_width, (origin[0]+origin_z)+n_height],
+				"bot":[origin_x-width_x, origin_y-n_width, origin[0]+origin_z],
+			}
+		},
+		"localizer_2":{
+			"c": {
+				"top":[origin_x-anteriorBar_xmin, origin_y+anteriorBar_ymax, (origin[0]+origin_z)+n_height],
+				"bot":[origin_x-anteriorBar_xmin, origin_y+anteriorBar_ymax, origin[0]+origin_z]
+			},
+			"mid":{
+				"top":"c",
+				"bot":"a"
+			},
+			"a": {
+				"top":[(origin_x-anteriorBar_xmin)-n_width, origin_y+anteriorBar_ymax, (origin[0]+origin_z)+n_height],
+				"bot":[(origin_x-anteriorBar_xmin)-n_width, origin_y+anteriorBar_ymax, origin[0]+origin_z]
+			}
+		},
+		"localizer_1":{
+			"c": {
+					"top":[origin_x, origin_y, (origin[0]+origin_z)+n_height],
+					"bot":[origin_x, origin_y, origin[0]+origin_z],
+			},
+			"mid":{
+				"top":"a",
+				"bot":"c"
+			},
+			"a": {
+				"top":[origin_x, origin_y-n_width, (origin[0]+origin_z)+n_height],
+				"bot":[origin_x, origin_y-n_width, origin[0]+origin_z],
+			}
+		}
+	}
+}

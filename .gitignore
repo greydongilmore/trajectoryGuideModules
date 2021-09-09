@@ -1,0 +1,5 @@
+settingsPanel/__pycache__/*.pyc
+helpers/__pycache__/*.pyc
+frameDetect/__pycache__/*.pyc
+resources/ext_libs/space/*
+resources/frames/frameless_system/*

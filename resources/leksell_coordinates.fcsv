@@ -1,0 +1,15 @@
+# Markups fiducial file version = 4.11
+# CoordinateSystem = LPS
+# columns = id,x,y,z,ow,ox,oy,oz,vis,sel,lock,label,desc,associatedNodeID
+1,-95,60,60,0,0,0,1,1,1,1,barAtop,,vtkMRMLScalarVolumeNode1
+2,-95,-60,-60,0,0,0,1,1,1,1,barCbot,,vtkMRMLScalarVolumeNode1
+3,-60,-115,60,0,0,0,1,1,1,1,barDtop,,vtkMRMLScalarVolumeNode1
+4,60,-115,-60,0,0,0,1,1,1,1,barFbot,,vtkMRMLScalarVolumeNode1
+6,95,-60,-60,0,0,0,1,1,1,1,barGbot,,vtkMRMLScalarVolumeNode1
+7,95,60,60,0,0,0,1,1,1,1,barItop,,vtkMRMLScalarVolumeNode1
+9,-95,60,0,0,0,0,1,1,1,1,barAmid,,vtkMRMLScalarVolumeNode1
+10,-95,-60,0,0,0,0,1,1,1,1,barCmid,,vtkMRMLScalarVolumeNode1
+11,-60,-115,0,0,0,0,1,1,1,1,barDmid,,vtkMRMLScalarVolumeNode1
+12,60,-115,0,0,0,0,1,1,1,1,barFmid,,vtkMRMLScalarVolumeNode1
+13,95,-60,0,0,0,0,1,1,1,1,barGmid,,vtkMRMLScalarVolumeNode1
+14,95,60,0,0,0,0,1,1,1,1,barImid,,vtkMRMLScalarVolumeNode1

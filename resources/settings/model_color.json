@@ -1,0 +1,182 @@
+{
+    "plannedLeadColor": [
+        0,
+        1,
+        1
+    ],
+    "intraLeadColor": [
+        1,
+        0.666,
+        1
+    ],
+    "actualLeadColor": [
+        0,
+        0.666,
+        0
+    ],
+    "plannedContactColor": [
+        1.0,
+        1.0,
+        0.0
+    ],
+    "intraContactColor": [
+        1.0,
+        0.419,
+        0.129
+    ],
+    "actualContactColor": [
+        0,
+        0,
+        0.498
+    ],
+    "plannedActiveContactColor": [
+        0,
+        0.333,
+        0
+    ],
+    "intraActiveContactColor": [
+        0,
+        0.333,
+        0
+    ],
+    "actualActiveContactColor": [
+        0.666,
+        0,
+        1
+    ],
+    "plannedMicroelectrodesColor": [
+        0.733,
+        0.733,
+        0.733
+    ],
+    "intraMicroelectrodesColor": [
+        0.733,
+        0.733,
+        0.733
+    ],
+    "actualMicroelectrodesColor": [
+        1.0,
+        1.0,
+        0.0
+    ],
+    "intraMERALLColor": [
+        0.235,
+        0.286,
+        1.0
+    ],
+    "actualMERALLColor": [
+        0.235,
+        0.286,
+        1.0
+    ],
+    "intraMERActivityColor": [
+        0.235,
+        0.286,
+        1.0
+    ],
+    "actualMERActivityColor": [
+        0.666,
+        0,
+        0
+    ],
+    "actualVTAColor": [
+        1.0,
+        0.647,
+        0
+    ],
+    "ANTColor": [
+        1.0,
+        0,
+        0
+    ],
+    "STNColor": [
+        1.0,
+        0,
+        0
+    ],
+    "RNColor": [
+        1.0,
+        1.0,
+        0.498
+    ],
+    "SNrColor": [
+        0.666,
+        0.666,
+        0
+    ],
+    "PutColor": [
+        1.0,
+        1.0,
+        0
+    ],
+    "CauColor": [
+        0.666,
+        1.0,
+        1.0
+    ],
+    "GPeColor": [
+        1.0,
+        0.666,
+        1.0
+    ],
+    "GPiColor": [
+        1.0,
+        0.333,
+        1.0
+    ],
+    "medVPThaColor": [
+        0.737,
+        0.560,
+        0.560
+    ],
+    "latVPThaColor": [
+        1.0,
+        0.412,
+        0.706
+    ],
+    "infVAThaColor": [
+        1.0,
+        0.855,
+        0.725
+    ],
+    "supVAThaColor": [
+        0.871,
+        0.722,
+        0.529
+    ],
+    "medDAThaColor": [
+        0.722,
+        1.0,
+        0.0
+    ],
+    "latDAThaColor": [
+        0.545,
+        0.270,
+        0.075
+    ],
+    "medAmgColor": [
+        1.0,
+        0.980,
+        1.0
+    ],
+    "latAmgColor": [
+        0.647,
+        0.165,
+        0.165
+    ],
+    "MBColor": [
+        0.0,
+        0.749,
+        1.0
+    ],
+    "cZiColor": [
+        0.0,
+        0.749,
+        1.0
+    ],
+    "fctColor": [
+        0.0,
+        1.0,
+        0.489
+    ]
+}

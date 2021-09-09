@@ -1,0 +1,17 @@
+{
+    "default_dir": "/media/veracrypt4/projects/stealthMRI/imaging/clinical/deriv/validation/scenes",
+    "surgical_targets": [
+        "STN",
+        "GPi",
+        "Zi",
+        "Vim",
+        "ANT"
+    ],
+    "surgeons": [
+        "Parrent, Andrew",
+        "MacDougall, Keith",
+        "Hebb, Matthew",
+        "Lau, Jon",
+        "Smith, John"
+    ]
+}
