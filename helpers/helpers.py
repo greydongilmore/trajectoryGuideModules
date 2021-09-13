@@ -2976,8 +2976,8 @@ def addCustomLayouts():
 
 	layoutSwitchAction = layoutSwitchActionParent.addAction("trajectoryGuide")
 	layoutSwitchAction.setData(slicerLayout)
-	layoutSwitchAction.setIcon(qt.QIcon(":Icons/Go.png"))
+	layoutSwitchAction.setIcon(qt.QIcon(os.path.join(cwd, 'Resources','Icons',"LayouttrajectoryGuide.png")))
 
 	layoutSwitchAction = layoutSwitchActionParent.addAction("trajectoryGuideAxial")
 	layoutSwitchAction.setData(slicerLayoutAxial)
-	layoutSwitchAction.setIcon(qt.QIcon(":Icons/Go.png"))
+	layoutSwitchAction.setIcon(qt.QIcon(os.path.join(cwd, 'Resources','Icons',"LayouttrajectoryGuideAxial.png")))
