@@ -5,8 +5,9 @@ Created on Mon Jan 27 17:31:54 2020
 """
 import numpy as np
 import qt, ctk, os, sys, slicer, vtk, json
+from slicer.util import VTKObservationMixin
 
-class settingsPanelWidget(qt.QGroupBox):
+class settingsPanelWidget(qt.QGroupBox, VTKObservationMixin):
 	"""
 	**Constructor - Main patientDirectoryWidget object**
 
@@ -18,7 +19,8 @@ class settingsPanelWidget(qt.QGroupBox):
 	"""
 	def __init__(self):
 		qt.QGroupBox.__init__(self)
-		
+		VTKObservationMixin.__init__(self)  # needed for parameter node observation
+
 		self._parameterNode = None
 
 		self.setup()
@@ -45,18 +47,20 @@ class settingsPanelWidget(qt.QGroupBox):
 		self.ui.volumeButton.setMenu(self.volumeMenu)
 
 		buttonIconSize=qt.QSize(36, 36)
-	
-		self.ui.recenterButton.setIcon(qt.QIcon(os.path.join(self.script_path, 'Resources', 'Icons', 'recenter_light.png')))
+		
+		self._parameterNode = self.logic.getParameterNode()
+
+		self.ui.recenterButton.setIcon(qt.QIcon(os.path.join(self._parameterNode.GetParameter('trajectoryGuidePath'), 'resources', 'icons', 'recenter_light.png')))
 		self.ui.recenterButton.setIconSize(buttonIconSize)
-		self.ui.windowVolButton.setIcon(qt.QIcon(os.path.join(self.script_path, 'Resources', 'Icons', 'window_level_light.png')))
+		self.ui.windowVolButton.setIcon(qt.QIcon(os.path.join(self._parameterNode.GetParameter('trajectoryGuidePath'), 'resources', 'icons', 'window_level_light.png')))
 		self.ui.windowVolButton.setIconSize(buttonIconSize)
-		self.ui.crosshairToggleButton.setIcon(qt.QIcon(os.path.join(self.script_path, 'Resources', 'Icons', 'crosshair_light.png')))
+		self.ui.crosshairToggleButton.setIcon(qt.QIcon(os.path.join(self._parameterNode.GetParameter('trajectoryGuidePath'), 'resources', 'icons', 'crosshair_light.png')))
 		self.ui.crosshairToggleButton.setIconSize(buttonIconSize)
-		self.ui.linkViewsButton.setIcon(qt.QIcon(os.path.join(self.script_path, 'Resources', 'Icons', 'link_light.png')))
+		self.ui.linkViewsButton.setIcon(qt.QIcon(os.path.join(self._parameterNode.GetParameter('trajectoryGuidePath'), 'resources', 'icons', 'unlink_light.png')))
 		self.ui.linkViewsButton.setIconSize(buttonIconSize)
-		self.ui.volumeButton.setIcon(qt.QIcon(os.path.join(self.script_path, 'Resources', 'Icons', 'volumes_light.png')))
+		self.ui.volumeButton.setIcon(qt.QIcon(os.path.join(self._parameterNode.GetParameter('trajectoryGuidePath'), 'resources', 'icons', 'volumes_light.png')))
 		self.ui.volumeButton.setIconSize(buttonIconSize)
-		self.ui.orientationMarkerButton.setIcon(qt.QIcon(os.path.join(self.script_path, 'Resources', 'Icons', 'orientation_light.png')))
+		self.ui.orientationMarkerButton.setIcon(qt.QIcon(os.path.join(self._parameterNode.GetParameter('trajectoryGuidePath'), 'resources', 'icons', 'orientation_light.png')))
 		self.ui.orientationMarkerButton.setIconSize(buttonIconSize)
 
 		self._setupConnections()
@@ -152,11 +156,15 @@ class settingsPanelWidget(qt.QGroupBox):
 				sliceCompositeNode.SetLinkedControl(True)
 
 			self.ui.linkViewsButton.setStyleSheet('background-color: green')
+			self.ui.linkViewsButton.setIcon(qt.QIcon(os.path.join(self._parameterNode.GetParameter('trajectoryGuidePath'), 'resources', 'icons', 'link_light.png')))
+			self.ui.linkViewsButton.setIconSize(qt.QSize(36, 36))
 		else:
 			for sliceCompositeNode in sliceCompositeNodes:
 				sliceCompositeNode.SetLinkedControl(False)
 
 			self.ui.linkViewsButton.setStyleSheet('')
+			self.ui.linkViewsButton.setIcon(qt.QIcon(os.path.join(self._parameterNode.GetParameter('trajectoryGuidePath'), 'resources', 'icons', 'unlink_light.png')))
+			self.ui.linkViewsButton.setIconSize(qt.QSize(36, 36))
 	
 	def onRecenterButton(self):
 		""" Slot for when the "Recenter" button is pressed in the settings panel.
@@ -368,12 +376,12 @@ class settingsPanelLogic():
 		Initialize parameter node with default settings.
 		"""
 		if getattr(sys, 'frozen', False):
-			script_path = os.path.dirname(sys.argv[0])
+			trajectoryGuidePath = os.path.dirname(os.path.dirname(sys.argv[0]))
 		elif __file__:
-			script_path = os.path.dirname(os.path.realpath(__file__))
+			trajectoryGuidePath = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 
-		if not parameterNode.GetParameter("script_path"):
-			parameterNode.SetParameter("script_path", script_path)
+		if not parameterNode.GetParameter("trajectoryGuidePath"):
+			parameterNode.SetParameter("trajectoryGuidePath", trajectoryGuidePath)
 		if not parameterNode.GetParameter("trajectoryGuide_settings"):
-			parameterNode.SetParameter("trajectoryGuide_settings", os.path.join(os.path.dirname(script_path), 'resources', 'settings', 'trajectoryGuide_settings.json'))
+			parameterNode.SetParameter("trajectoryGuide_settings", os.path.join(trajectoryGuidePath, 'resources', 'settings', 'trajectoryGuide_settings.json'))
 
