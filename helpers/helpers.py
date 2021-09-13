@@ -2386,9 +2386,12 @@ class VTAModelBuilderClass:
 		"""
 				
 		"""
+		self.final_model = None
 		self.elspec = elspec
 		self.coords = elspec['coords']
 		self.vatsettings = vatsettings
+		self.nodeName = None if 'nodeName' not in list(self.elspec) else self.elspec['nodeName']
+		self.filename = None if 'output_name' not in list(self.elspec) else self.elspec['output_name']
 		self.main()
 
 	def main(self):
@@ -2572,18 +2575,22 @@ class VTAModelBuilderClass:
 
 	def three_d_array(self, value, dim):
 		"""
-				Create 3D-array
-				:param dim: a tuple of dimensions - (x, y, z)
-				:param value: value with which 3D-array is to be filled
-				:return: 3D-array
-				"""
+		Create 3D-array
+		:param dim: a tuple of dimensions - (x, y, z)
+		:param value: value with which 3D-array is to be filled
+		:return: 3D-array
+		"""
 		return [[[value for _ in range(dim[2])] for _ in range(dim[1])] for _ in range(dim[0])]
 
 	def plotVTA(self, CH):
 		nodes = [x for x in slicer.util.getNodesByClass('vtkMRMLModelNode') if not slicer.vtkMRMLSliceLogic.IsSliceModelNode(x)]
 		for inodes in nodes:
-			if self.elspec['output_name'].split('.vtk')[0] in inodes.GetName():
-				slicer.mrmlScene.RemoveNode(slicer.util.getNode(inodes.GetID()))
+			if self.filename is not None:
+				if self.elspec['output_name'].split('.vtk')[0] in inodes.GetName():
+					slicer.mrmlScene.RemoveNode(slicer.util.getNode(inodes.GetID()))
+			elif self.nodeName is not None:
+				if self.elspec['nodeName'] in inodes.GetName():
+					slicer.mrmlScene.RemoveNode(slicer.util.getNode(inodes.GetID()))
 
 		pts = vtk.vtkPoints()
 		pts.SetNumberOfPoints(CH.npoints)
@@ -2598,30 +2605,46 @@ class VTAModelBuilderClass:
 		delny.SetAlpha(10.0)
 		delny.BoundingTriangulationOff()
 		delny.Update()
-		surfaceFilter = vtk.vtkDataSetSurfaceFilter()
-		surfaceFilter.SetInputConnection(delny.GetOutputPort())
-		surfaceFilter.Update()
-		writer = vtk.vtkPolyDataWriter()
-		writer.SetInputData(surfaceFilter.GetOutput())
-		writer.SetFileName(os.path.join(self.elspec['data_dir'], self.elspec['output_name']))
-		if RASsys:
-			writer.SetHeader('3D Slicer output. SPACE=RAS')
-		else:
-			writer.SetHeader('3D Slicer output. SPACE=LPS')
-		writer.Update()
-		writer.Write()
+
+		self.final_model = vtk.vtkDataSetSurfaceFilter()
+		self.final_model.SetInputConnection(delny.GetOutputPort())
+		self.final_model.Update()
+
+		if self.filename is not None:
+			writer = vtk.vtkPolyDataWriter()
+			writer.SetInputData(self.final_model.GetOutput())
+			writer.SetFileName(os.path.join(self.elspec['data_dir'], self.elspec['output_name']))
+			if RASsys:
+				writer.SetHeader('3D Slicer output. SPACE=RAS')
+			else:
+				writer.SetHeader('3D Slicer output. SPACE=LPS')
+			writer.Update()
+			writer.Write()
+
 		self.add_to_scene()
 
 	def add_to_scene(self, returnNode=False):
-		node = slicer.util.loadModel(os.path.join(self.elspec['data_dir'], self.elspec['output_name']))
+		if self.nodeName is not None:
+			node = slicer.mrmlScene.AddNewNodeByClass('vtkMRMLModelNode')
+			node.SetAndObservePolyData(self.final_model.GetOutput())
+			node.SetName(self.nodeName)
+			nodeDisplayNode = slicer.mrmlScene.AddNewNodeByClass('vtkMRMLModelDisplayNode')
+			node.SetAndObserveDisplayNodeID(nodeDisplayNode.GetID())
+		else:
+			node = slicer.util.loadModel(os.path.join(self.elspec['data_dir'], self.elspec['output_name']))
+			node.SetName(os.path.splitext(os.path.splitext(os.path.basename(self.filename))[0])[0])
+
 		node.GetModelDisplayNode().SetColor(self.elspec['model_col'])
 		node.GetModelDisplayNode().SetSelectedColor(self.elspec['model_col'])
 		node.GetModelDisplayNode().SetSliceIntersectionVisibility(self.elspec['model_vis'])
 		node.GetModelDisplayNode().SetSliceIntersectionOpacity(1)
 		node.GetDisplayNode().SetOpacity(0.8)
+		
 		if returnNode:
 			return node
-		slicer.util.saveNode(node, os.path.join(self.elspec['data_dir'], self.elspec['output_name']))
+		
+		if self.filename is not None:
+			slicer.util.saveNode(node, os.path.join(self.elspec['data_dir'], self.filename))
 
 
 class dotdict(dict):
@@ -2834,60 +2857,69 @@ def createModelBox(model_name, modelNameDict, modelWig_dict):
 		modelWig_dict[modelNameDict[model_name]['main']]=[]
 	
 	if modelNameDict[model_name]['sub'] !="":
+		fontSettings = qt.QFont("font-size: 11pt;font-family: Arial")
+		fontSettings.setBold(False)
 		modelLabel = qt.QLabel(modelNameDict[model_name]['sub'])
-		modelLabel.setFont(qt.QFont("font-size: 11pt;font-family: Arial"))
+		modelLabel.setFont(fontSettings)
 		modelLabel.setAlignment(qt.Qt.AlignLeft)
+
+	fontSettings = qt.QFont("font-size: 10pt;font-family: Arial")
+	fontSettings.setBold(False)
 
 	left3DCB=qt.QCheckBox()
 	left3DCB.setText('Left')
-	left3DCB.setFont(qt.QFont("font-size: 10pt;font-family: Arial"))
+	left3DCB.setFont(fontSettings)
 	left3DCB.setObjectName(f'{model_name}Model3DVisLeft')
 	left3DCB.setChecked(False)
 	left3DCB.setAutoExclusive(False)
-	left3DCB.setFixedWidth(61)
+	left3DCB.setFixedWidth(68)
 
 	left2DCB=qt.QCheckBox()
 	left2DCB.setText('Left')
+	left2DCB.setFont(fontSettings)
 	left2DCB.setObjectName(f'{model_name}Model2DVisLeft')
 	left2DCB.setChecked(False)
 	left2DCB.setAutoExclusive(False)
-	left2DCB.setFixedWidth(61)
+	left2DCB.setFixedWidth(68)
 
 	right3DCB=qt.QCheckBox()
 	right3DCB.setText('Right')
+	right3DCB.setFont(fontSettings)
 	right3DCB.setObjectName(f'{model_name}Model3DVisRight')
 	right3DCB.setChecked(False)
 	right3DCB.setAutoExclusive(False)
-	right3DCB.setFixedWidth(61)
+	right3DCB.setFixedWidth(68)
 
 	right2DCB=qt.QCheckBox()
 	right2DCB.setText('Right')
+	right2DCB.setFont(fontSettings)
 	right2DCB.setObjectName(f'{model_name}Model2DVisRight')
 	right2DCB.setChecked(False)
 	right2DCB.setAutoExclusive(False)
-	right2DCB.setFixedWidth(61)
+	right2DCB.setFixedWidth(68)
 
 	modelColor = ctk.ctkColorPickerButton()
 	modelColor.setObjectName(f'{model_name}ModelVisColor')
 	modelColor.displayColorName = False
-	modelColor.setFixedWidth(40)
+	modelColor.setFixedWidth(38)
 
 	modelSB=qt.QDoubleSpinBox()
 	modelSB.setObjectName(f'{model_name}ModelOpacity')
+	modelSB.setFont(fontSettings)
 	modelSB.setMinimum(0)
 	modelSB.setMaximum(1.0)
 	modelSB.setSingleStep(0.1)
 	modelSB.setValue(1.0)
-	modelSB.setFixedWidth(60)
+	modelSB.setFixedWidth(58)
 
 	modelGridLayout = qt.QGridLayout()
-	modelGridLayout.setAlignment(qt.Qt.AlignCenter)
+	modelGridLayout.setAlignment(qt.Qt.AlignHCenter)
 	#modelGridLayout.setSizePolicy(qt.QSizePolicy.MinimumExpanding)
 	#if modelNameDict[model_name]['sub'] !="":
 	modelLabel = qt.QLabel(modelNameDict[model_name]['sub']+'  ')
 	modelLabel.setFont(qt.QFont("font-size: 10pt;font-family: Arial"))
 	modelLabel.setAlignment(qt.Qt.AlignVCenter | qt.Qt.AlignRight)
-	modelLabel.setFixedWidth(160)
+	modelLabel.setFixedWidth(180)
 	modelGridLayout.addWidget(modelLabel,0,0,2,1)
 		
 	modelGridLayout.addWidget(left3DCB,0,1,1,1)

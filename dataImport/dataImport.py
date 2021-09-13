@@ -2,16 +2,12 @@ import os
 import sys
 import shutil
 import pandas as pd
-import numpy as np
-import unittest
-import logging
 import csv
 import json
 import glob
-import vtk, qt, ctk, slicer
+import vtk, qt, slicer
 from slicer.ScriptedLoadableModule import *
 from slicer.util import VTKObservationMixin
-from pathlib import Path
 
 if getattr(sys, 'frozen', False):
 	cwd = os.path.dirname(sys.argv[0])
@@ -20,8 +16,8 @@ elif __file__:
 
 sys.path.insert(1, os.path.dirname(cwd))
 
-from helpers.helpers import warningBox,vtkModelBuilderClass,getFrameCenter,rgbToHex,getReverseTransform, addCustomLayouts
-from helpers.variables import coordSys, collapsibleWidth, slicerLayout,groupboxStyle, groupboxStyleTitle, slicerLayoutAxial, surgical_info_dict
+from helpers.helpers import vtkModelBuilderClass,getFrameCenter, getReverseTransform, addCustomLayouts
+from helpers.variables import coordSys, slicerLayout, surgical_info_dict
 
 #
 # dataImport
@@ -34,7 +30,7 @@ class dataImport(ScriptedLoadableModule):
 
 	def __init__(self, parent):
 		ScriptedLoadableModule.__init__(self, parent)
-		self.parent.title = "dataImport"  # TODO: make this more human readable by adding spaces
+		self.parent.title = "01: Data Import"  # TODO: make this more human readable by adding spaces
 		self.parent.categories = ["trajectoryGuide"]  # TODO: set categories (folders where the module shows up in the module selector)
 		self.parent.dependencies = []  # TODO: add here list of module names that this module requires
 		self.parent.contributors = ["Greydon Gilmore (Western University)"]  # TODO: replace with "Firstname Lastname (Organization)"
@@ -78,33 +74,32 @@ class dataImportWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 		Called when the user opens the module the first time and the widget is initialized.
 		"""
 		ScriptedLoadableModuleWidget.setup(self)
-
+		
 		self._loadUI()
-
+		
 		# Set scene in MRML widgets. Make sure that in Qt designer the top-level qMRMLWidget's
 		# "mrmlSceneChanged(vtkMRMLScene*)" signal in is connected to each MRML widget's.
 		# "setMRMLScene(vtkMRMLScene*)" slot.
 		
-
 		# Create logic class. Logic implements all computations that should be possible to run
 		# in batch mode, without a graphical user interface.
 		self.logic = dataImportLogic()
-
+		
 		# Connections
 		self._setupConnections()
-
+		
 	def _loadUI(self):
 		# Load widget from .ui file (created by Qt Designer)
 		self.uiWidget = slicer.util.loadUI(self.resourcePath('UI/dataImport.ui'))
 		self.layout.addWidget(self.uiWidget)
 		self.ui = slicer.util.childWidgetVariables(self.uiWidget)
 		self.uiWidget.setMRMLScene(slicer.mrmlScene)
-
+		
 	def _setupConnections(self):
 		# These connections ensure that we update parameter node when scene is closed
 		self.addObserver(slicer.mrmlScene, slicer.mrmlScene.StartCloseEvent, self.onSceneStartClose)
 		self.addObserver(slicer.mrmlScene, slicer.mrmlScene.EndCloseEvent, self.onSceneEndClose)
-
+		
 		# These connections ensure that whenever user changes some settings on the GUI, that is saved in the MRML scene
 		# (in the selected parameter node).
 		
@@ -116,22 +111,22 @@ class dataImportWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 		
 		# Make sure parameter node is initialized (needed for module reload)
 		self.initializeParameterNode()
-
+		
 		self.logic.addCustomLayouts()
-
+		
 	def cleanup(self):
 		"""
 		Called when the application closes and the module widget is destroyed.
 		"""
 		self.removeObservers()
-
+		
 	def enter(self):
 		"""
 		Called each time the user opens this module.
 		"""
 		# Make sure parameter node exists and observed
 		self.initializeParameterNode()
-
+		
 	def exit(self):
 		"""
 		Called each time the user opens a different module.

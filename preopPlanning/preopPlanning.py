@@ -1,5 +1,5 @@
 
-import qt, ctk, slicer, numpy as np, vtk, os, json, sys, math, collections
+import qt, slicer, numpy as np, vtk, os, json, sys, collections
 from slicer.ScriptedLoadableModule import *
 from slicer.util import VTKObservationMixin
 
@@ -11,11 +11,11 @@ elif __file__:
 sys.path.insert(1, os.path.dirname(cwd))
 
 
-from helpers.helpers import norm_vec, mag_vec, plotLead, warningBox, customCTKSliderEventFilter,customCTKDoubleSliderEventFilter, \
-rotation_matrix, vtkModelBuilderClass,getMarkupsNode,getPointCoords,adjustPrecision,getFrameCenter,rotateTrajectory,applyTransformToPoints,frame_angles,\
+from helpers.helpers import norm_vec, mag_vec, plotLead, warningBox, \
+rotation_matrix, vtkModelBuilderClass,getMarkupsNode,getPointCoords,adjustPrecision,getFrameCenter,applyTransformToPoints,frame_angles,\
 getFrameRotation,dotdict,addCustomLayouts
 
-from helpers.variables import coordSys, fontSetting, collapsibleWidth, groupboxStyle, slicerLayout,slicerLayoutAxial
+from helpers.variables import coordSys, groupboxStyle, slicerLayout
 
 #
 # preopPlanning
@@ -28,7 +28,7 @@ class preopPlanning(ScriptedLoadableModule):
 
 	def __init__(self, parent):
 		ScriptedLoadableModule.__init__(self, parent)
-		self.parent.title = "preopPlanning"  # TODO: make this more human readable by adding spaces
+		self.parent.title = "05: Preop Planning"  # TODO: make this more human readable by adding spaces
 		self.parent.categories = ["trajectoryGuide"]  # TODO: set categories (folders where the module shows up in the module selector)
 		self.parent.dependencies = []  # TODO: add here list of module names that this module requires
 		self.parent.contributors = ["Greydon Gilmore (Western University)"]  # TODO: replace with "Firstname Lastname (Organization)"

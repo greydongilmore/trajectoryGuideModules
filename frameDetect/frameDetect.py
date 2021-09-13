@@ -1,16 +1,12 @@
 import os
 import sys
 import shutil
-import pandas as pd
 import numpy as np
-import unittest
-import logging
 import csv
 import json
-import vtk, qt, ctk, slicer
+import vtk, qt, slicer
 from slicer.ScriptedLoadableModule import *
 from slicer.util import VTKObservationMixin
-from pathlib import Path
 
 if getattr(sys, 'frozen', False):
 	cwd = os.path.dirname(sys.argv[0])
@@ -19,8 +15,8 @@ elif __file__:
 
 sys.path.insert(1, os.path.dirname(cwd))
 
-from helpers.helpers import frameDetection, customEventFilter, vtkModelBuilderClass, warningBox, fcsvLPStoRAS,writeFCSV, addCustomLayouts
-from helpers.variables import coordSys, collapsibleWidth, slicerLayout,groupboxStyle, groupboxStyleTitle, slicerLayoutAxial, surgical_info_dict
+from helpers.helpers import frameDetection, customEventFilter, warningBox,writeFCSV, addCustomLayouts
+from helpers.variables import coordSys, slicerLayout,groupboxStyle, groupboxStyleTitle, slicerLayoutAxial, surgical_info_dict
 
 #
 # frameDetect
@@ -33,7 +29,7 @@ class frameDetect(ScriptedLoadableModule):
 
 	def __init__(self, parent):
 		ScriptedLoadableModule.__init__(self, parent)
-		self.parent.title = "frameDetect"  # TODO: make this more human readable by adding spaces
+		self.parent.title = "02: Frame Detection"  # TODO: make this more human readable by adding spaces
 		self.parent.categories = ["trajectoryGuide"]  # TODO: set categories (folders where the module shows up in the module selector)
 		self.parent.dependencies = ["dataImport"]  # TODO: add here list of module names that this module requires
 		self.parent.contributors = ["Greydon Gilmore (Western University)"]  # TODO: replace with "Firstname Lastname (Organization)"
@@ -766,14 +762,14 @@ class frameDetectLogic(ScriptedLoadableModuleLogic):
 		Initialize parameter node with default settings.
 		"""
 		if getattr(sys, 'frozen', False):
-			trajectoryGuidePath = os.path.dirname(sys.argv[0])
+			trajectoryGuidePath = os.path.dirname(os.path.dirname(sys.argv[0]))
 		elif __file__:
-			trajectoryGuidePath = os.path.dirname(os.path.realpath(__file__))
+			trajectoryGuidePath = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 
 		if not parameterNode.GetParameter("trajectoryGuidePath"):
 			parameterNode.SetParameter("trajectoryGuidePath", trajectoryGuidePath)
 		if not parameterNode.GetParameter("trajectoryGuide_settings"):
-			parameterNode.SetParameter("trajectoryGuide_settings", os.path.join(os.path.dirname(trajectoryGuidePath), 'resources', 'settings', 'trajectoryGuide_settings.json'))
+			parameterNode.SetParameter("trajectoryGuide_settings", os.path.join(trajectoryGuidePath, 'resources', 'settings', 'trajectoryGuide_settings.json'))
 
 	def setPatientSpecificParamters(self, parameterNode):
 		for ipath in {'summaries','settings'}:

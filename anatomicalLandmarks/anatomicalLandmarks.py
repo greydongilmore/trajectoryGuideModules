@@ -1,18 +1,12 @@
 import os
 import sys
 import shutil
-import pandas as pd
 import numpy as np
-import unittest
-import logging
-import csv
 import json
-import glob
 import collections
-import vtk, qt, ctk, slicer
+import vtk, qt, slicer
 from slicer.ScriptedLoadableModule import *
 from slicer.util import VTKObservationMixin
-from pathlib import Path
 
 if getattr(sys, 'frozen', False):
 	cwd = os.path.dirname(sys.argv[0])
@@ -21,8 +15,8 @@ elif __file__:
 
 sys.path.insert(1, os.path.dirname(cwd))
 
-from helpers.helpers import warningBox,vtkModelBuilderClass,getFrameCenter,rgbToHex,getReverseTransform, addCustomLayouts,adjustPrecision,getPointCoords,getMarkupsNode,getFrameCenter
-from helpers.variables import coordSys, fontSetting,collapsibleWidth, slicerLayout,groupboxStyle, groupboxStyleTitle, slicerLayoutAxial, surgical_info_dict
+from helpers.helpers import warningBox, addCustomLayouts,adjustPrecision,getPointCoords,getMarkupsNode,getFrameCenter
+from helpers.variables import coordSys, fontSetting, slicerLayout, groupboxStyle
 
 #
 # anatomicalLandmarks
@@ -35,7 +29,7 @@ class anatomicalLandmarks(ScriptedLoadableModule):
 
 	def __init__(self, parent):
 		ScriptedLoadableModule.__init__(self, parent)
-		self.parent.title = "anatomicalLandmarks"  # TODO: make this more human readable by adding spaces
+		self.parent.title = "04: Anatomical Landmarks"  # TODO: make this more human readable by adding spaces
 		self.parent.categories = ["trajectoryGuide"]  # TODO: set categories (folders where the module shows up in the module selector)
 		self.parent.dependencies = ["dataImport"]  # TODO: add here list of module names that this module requires
 		self.parent.contributors = ["Greydon Gilmore (Western University)"]  # TODO: replace with "Firstname Lastname (Organization)"
@@ -146,6 +140,7 @@ class anatomicalLandmarksWidget(ScriptedLoadableModuleWidget, VTKObservationMixi
 		Called when the application closes and the module widget is destroyed.
 		"""
 		self.removeObservers()
+		self.active = False
 
 	def enter(self):
 		"""
@@ -628,9 +623,8 @@ class anatomicalLandmarksWidget(ScriptedLoadableModuleWidget, VTKObservationMixi
 			#self.markupsNodeMid5.AddObserver(slicer.vtkMRMLMarkupsNode.PointPositionUndefinedEvent, self.onPointDelete)
 
 	def onCursorPositionModifiedEvent(self, caller=None, event=None):
-		if self._parameterNode.GetParameter('frame_system'):
-			crosshairNode = caller
-			if all([crosshairNode.GetCrosshairMode() == 1, self.active == 1]):
+		if self.active:
+			if self._parameterNode.GetNodeReference('frame_system') and caller.GetCrosshairMode() == 1:
 				cursorRAS = np.zeros(3)
 				self.crosshairNode.GetCursorPositionRAS(cursorRAS)
 				crossHairRAS = np.array(self.crosshairNode.GetCrosshairRAS())

@@ -24,6 +24,9 @@ add_subdirectory(frameDetect)
 add_subdirectory(registration)
 add_subdirectory(anatomicalLandmarks)
 add_subdirectory(preopPlanning)
+add_subdirectory(postopLocalization)
+add_subdirectory(postopProgramming)
+add_subdirectory(dataView)
 ## NEXT_MODULE
 
 #-----------------------------------------------------------------------------
