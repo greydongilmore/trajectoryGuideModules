@@ -30,20 +30,15 @@ class dataImport(ScriptedLoadableModule):
 
 	def __init__(self, parent):
 		ScriptedLoadableModule.__init__(self, parent)
-		self.parent.title = "01: Data Import"  # TODO: make this more human readable by adding spaces
-		self.parent.categories = ["trajectoryGuide"]  # TODO: set categories (folders where the module shows up in the module selector)
-		self.parent.dependencies = []  # TODO: add here list of module names that this module requires
-		self.parent.contributors = ["Greydon Gilmore (Western University)"]  # TODO: replace with "Firstname Lastname (Organization)"
-		# TODO: update with short description of the module and a link to online module documentation
+		self.parent.title = "01: Data Import"
+		self.parent.categories = ["trajectoryGuide"]
+		self.parent.dependencies = []
+		self.parent.contributors = ["Greydon Gilmore (Western University)"]
 		self.parent.helpText = """
-This is an example of scripted loadable module bundled in an extension.
-See more information in <a href="https://github.com/organization/projectname#dataImport">module documentation</a>.
+This module loads a patient data directory for trajectoryGuide.\n
+For use details see <a href="https://trajectoryguide.greydongilmore.com/widgets/01_patient_directory.html">module documentation</a>.
 """
-		# TODO: replace with organization, grant and thanks
-		self.parent.acknowledgementText = """
-This file was originally developed by Jean-Christophe Fillion-Robin, Kitware Inc., Andras Lasso, PerkLab,
-and Steve Pieper, Isomics, Inc. and was partially funded by NIH grant 3P41RR013218-12S1.
-"""
+		self.parent.acknowledgementText = ""
 
 
 #
@@ -197,21 +192,6 @@ class dataImportWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 		# Make sure GUI changes do not call updateParameterNodeFromGUI (it could cause infinite loop)
 		self._updatingGUIFromParameterNode = True
 
-		# Update node selectors and sliders
-		#self.ui.inputSelector.setCurrentNode(self._parameterNode.GetNodeReference("InputVolume"))
-		#self.ui.outputSelector.setCurrentNode(self._parameterNode.GetNodeReference("OutputVolume"))
-		#self.ui.invertedOutputSelector.setCurrentNode(self._parameterNode.GetNodeReference("OutputVolumeInverse"))
-		#self.ui.imageThresholdSliderWidget.value = float(self._parameterNode.GetParameter("Threshold"))
-		#self.ui.invertOutputCheckBox.checked = (self._parameterNode.GetParameter("Invert") == "true")
-
-		# Update buttons states and tooltips
-		#if self._parameterNode.GetNodeReference("InputVolume") and self._parameterNode.GetNodeReference("OutputVolume"):
-		#	self.ui.applyButton.toolTip = "Compute output volume"
-		#	self.ui.applyButton.enabled = True
-		#else:
-		#	self.ui.applyButton.toolTip = "Select input and output volume nodes"
-		#	self.ui.applyButton.enabled = False
-
 		# All the GUI updates are done
 		self._updatingGUIFromParameterNode = False
 
@@ -233,13 +213,7 @@ class dataImportWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 		if isinstance(caller, qt.QRadioButton):
 			print(caller.name)
 			self._parameterNode.SetParameter("frame_system", caller.name)
-
-		#self._parameterNode.SetNodeReferenceID("InputVolume", self.ui.inputSelector.currentNodeID)
-		#self._parameterNode.SetNodeReferenceID("OutputVolume", self.ui.outputSelector.currentNodeID)
-		#self._parameterNode.SetParameter("Threshold", str(self.ui.imageThresholdSliderWidget.value))
-		#self._parameterNode.SetParameter("Invert", "true" if self.ui.invertOutputCheckBox.checked else "false")
-		#self._parameterNode.SetNodeReferenceID("OutputVolumeInverse", self.ui.invertedOutputSelector.currentNodeID)
-
+		
 		self._parameterNode.EndModify(wasModified)
 
 	def onLoadScansButton(self):

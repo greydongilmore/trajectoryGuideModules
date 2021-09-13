@@ -29,20 +29,15 @@ class dataView(ScriptedLoadableModule):
 
 	def __init__(self, parent):
 		ScriptedLoadableModule.__init__(self, parent)
-		self.parent.title = "dataView"  # TODO: make this more human readable by adding spaces
-		self.parent.categories = ["trajectoryGuide"]  # TODO: set categories (folders where the module shows up in the module selector)
-		self.parent.dependencies = []  # TODO: add here list of module names that this module requires
-		self.parent.contributors = ["Greydon Gilmore (Western University)"]  # TODO: replace with "Firstname Lastname (Organization)"
-		# TODO: update with short description of the module and a link to online module documentation
+		self.parent.title = "dataView"
+		self.parent.categories = ["trajectoryGuide"]
+		self.parent.dependencies = []
+		self.parent.contributors = ["Greydon Gilmore (Western University)"]
 		self.parent.helpText = """
 This is an example of scripted loadable module bundled in an extension.
 See more information in <a href="https://github.com/organization/projectname#dataView">module documentation</a>.
 """
-		# TODO: replace with organization, grant and thanks
-		self.parent.acknowledgementText = """
-This file was originally developed by Jean-Christophe Fillion-Robin, Kitware Inc., Andras Lasso, PerkLab,
-and Steve Pieper, Isomics, Inc. and was partially funded by NIH grant 3P41RR013218-12S1.
-"""
+		self.parent.acknowledgementText = ""
 
 
 #
@@ -78,13 +73,6 @@ class dataViewWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 		self.logic = dataViewLogic()
 
 		self._loadUI()
-
-		# Set scene in MRML widgets. Make sure that in Qt designer the top-level qMRMLWidget's
-		# "mrmlSceneChanged(vtkMRMLScene*)" signal in is connected to each MRML widget's.
-		# "setMRMLScene(vtkMRMLScene*)" slot.
-		
-
-		
 
 		# Connections
 		self._setupConnections()
@@ -193,6 +181,7 @@ class dataViewWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 		# Make sure parameter node exists and observed
 		self.initializeParameterNode()
 		self.active = True
+		self.onPlanChange()
 
 	def exit(self):
 		"""
@@ -344,7 +333,7 @@ class dataViewWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 				if wigCnt < len(modelWig_dict[ititle]):
 					sepLine = qt.QFrame()
 					sepLine.setFrameShape(qt.QFrame.HLine)
-					sepLine.setFixedWidth(230)
+					sepLine.setFixedWidth(250)
 					modelGridLayout.addWidget(sepLine,cnt,1,1,1,qt.Qt.AlignRight)
 					cnt += 1
 					wigCnt += 1

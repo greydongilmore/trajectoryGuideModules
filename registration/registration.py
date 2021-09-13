@@ -31,20 +31,15 @@ class registration(ScriptedLoadableModule):
 
 	def __init__(self, parent):
 		ScriptedLoadableModule.__init__(self, parent)
-		self.parent.title = "03: Registration"  # TODO: make this more human readable by adding spaces
-		self.parent.categories = ["trajectoryGuide"]  # TODO: set categories (folders where the module shows up in the module selector)
-		self.parent.dependencies = []  # TODO: add here list of module names that this module requires
-		self.parent.contributors = ["Greydon Gilmore (Western University)"]  # TODO: replace with "Firstname Lastname (Organization)"
-		# TODO: update with short description of the module and a link to online module documentation
+		self.parent.title = "03: Registration"
+		self.parent.categories = ["trajectoryGuide"]
+		self.parent.dependencies = []
+		self.parent.contributors = ["Greydon Gilmore (Western University)"]
 		self.parent.helpText = """
-This is an example of scripted loadable module bundled in an extension.
-See more information in <a href="https://github.com/organization/projectname#registration">module documentation</a>.
+This module performs image registration, wrapping three registrations tool: NiftyReg, ANTS, and FSL.\n
+For use details see <a href="https://trajectoryguide.greydongilmore.com/widgets/05_registration.html">module documentation</a>.
 """
-		# TODO: replace with organization, grant and thanks
-		self.parent.acknowledgementText = """
-This file was originally developed by Jean-Christophe Fillion-Robin, Kitware Inc., Andras Lasso, PerkLab,
-and Steve Pieper, Isomics, Inc. and was partially funded by NIH grant 3P41RR013218-12S1.
-"""
+		self.parent.acknowledgementText = ""
 
 
 #
@@ -121,9 +116,6 @@ class registrationWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
 		self.ui.patientSpaceGB.setStyleSheet(groupboxStyle + f"color: {self.text_color}" + ';}' + groupboxStyleTitle + f"color: {self.text_color}" + ';}')
 
-		fontSettings = qt.QFont(fontSettingTitle)
-		fontSettings.setBold(True)
-		self.ui.templateSpaceGB.setFont(fontSettings)
 		self.ui.templateSpaceGB.setStyleSheet(ctkCollapsibleGroupBoxStyle + f"color: {self.text_color}" + '}' + ctkCollapsibleGroupBoxTitle + f"color: {self.text_color}" + '}')
 		self.ui.templateSpaceGB.collapsed = 1
 

@@ -1531,6 +1531,8 @@
       <font>
        <family>Arial</family>
        <pointsize>12</pointsize>
+       <weight>50</weight>
+       <bold>false</bold>
       </font>
      </property>
      <property name="title">
@@ -1555,6 +1557,8 @@
          <font>
           <family>Arial</family>
           <pointsize>11</pointsize>
+          <weight>50</weight>
+          <bold>false</bold>
          </font>
         </property>
         <property name="toolTip">
@@ -1610,6 +1614,8 @@
          <font>
           <family>Arial</family>
           <pointsize>11</pointsize>
+          <weight>50</weight>
+          <bold>false</bold>
          </font>
         </property>
         <property name="currentText">
@@ -1638,6 +1644,8 @@
          <font>
           <family>Arial</family>
           <pointsize>11</pointsize>
+          <weight>50</weight>
+          <bold>false</bold>
          </font>
         </property>
         <property name="text">
@@ -1669,6 +1677,8 @@
          <font>
           <family>Arial</family>
           <pointsize>11</pointsize>
+          <weight>50</weight>
+          <bold>false</bold>
          </font>
         </property>
         <property name="text">
@@ -3512,8 +3522,8 @@
  <resources/>
  <connections/>
  <buttongroups>
+  <buttongroup name="regAlgoTemplateBG"/>
   <buttongroup name="regAlgoBG"/>
   <buttongroup name="histMatchBG"/>
-  <buttongroup name="regAlgoTemplateBG"/>
  </buttongroups>
 </ui>

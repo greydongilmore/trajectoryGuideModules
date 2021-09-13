@@ -1810,9 +1810,6 @@ class preopPlanningWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 			fid.write(json_output)
 			fid.write('\n')
 
-		self.signals.updateStatus.emit(f"Plan {plan_name} confirmed.")
-
-
 
 #
 # preopPlanningLogic

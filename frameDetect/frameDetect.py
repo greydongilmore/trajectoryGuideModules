@@ -29,20 +29,15 @@ class frameDetect(ScriptedLoadableModule):
 
 	def __init__(self, parent):
 		ScriptedLoadableModule.__init__(self, parent)
-		self.parent.title = "02: Frame Detection"  # TODO: make this more human readable by adding spaces
-		self.parent.categories = ["trajectoryGuide"]  # TODO: set categories (folders where the module shows up in the module selector)
-		self.parent.dependencies = ["dataImport"]  # TODO: add here list of module names that this module requires
-		self.parent.contributors = ["Greydon Gilmore (Western University)"]  # TODO: replace with "Firstname Lastname (Organization)"
-		# TODO: update with short description of the module and a link to online module documentation
+		self.parent.title = "02: Frame Detection"
+		self.parent.categories = ["trajectoryGuide"]
+		self.parent.dependencies = []
+		self.parent.contributors = ["Greydon Gilmore (Western University)"]
 		self.parent.helpText = """
-This is an example of scripted loadable module bundled in an extension.
-See more information in <a href="https://github.com/organization/projectname#frameDetect">module documentation</a>.
+This module performs stereotactic frame detection for frame systems: Leksell, CRW, and BRW.\n
+For use details see <a href="https://trajectoryguide.greydongilmore.com/widgets/04_frame_detection.html">module documentation</a>.
 """
-		# TODO: replace with organization, grant and thanks
-		self.parent.acknowledgementText = """
-This file was originally developed by Jean-Christophe Fillion-Robin, Kitware Inc., Andras Lasso, PerkLab,
-and Steve Pieper, Isomics, Inc. and was partially funded by NIH grant 3P41RR013218-12S1.
-"""
+		self.parent.acknowledgementText = ""
 
 
 #

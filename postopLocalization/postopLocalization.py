@@ -28,20 +28,15 @@ class postopLocalization(ScriptedLoadableModule):
 
 	def __init__(self, parent):
 		ScriptedLoadableModule.__init__(self, parent)
-		self.parent.title = "07: Postop Localization"  # TODO: make this more human readable by adding spaces
-		self.parent.categories = ["trajectoryGuide"]  # TODO: set categories (folders where the module shows up in the module selector)
-		self.parent.dependencies = []  # TODO: add here list of module names that this module requires
-		self.parent.contributors = ["Greydon Gilmore (Western University)"]  # TODO: replace with "Firstname Lastname (Organization)"
-		# TODO: update with short description of the module and a link to online module documentation
+		self.parent.title = "07: Postop Localization"
+		self.parent.categories = ["trajectoryGuide"]
+		self.parent.dependencies = []
+		self.parent.contributors = ["Greydon Gilmore (Western University)"]
 		self.parent.helpText = """
 This is an example of scripted loadable module bundled in an extension.
 See more information in <a href="https://github.com/organization/projectname#postopLocalization">module documentation</a>.
 """
-		# TODO: replace with organization, grant and thanks
-		self.parent.acknowledgementText = """
-This file was originally developed by Jean-Christophe Fillion-Robin, Kitware Inc., Andras Lasso, PerkLab,
-and Steve Pieper, Isomics, Inc. and was partially funded by NIH grant 3P41RR013218-12S1.
-"""
+		self.parent.acknowledgementText = ""
 
 
 #
@@ -157,7 +152,8 @@ class postopLocalizationWidget(ScriptedLoadableModuleWidget, VTKObservationMixin
 		# Make sure parameter node exists and observed
 		self.initializeParameterNode()
 		self.active = True
-
+		self.resetValues()
+	
 	def exit(self):
 		"""
 		Called each time the user opens a different module.
@@ -227,6 +223,16 @@ class postopLocalizationWidget(ScriptedLoadableModuleWidget, VTKObservationMixin
 
 		# Make sure GUI changes do not call updateParameterNodeFromGUI (it could cause infinite loop)
 		self._updatingGUIFromParameterNode = True
+
+		if self._parameterNode.GetParameter('derivFolder'):
+
+			planNames = [self.ui.planName.itemText(i) for i in range(self.ui.planName.count)]
+
+			with open(os.path.join(self._parameterNode.GetParameter('derivFolder'), f"{self._parameterNode.GetParameter('derivFolder').split(os.path.sep)[-1]}_surgical_data.json")) as surgical_info:
+				surgical_info_json = json.load(surgical_info)
+
+			plansAdd = [x for x in list(surgical_info_json['trajectories']) if x not in planNames]
+			self.ui.planName.addItems(plansAdd)
 
 		# All the GUI updates are done
 		self._updatingGUIFromParameterNode = False

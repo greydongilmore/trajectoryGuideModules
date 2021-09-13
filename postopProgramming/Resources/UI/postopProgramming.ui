@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>506</width>
+    <width>488</width>
     <height>1480</height>
    </rect>
   </property>
@@ -456,6 +456,12 @@
       <string>Stimulation Settings</string>
      </property>
      <layout class="QGridLayout" name="gridLayout_16">
+      <property name="leftMargin">
+       <number>0</number>
+      </property>
+      <property name="rightMargin">
+       <number>0</number>
+      </property>
       <item row="0" column="0" colspan="2" alignment="Qt::AlignRight">
        <widget class="QWidget" name="planEntryHeaderWig_4" native="true">
         <property name="font">
@@ -3224,22 +3230,7 @@
  <resources/>
  <connections/>
  <buttongroups>
-  <buttongroup name="polarity05">
-   <property name="exclusive">
-    <bool>false</bool>
-   </property>
-  </buttongroup>
-  <buttongroup name="electrodeChannelButtonGroup">
-   <property name="exclusive">
-    <bool>false</bool>
-   </property>
-  </buttongroup>
   <buttongroup name="polarity02">
-   <property name="exclusive">
-    <bool>false</bool>
-   </property>
-  </buttongroup>
-  <buttongroup name="polarity06">
    <property name="exclusive">
     <bool>false</bool>
    </property>
@@ -3249,12 +3240,28 @@
     <bool>false</bool>
    </property>
   </buttongroup>
+  <buttongroup name="polarity07">
+   <property name="exclusive">
+    <bool>false</bool>
+   </property>
+  </buttongroup>
+  <buttongroup name="polarity06">
+   <property name="exclusive">
+    <bool>false</bool>
+   </property>
+  </buttongroup>
+  <buttongroup name="vtaAlgorithm"/>
   <buttongroup name="polarity08">
    <property name="exclusive">
     <bool>false</bool>
    </property>
   </buttongroup>
-  <buttongroup name="electrodeModelButtonGroup">
+  <buttongroup name="electrodeChannelButtonGroup">
+   <property name="exclusive">
+    <bool>false</bool>
+   </property>
+  </buttongroup>
+  <buttongroup name="polarity05">
    <property name="exclusive">
     <bool>false</bool>
    </property>
@@ -3264,8 +3271,7 @@
     <bool>false</bool>
    </property>
   </buttongroup>
-  <buttongroup name="vtaAlgorithm"/>
-  <buttongroup name="polarity07">
+  <buttongroup name="electrodeModelButtonGroup">
    <property name="exclusive">
     <bool>false</bool>
    </property>
