@@ -69,22 +69,22 @@ class preopPlanningWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 		self.planElecModel = []
 		self.lastOriginCoords = np.array([0.0,0.0,0.0])
 		self.crossHairLastPosition = collections.deque(maxlen=2)
-		self.originPointPrevious=None
+		self.originPointPrevious = None
 		self.frameRotationNode = None
-		self.probeEyeTransformNode=None
-		self.probeEyeMarkups=None
-		self.planAllChecked=False
+		self.probeEyeTransformNode = None
+		self.probeEyeMarkups = None
+		self.planAllChecked = False
 		self.originPoint = 'mcp'
 		self.merOrientation = 'plusBenGun'
-		self.planRenameEvent=False
-		self.previousProbeEye=False
-		self.lastPlanName=None
+		self.planRenameEvent = False
+		self.previousProbeEye = False
+		self.lastPlanName = None
 		self.leftChanIndexPlus = {1:'anterior',  3:'posterior',  0:'medial',  2:'lateral'}
 		self.rightChanIndexPlus = {1:'anterior',  3:'posterior',  2:'medial',  0:'lateral'}
 		self.leftChanIndexCross = {1:'anterolateral',  3:'posteromedial',  0:'anteromedial',  2:'posterolateral'}
 		self.rightChanIndexCross = {0:'anterolateral',  2:'posteromedial',  1:'anteromedial',  3:'posterolateral'}
-		self.plusBenGunLabels=['planAntMER','planPosMER','planMedMER','planLatMER','planCenMER']
-		self.crossBenGunLabels=['planAntMedMER','planAntLatMER','planPosMedMER','planPosLatMER','planCenMER']
+		self.plusBenGunLabels = ['planAntMER','planPosMER','planMedMER','planLatMER','planCenMER']
+		self.crossBenGunLabels = ['planAntMedMER','planAntLatMER','planPosMedMER','planPosLatMER','planCenMER']
 
 	def setup(self):
 		"""
@@ -326,7 +326,7 @@ class preopPlanningWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 		if isinstance(caller, qt.QRadioButton):
 			print(caller.name)
 			self._parameterNode.SetParameter("frame_system", caller.name)
-		
+
 		self._parameterNode.EndModify(wasModified)
 
 	def setupMarkupNodes(self):
