@@ -295,20 +295,15 @@ class preopPlanningWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 		# Make sure GUI changes do not call updateParameterNodeFromGUI (it could cause infinite loop)
 		self._updatingGUIFromParameterNode = True
 
-		# Update node selectors and sliders
-		#self.ui.inputSelector.setCurrentNode(self._parameterNode.GetNodeReference("InputVolume"))
-		#self.ui.outputSelector.setCurrentNode(self._parameterNode.GetNodeReference("OutputVolume"))
-		#self.ui.invertedOutputSelector.setCurrentNode(self._parameterNode.GetNodeReference("OutputVolumeInverse"))
-		#self.ui.imageThresholdSliderWidget.value = float(self._parameterNode.GetParameter("Threshold"))
-		#self.ui.invertOutputCheckBox.checked = (self._parameterNode.GetParameter("Invert") == "true")
+		if self._parameterNode.GetParameter('derivFolder'):
 
-		# Update buttons states and tooltips
-		#if self._parameterNode.GetNodeReference("InputVolume") and self._parameterNode.GetNodeReference("OutputVolume"):
-		#	self.ui.applyButton.toolTip = "Compute output volume"
-		#	self.ui.applyButton.enabled = True
-		#else:
-		#	self.ui.applyButton.toolTip = "Select input and output volume nodes"
-		#	self.ui.applyButton.enabled = False
+			planNames = [self.ui.planName.itemText(i) for i in range(self.ui.planName.count)]
+
+			with open(os.path.join(self._parameterNode.GetParameter('derivFolder'), f"{self._parameterNode.GetParameter('derivFolder').split(os.path.sep)[-1]}_surgical_data.json")) as surgical_info:
+				surgical_info_json = json.load(surgical_info)
+
+			plansAdd = [x for x in list(surgical_info_json['trajectories']) if x not in planNames]
+			self.ui.planName.addItems(plansAdd)
 
 		# All the GUI updates are done
 		self._updatingGUIFromParameterNode = False
@@ -331,13 +326,7 @@ class preopPlanningWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 		if isinstance(caller, qt.QRadioButton):
 			print(caller.name)
 			self._parameterNode.SetParameter("frame_system", caller.name)
-
-		#self._parameterNode.SetNodeReferenceID("InputVolume", self.ui.inputSelector.currentNodeID)
-		#self._parameterNode.SetNodeReferenceID("OutputVolume", self.ui.outputSelector.currentNodeID)
-		#self._parameterNode.SetParameter("Threshold", str(self.ui.imageThresholdSliderWidget.value))
-		#self._parameterNode.SetParameter("Invert", "true" if self.ui.invertOutputCheckBox.checked else "false")
-		#self._parameterNode.SetNodeReferenceID("OutputVolumeInverse", self.ui.invertedOutputSelector.currentNodeID)
-
+		
 		self._parameterNode.EndModify(wasModified)
 
 	def setupMarkupNodes(self):

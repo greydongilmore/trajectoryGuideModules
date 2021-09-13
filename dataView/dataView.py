@@ -187,7 +187,7 @@ class dataViewWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 		"""
 		Called each time the user opens a different module.
 		"""
-		# Do not react to parameter node changes (GUI wlil be updated when the user enters into the module)
+		# Do not react to parameter node changes (GUI will be updated when the user enters into the module)
 		self.removeObserver(self._parameterNode, vtk.vtkCommand.ModifiedEvent, self.updateGUIFromParameterNode)
 
 	def onSceneStartClose(self, caller, event):
