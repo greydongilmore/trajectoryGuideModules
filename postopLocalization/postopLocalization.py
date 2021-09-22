@@ -14,7 +14,7 @@ elif __file__:
 
 sys.path.insert(1, os.path.dirname(cwd))
 
-from helpers.helpers import plotLead, rotation_matrix, warningBox, vtkModelBuilderClass, getPointCoords,adjustPrecision,getMarkupsNode, addCustomLayouts
+from helpers.helpers import plotLead, rotation_matrix, warningBox, vtkModelBuilderClass, getPointCoords,adjustPrecision,getMarkupsNode, addCustomLayouts, frame_angles, plotMicroelectrode
 from helpers.variables import fontSetting, groupboxStyle, coordSys, slicerLayout
 
 #
@@ -902,15 +902,20 @@ class postopLocalizationLogic(ScriptedLoadableModuleLogic):
 			surgical_data['trajectories'][plan_name]['intra']['lead_traj_chosen'] = implantTraj.lower()
 			surgical_data['trajectories'][plan_name]['intra']['mer_tracks'] = {}
 		else:
-			lead_depth=surgical_data['trajectories'][plan_name]['intra']['lead_depth']
-			if implantTraj.lower() !=surgical_data['trajectories'][plan_name]['intra']['lead_traj_chosen']: surgical_data['trajectories'][plan_name]['intra']['lead_traj_chosen']=implantTraj.lower()
+			if 'lead_depth' in list(surgical_data['trajectories'][plan_name]['intra']):
+				lead_depth=surgical_data['trajectories'][plan_name]['intra']['lead_depth']
+				if implantTraj.lower() !=surgical_data['trajectories'][plan_name]['intra']['lead_traj_chosen']: surgical_data['trajectories'][plan_name]['intra']['lead_traj_chosen']=implantTraj.lower()
 
-			for ichan in list(surgical_data['trajectories'][plan_name]['intra']['mer_tracks']):
-				mer_depths = {**mer_depths, **{
-						ichan.lower(): [surgical_data['trajectories'][plan_name]['intra']['mer_tracks'][ichan]['mer_top'],
-						surgical_data['trajectories'][plan_name]['intra']['mer_tracks'][ichan]['mer_bot']]
+				for ichan in list(surgical_data['trajectories'][plan_name]['intra']['mer_tracks']):
+					mer_depths = {**mer_depths, **{
+							ichan.lower(): [surgical_data['trajectories'][plan_name]['intra']['mer_tracks'][ichan]['mer_top'],
+							surgical_data['trajectories'][plan_name]['intra']['mer_tracks'][ichan]['mer_bot']]
+						}
 					}
-				}
+			else:
+				surgical_data['trajectories'][plan_name]['intra']={}
+				surgical_data['trajectories'][plan_name]['intra']['lead_traj_chosen'] = implantTraj.lower()
+				surgical_data['trajectories'][plan_name]['intra']['mer_tracks'] = {}
 
 		surgical_data['trajectories'][plan_name]['post'] = {
 			'target':list(target_coords_world),
@@ -937,6 +942,7 @@ class postopLocalizationLogic(ScriptedLoadableModuleLogic):
 		model_parameters = {
 			'plan_name':plan_name,
 			'type':'post',
+			'side': surgical_data['trajectories'][plan_name]['side'],
 			'elecUsed':postElecModel.lower(), 
 			'data_dir':parameterNode.GetParameter('derivFolder'),
 			'lead_fileN':f"{parameterNode.GetParameter('derivFolder').split(os.path.sep)[-1]}_ses-post_task-{plan_name}_type-{postElecModel.lower()}_lead.vtk", 
@@ -973,9 +979,11 @@ class postopLocalizationLogic(ScriptedLoadableModuleLogic):
 		MagVec = np.sqrt([np.square(DirVec[0]) + np.square(DirVec[1]) + np.square(DirVec[2])])
 		NormVec = np.array([float(DirVec[0] / MagVec), float(DirVec[1] / MagVec), float(DirVec[2] / MagVec)])
 		
-		alpha = np.round(float(np.arccos(DirVec[0] / MagVec) * 180 / np.pi), 2)
-		alpha = np.round(float(90 - alpha), 2)
-		beta = np.round(float(np.arccos(DirVec[1] / MagVec) * 180 / np.pi), 2) - 90
+		
+		alpha,beta=frame_angles(target_coords_world,entry_coords_world)
+		alpha = float(90 - alpha)
+		beta = beta-90
+
 		R = rotation_matrix(alpha, beta, 0)
 		t = 2 * np.pi * np.arange(0, 1, 0.25)
 		
@@ -1050,18 +1058,13 @@ class postopLocalizationLogic(ScriptedLoadableModuleLogic):
 			if coords_track is not None:
 				ch_info[ichan] = ch_info_temp
 
-				vtkModelBuilder = vtkModelBuilderClass()
-				vtkModelBuilder.coords = coords_track
-				vtkModelBuilder.tube_radius = 0.1
-				vtkModelBuilder.tube_thickness = 0.05
-				vtkModelBuilder.filename = track_filename
-				vtkModelBuilder.model_color = model_colors['actualMicroelectrodesColor']
-				vtkModelBuilder.model_visibility = slice_vis['actualMicroelectrodes3DVis']
-				vtkModelBuilder.build_line()
-				
-				if postActualMERTracksPlot:
-					vtkModelBuilder.add_to_scene()
+				model_parameters['mer_filename'] = track_filename
+				model_parameters['model_col'] = model_colors['plannedMicroelectrodesColor']
+				model_parameters['model_vis'] = model_colors['plannedMicroelectrodesColor']
 
+				plotMicroelectrode(coords_track, alpha, beta, model_parameters)
+
+				
 			if coords_activity is not None:
 
 				vtkModelBuilder = vtkModelBuilderClass()

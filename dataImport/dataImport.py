@@ -16,7 +16,7 @@ elif __file__:
 
 sys.path.insert(1, os.path.dirname(cwd))
 
-from helpers.helpers import vtkModelBuilderClass,getFrameCenter, getReverseTransform, addCustomLayouts
+from helpers.helpers import vtkModelBuilderClass,getFrameCenter, getReverseTransform, addCustomLayouts, hex2rgb
 from helpers.variables import coordSys, slicerLayout, surgical_info_dict
 
 #
@@ -656,10 +656,8 @@ class dataImportLogic(ScriptedLoadableModuleLogic):
 						midlineNode.SetNthControlPointLabel(n, ifid)
 						midlineNode.SetNthControlPointLocked(n, True)
 
-			### Load VTK objects
-			elif all([os.path.basename(ifile).endswith('.vtk'), usePreviousValues]):
-				vtkModelBuilder=vtkModelBuilderClass()
-				vtkModelBuilder.filename=ifile
+			### Load model objects
+			elif all([any(os.path.basename(ifile).endswith(x) for x in ('.vtk','.stl')), usePreviousValues]):
 
 				planType=None
 				objectType=None
@@ -683,9 +681,22 @@ class dataImportLogic(ScriptedLoadableModuleLogic):
 					objectType='VTA'
 
 				if planType is not None and objectType is not None:
-					vtkModelBuilder.model_color=modelColors[f'{planType}{objectType}Color']
-					vtkModelBuilder.model_visibility=slice_vis[f'{planType}{objectType}3DVis']
-					vtkModelBuilder.add_to_scene()
+					if os.path.basename(ifile).endswith('.vtk'):
+						vtkModelBuilder=vtkModelBuilderClass()
+						vtkModelBuilder.filename=ifile
+						vtkModelBuilder.model_color = modelColors[f'{planType}{objectType}Color']
+						vtkModelBuilder.model_visibility = slice_vis[f'{planType}{objectType}3DVis']
+						vtkModelBuilder.add_to_scene()
+					elif os.path.basename(ifile).endswith('.stl'):
+						node = slicer.util.loadModel(ifile)
+						if isinstance(modelColors[f'{planType}{objectType}Color'],str):
+							modelCol = hex2rgb(modelColors[f'{planType}{objectType}Color'])
+						else:
+							modelCol = modelColors[f'{planType}{objectType}Color']
+						node.GetModelDisplayNode().SetColor(modelCol)
+						node.GetModelDisplayNode().SetSelectedColor(modelCol)
+						node.GetDisplayNode().SetSliceIntersectionThickness(1)
+						node.GetModelDisplayNode().SetSliceIntersectionVisibility(1)
 
 		#### Set model attribute for ProbeEye viewer
 		models = [x for x in slicer.util.getNodesByClass('vtkMRMLModelNode') if not slicer.vtkMRMLSliceLogic.IsSliceModelNode(x)]

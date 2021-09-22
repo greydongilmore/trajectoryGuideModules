@@ -16,7 +16,7 @@ elif __file__:
 
 sys.path.insert(1, os.path.dirname(cwd))
 
-from helpers.helpers import vtkModelBuilderClass, plotLead, rotation_matrix, warningBox, getMarkupsNode, adjustPrecision, addCustomLayouts
+from helpers.helpers import vtkModelBuilderClass, plotLead, rotation_matrix, warningBox, getMarkupsNode, adjustPrecision, addCustomLayouts, frame_angles, frame_angles, plotMicroelectrode
 from helpers.variables import coordSys, slicerLayout, fontSetting, groupboxStyle
 
 #
@@ -524,9 +524,14 @@ class intraopPlanningWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 		MagVec = np.sqrt([np.square(DirVec[0]) + np.square(DirVec[1]) + np.square(DirVec[2])])
 		NormVec = np.array([float(DirVec[0] / MagVec), float(DirVec[1] / MagVec), float(DirVec[2] / MagVec)])
 		
-		alpha = np.round(float(np.arccos(DirVec[0] / MagVec) * 180 / np.pi), 2)
-		alpha = np.round(float(90 - alpha), 2)
-		beta = np.round(float(np.arccos(DirVec[1] / MagVec) * 180 / np.pi), 2) - 90
+		#alpha = np.round(float(np.arccos(DirVec[0] / MagVec) * 180 / np.pi), 2)
+		#alpha = np.round(float(90 - alpha), 2)
+		#beta = np.round(float(np.arccos(DirVec[1] / MagVec) * 180 / np.pi), 2) - 90
+		
+		alpha,beta=frame_angles(target_pre,entry_pre)
+		alpha = float(90 - alpha)
+		beta = beta-90
+
 		t = 2 * np.pi * np.arange(0, 1, 0.25)
 		coords_shift = 2 * np.c_[(np.cos(t), np.sin(t), np.zeros_like(t))].T
 		R = rotation_matrix(alpha, beta, 0)
@@ -582,6 +587,7 @@ class intraopPlanningWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 		model_parameters = {
 			'plan_name':plan_name,
 			'type':'intra',
+			'side': surgical_data['trajectories'][plan_name]['side'],
 			'elecUsed':electrode_used, 
 			'data_dir':os.path.join(self._parameterNode.GetParameter('derivFolder')),
 			'lead_fileN':f"{self._parameterNode.GetParameter('derivFolder').split(os.path.sep)[-1]}_ses-intra_task-{plan_name}_type-{electrode_used}_label-{self.intraopImplantTraj.lower()}_lead.vtk",
@@ -607,13 +613,13 @@ class intraopPlanningWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 				f"{self._parameterNode.GetParameter('derivFolder').split(os.path.sep)[-1]}_ses-intra_task-{plan_name}_type-mer_label-{ichan}_activity.vtk")
 			
 			track_filename = os.path.join(self._parameterNode.GetParameter('derivFolder'), 
-				f"{self._parameterNode.GetParameter('derivFolder').split(os.path.sep)[-1]}_ses-intra_task-{plan_name}_type-mer_label-{ichan}_track.vtk")
+				f"{self._parameterNode.GetParameter('derivFolder').split(os.path.sep)[-1]}_ses-intra_task-{plan_name}_type-mer_label-{ichan}_track")
 			
 			models = [x for x in slicer.util.getNodesByClass('vtkMRMLModelNode') if not slicer.vtkMRMLSliceLogic.IsSliceModelNode(x)]
 			for imodel in models:
 				if os.path.basename(activity_filename).split('.vtk')[0] in imodel.GetName():
 					slicer.mrmlScene.RemoveNode(slicer.util.getNode(imodel.GetID()))
-				elif os.path.basename(track_filename).split('.vtk')[0] in imodel.GetName():
+				elif os.path.basename(track_filename) in imodel.GetName():
 					slicer.mrmlScene.RemoveNode(slicer.util.getNode(imodel.GetID()))
 
 			coords_track=None
@@ -659,18 +665,12 @@ class intraopPlanningWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 			if coords_track is not None:
 				ch_info[ichan] = ch_info_temp
 
-				vtkModelBuilder = vtkModelBuilderClass()
-				vtkModelBuilder.coords = coords_track
-				vtkModelBuilder.tube_radius = 0.1
-				vtkModelBuilder.tube_thickness = 0.05
-				vtkModelBuilder.filename = track_filename
-				vtkModelBuilder.model_color = model_colors['intraMicroelectrodesColor']
-				vtkModelBuilder.model_visibility = slice_vis['intraMicroelectrodes3DVis']
-				vtkModelBuilder.build_line()
-			
-				if self.intraopMERTracksPlot:
-					vtkModelBuilder.add_to_scene()
-			
+				model_parameters['mer_filename'] = track_filename
+				model_parameters['model_col'] = model_colors['plannedMicroelectrodesColor']
+				model_parameters['model_vis'] = model_colors['plannedMicroelectrodesColor']
+
+				plotMicroelectrode(coords_track, alpha, beta, model_parameters)
+
 			if coords_activity is not None:
 				vtkModelBuilder = vtkModelBuilderClass()
 				vtkModelBuilder.coords = coords_activity

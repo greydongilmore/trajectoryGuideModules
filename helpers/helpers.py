@@ -1798,6 +1798,8 @@ def getFrameRotation():
 		frameRotationMatrix.SetElement(1, 1, riiprime[1][1])
 		frameRotationMatrix.SetElement(1, 2, riiprime[1][2])
 		frameRotationMatrix.SetElement(2, 0, riiprime[2][0])
+		frameRotationMatrix.SetElement(2, 1, riiprime[2][1])
+		frameRotationMatrix.SetElement(2, 2, riiprime[2][2])
 
 		frameRotation.SetMatrixTransformToParent(frameRotationMatrix)
 	else:
@@ -1989,9 +1991,9 @@ def norm_vec(P1, P2):
 
 	return NormVec
 
-def rotateTrajectory(target,arcAngle,ringAngle,dist,fc):
+def rotateTrajectory(target,arcAngle,ringAngle,dist):
 	RASToFrame = np.array([
-		[-1, 0, 0, 100],
+		[ 1, 0, 0, 100],
 		[ 0, 1, 0, 100],
 		[ 0, 0,-1, 100],
 		[ 0, 0, 0,   1]
@@ -2000,7 +2002,7 @@ def rotateTrajectory(target,arcAngle,ringAngle,dist,fc):
 	y = np.sin(math.radians(arcAngle))
 	z = np.cos(math.radians(arcAngle))*np.cos(math.radians(ringAngle))
 	new_point=target+np.array([x,y,z])*dist
-	new_point=np.dot(RASToFrame, np.append(new_point,1))[:3]+fc
+	new_point=np.dot(RASToFrame, np.append(new_point,1))[:3]
 	return new_point
 
 def CT_to_frame_coords(TP, FC):
@@ -2055,7 +2057,6 @@ def rotation_matrix(pitch, roll, yaw):
 		[np.sin(yaw), np.cos(yaw), 0],
 		[0, 0, 1]
 	])
-
 	return np.dot(matrix_pitch, np.dot(matrix_roll, matrix_yaw))
 
 #curveNode=np.vstack([centerOfMass['P1'],centerOfMass['P3'],centerOfMass['P7'],centerOfMass['P9']])
@@ -2182,6 +2183,9 @@ def plotLead(entry,target,origin,model_parameters):
 		The normal vector of the vector.
 	
 	"""
+
+	if isinstance(model_parameters['model_col'],str):
+		model_parameters['model_col'] = hex2rgb(model_parameters['model_col'])
 
 	entry_origin = entry - origin.copy()
 	target_origin = target - origin.copy()
@@ -2378,6 +2382,79 @@ def plotLead(entry,target,origin,model_parameters):
 	with open(csvfile, 'a') as (output):
 		writer = csv.writer(output, lineterminator='\n')
 		writer.writerows(contactFile)
+
+
+def plotMicroelectrode(coords, alpha, beta, model_parameters):
+	"""Creates a vtk model of electrode.
+	
+	Parameters
+	----------
+	entry : ndarray
+		The entry point coordinates.
+
+	target : ndarray
+		The target point coordinates.
+
+	origin : ndarray
+		The origin point used to reference the entry/target points.
+	
+	model_parameters : dict
+	
+	Returns
+	-------
+	NormVec : ndarray
+		The normal vector of the vector.
+	
+	"""
+
+	if isinstance(model_parameters['model_col'],str):
+		model_parameters['model_col'] = hex2rgb(model_parameters['model_col'])
+
+	#### remove any pre-existing vtk models of the same name
+	nodes = [x for x in slicer.util.getNodesByClass('vtkMRMLModelNode') if not slicer.vtkMRMLSliceLogic.IsSliceModelNode(x)]
+	for inodes in nodes:
+		if os.path.basename(model_parameters['mer_filename']) in inodes.GetName():
+			slicer.mrmlScene.RemoveNode(slicer.util.getNode(inodes.GetID()))
+
+	if os.path.exists(model_parameters['mer_filename']+'.stl'):
+		os.remove(model_parameters['mer_filename']+'.stl')
+
+	node = slicer.util.loadModel(os.path.join(os.path.join(os.path.dirname(cwd), 'resources', 'models', 'alphaomega_neuroprobe_10mm.stl')))
+	node.SetName(os.path.basename(model_parameters['mer_filename']))
+	node.GetModelDisplayNode().SetColor(model_parameters['model_col'])
+	node.GetModelDisplayNode().SetSelectedColor(model_parameters['model_col'])
+	node.GetDisplayNode().SetSliceIntersectionThickness(1)
+	node.GetModelDisplayNode().SetSliceIntersectionVisibility(1)
+
+	rotAng = 0
+	if 'label-center' in os.path.basename(model_parameters['mer_filename']):
+		rotAng = -45
+	elif 'label-anterior' in os.path.basename(model_parameters['mer_filename']):
+		rotAng = -180
+	elif 'label-medial' in os.path.basename(model_parameters['mer_filename']):
+		rotAng = -90
+		if 'left' in model_parameters['side']:
+			rotAng = 90
+	elif 'label-lateral' in os.path.basename(model_parameters['mer_filename']):
+		rotAng = 90
+		if 'left' in model_parameters['side']:
+			rotAng = -90
+				
+	sys_matrix=vtk.vtkTransform()
+	sys_matrix.Translate(coords[:3])
+	sys_matrix.RotateX(beta)
+	sys_matrix.RotateY(alpha)
+	sys_matrix.RotateZ(rotAng)
+
+	sys_matrix2 = slicer.vtkMRMLLinearTransformNode()
+	slicer.mrmlScene.AddNode(sys_matrix2)
+	sys_matrix2.SetMatrixTransformToParent(sys_matrix.GetMatrix())
+
+	node.SetAndObserveTransformNodeID(sys_matrix2.GetID())
+	slicer.vtkSlicerTransformLogic.hardenTransform(node)
+	slicer.mrmlScene.RemoveNode(sys_matrix2)
+
+	slicer.util.saveNode(node, model_parameters['mer_filename'] + '.stl')
 
 
 class VTAModelBuilderClass:
@@ -2817,8 +2894,7 @@ def hex2rgb(hx):
 	"""
 	rgb = (int(hx[1:3], 16) / 255, int(hx[3:5], 16) / 255, int(hx[5:], 16) / 255)
 	return rgb
-
-
+	
 def arrayFromMarkupsControlPointLabels(markupsNode):
 	"""Return control point data array of a markups node as numpy array.
 	.. warning:: Important: memory area of the returned array is managed by VTK,

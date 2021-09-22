@@ -13,7 +13,7 @@ sys.path.insert(1, os.path.dirname(cwd))
 
 from helpers.helpers import norm_vec, mag_vec, plotLead, warningBox, \
 rotation_matrix, vtkModelBuilderClass,getMarkupsNode,getPointCoords,adjustPrecision,getFrameCenter,applyTransformToPoints,frame_angles,\
-getFrameRotation,dotdict,addCustomLayouts
+getFrameRotation,dotdict,addCustomLayouts, plotMicroelectrode
 
 from helpers.variables import coordSys, groupboxStyle, slicerLayout
 
@@ -1684,6 +1684,7 @@ class preopPlanningWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 		model_parameters = {
 			'plan_name':plan_name,
 			'type':'pre',
+			'side': surgical_data['trajectories'][plan_name]['side'],
 			'elecUsed':self.planElecModel.lower(), 
 			'data_dir':self._parameterNode.GetParameter('derivFolder'),
 			'lead_fileN':f"{self._parameterNode.GetParameter('derivFolder').split(os.path.sep)[-1]}_ses-pre_task-{plan_name}_type-{self.planElecModel.lower()}_lead.vtk",
@@ -1704,9 +1705,13 @@ class preopPlanningWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 		MagVec = np.sqrt([np.square(DirVec[0]) + np.square(DirVec[1]) + np.square(DirVec[2])])
 		NormVec = np.array([float(DirVec[0] / MagVec), float(DirVec[1] / MagVec), float(DirVec[2] / MagVec)])
 		
-		alpha = adjustPrecision(float(np.arccos(DirVec[0] / MagVec) * 180 / np.pi))
-		alpha = adjustPrecision(float(90 - alpha))
-		beta = adjustPrecision(float(np.arccos(DirVec[1] / MagVec) * 180 / np.pi)) - 90
+		#alpha = adjustPrecision(float(np.arccos(DirVec[0] / MagVec) * 180 / np.pi))
+		#alpha = adjustPrecision(float(90 - alpha))
+		#beta = adjustPrecision(float(np.arccos(DirVec[1] / MagVec) * 180 / np.pi)) - 90
+		
+		alpha,beta=frame_angles(target_coords_world,entry_coords_world)
+		alpha = float(90 - alpha)
+		beta = beta-90
 		if self.merOrientation =='crossBenGun':
 			R = rotation_matrix(alpha, beta, 45)
 		else:
@@ -1714,10 +1719,11 @@ class preopPlanningWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 		t = 2 * np.pi * np.arange(0, 1, 0.25)
 		coords_norm = 2 * np.c_[(np.cos(t), np.sin(t), np.zeros_like(t))].T
 		new_coords_final = (np.dot(R, coords_norm).T + target_coords_world).T
+
 		
 		ch_info={}
 		for ichan in self.planChans:
-			mer_filename = os.path.join(self._parameterNode.GetParameter('derivFolder'), f"{self._parameterNode.GetParameter('derivFolder').split(os.path.sep)[-1]}_ses-pre_task-{plan_name}_type-mer_label-{ichan}_track.vtk")
+			mer_filename = os.path.join(self._parameterNode.GetParameter('derivFolder'), f"{self._parameterNode.GetParameter('derivFolder').split(os.path.sep)[-1]}_ses-pre_task-{plan_name}_type-mer_label-{ichan}_track")
 			
 			models = [x for x in slicer.util.getNodesByClass('vtkMRMLModelNode') if not slicer.vtkMRMLSliceLogic.IsSliceModelNode(x)]
 			for imodel in models:
@@ -1745,16 +1751,11 @@ class preopPlanningWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 			if coords is not None:
 				ch_info[ichan] = ch_info_temp
 
-				vtkModelBuilder = vtkModelBuilderClass()
-				vtkModelBuilder.coords = coords
-				vtkModelBuilder.tube_radius = 0.1
-				vtkModelBuilder.tube_thickness = 0.05
-				vtkModelBuilder.filename = mer_filename
-				vtkModelBuilder.model_color = model_colors['plannedMicroelectrodesColor']
-				vtkModelBuilder.model_visibility = slice_vis['plannedMicroelectrodes3DVis']
-				vtkModelBuilder.build_line()
-				if self.plannedMERTracksPlot:
-					vtkModelBuilder.add_to_scene()
+				model_parameters['mer_filename'] = mer_filename
+				model_parameters['model_col'] = model_colors['plannedMicroelectrodesColor']
+				model_parameters['model_vis'] = model_colors['plannedMicroelectrodesColor']
+
+				plotMicroelectrode(coords, alpha, beta, model_parameters)
 
 		surgical_data['trajectories'][plan_name]['pre']['mer_tracks']=ch_info
 

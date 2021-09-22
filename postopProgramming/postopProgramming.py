@@ -689,7 +689,7 @@ class postopProgrammingWidget(ScriptedLoadableModuleWidget, VTKObservationMixin)
 			side_data['entry'] = surgical_data['trajectories'][self.ui.planName.currentText]['post']['entry'].copy()
 			side_data['target'] = surgical_data['trajectories'][self.ui.planName.currentText]['post']['target'].copy()
 			side_data['data_dir'] = os.path.join(self._parameterNode.GetParameter('derivFolder'))
-			side_data['output_name'] = f"{self._parameterNode.GetParameter('derivFolder').split(os.path.sep)[-1]}_ses-post_task-{side_data['plan_name']}_vta.vtk"
+			side_data['output_name'] = f"{self._parameterNode.GetParameter('derivFolder').split(os.path.sep)[-1]}_ses-post_task-{self.ui.planName.currentText}_vta.vtk"
 
 			with open(os.path.join(self._parameterNode.GetParameter('derivFolder'), 'settings', 'model_visibility.json')) as (settings_file):
 				slice_vis = json.load(settings_file)
@@ -700,7 +700,7 @@ class postopProgrammingWidget(ScriptedLoadableModuleWidget, VTKObservationMixin)
 			side_data['side']='right'
 			side_data['entry'] = [10,10,10]
 			side_data['target'] = [0,0,0]
-			side_data['nodeName'] = f"ses-post_task-{side_data['plan_name']}_vta"
+			side_data['nodeName'] = f"ses-post_task-{self.ui.planName.currentText}_vta"
 
 			with open(os.path.join(self._parameterNode.GetParameter('trajectoryGuidePath'), 'resources', 'settings', 'model_visibility.json')) as (settings_file):
 				slice_vis = json.load(settings_file)
