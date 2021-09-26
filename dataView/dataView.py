@@ -641,12 +641,13 @@ class dataViewWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 					imodel.GetDisplayNode().SetOpacity(button.value)
 
 	def onPlanChange(self):
-		with open(os.path.join(self._parameterNode.GetParameter('derivFolder'), f"{self._parameterNode.GetParameter('derivFolder').split(os.path.sep)[-1]}_surgical_data.json")) as (surg_file):
-			surgical_data = json.load(surg_file)
-		planName = self.ui.planName.currentText
+		if self._parameterNode.GetParameter('derivFolder'):
+			with open(os.path.join(self._parameterNode.GetParameter('derivFolder'), f"{self._parameterNode.GetParameter('derivFolder').split(os.path.sep)[-1]}_surgical_data.json")) as (surg_file):
+				surgical_data = json.load(surg_file)
+			planName = self.ui.planName.currentText
 
-		if planName in list(surgical_data['trajectories']):
-			self.resetValues()
+			if planName in list(surgical_data['trajectories']):
+				self.resetValues()
 
 	def resetValues(self):
 		surgical_info = os.path.join(self._parameterNode.GetParameter('derivFolder'), f"{self._parameterNode.GetParameter('derivFolder').split(os.path.sep)[-1]}_surgical_data.json")
