@@ -52,11 +52,6 @@ try:
 except:
 	library_install.append('scipy')
 
-try:
-	from shapely.geometry import LineString as shLs
-	from shapely.geometry import Point as shPt
-except:
-	library_install.append('shapely')
 
 if library_install:
 	slicer.util.warningDisplay(f"Please copy the following command and run inside the python interactor first:\n\npip_install('{' '.join(library_install)}')")
