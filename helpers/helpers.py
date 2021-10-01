@@ -927,8 +927,7 @@ class frameDetection:
 
 			combined[:,3]=combined[:,-1]
 			combined = combined[:,list(range(combined.shape[1]-1))]
-
-			print(combined[0:10,:])
+			
 			self.final_location_clusters=self.convert_ijk(combined, self.node)
 			final_location=self.convert_ijk_mean(combined, self.node)
 			self.final_location=self.remove_label_outliers(final_location)

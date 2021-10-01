@@ -960,7 +960,7 @@ class frameDetectLogic(ScriptedLoadableModuleLogic):
 		interactionNode = applicationLogic.GetInteractionNode()
 		interactionNode.Reset(None)
 		layoutManager = slicer.app.layoutManager()
-		layoutManager.setLayout(6)
+		layoutManager.setLayout(slicerLayoutAxial)
 		layoutManager = slicer.app.layoutManager()
 		layoutManager.sliceWidget('Red').mrmlSliceNode().RotateToVolumePlane(frameFidVolume)
 		zAxisCoordFrame = frameFidVolume.GetImageData().GetExtent()[(-1)] / 2
@@ -1222,7 +1222,7 @@ class frameDetectLogic(ScriptedLoadableModuleLogic):
 				frameFiducialPoints['x']=[format (x, '.3f') for x in self.frameDetectInstance.final_location_clusters[:,0]]
 				frameFiducialPoints['y']=[format (x, '.3f') for x in self.frameDetectInstance.final_location_clusters[:,1]]
 				frameFiducialPoints['z']=[format (x, '.3f') for x in self.frameDetectInstance.final_location_clusters[:,2]]
-				frameFiducialPoints['intensity']=[format (x, '.3f') for x in self.frameDetectInstance.final_location_clusters[:,4]]
+				frameFiducialPoints['intensity']=[format (x, '.3f') for x in self.frameDetectInstance.final_location_clusters[:,-1]]
 				
 				outfile_name = os.path.join(derivFolder, 'frame',
 					f"{derivFolder.split(os.path.sep)[-1]}_space-{frame_settings['system']}_desc-clusters_fids.tsv")

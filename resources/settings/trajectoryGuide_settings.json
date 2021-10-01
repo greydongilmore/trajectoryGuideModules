@@ -1,5 +1,5 @@
 {
-    "default_dir": "/media/veracrypt6/projects/stealthMRI/imaging/clinical/deriv/validation/scenes",
+    "default_dir": "B:/projects/stealthMRI/imaging/clinical/deriv/validation/scenes",
     "surgical_targets": [
         "STN",
         "GPi",

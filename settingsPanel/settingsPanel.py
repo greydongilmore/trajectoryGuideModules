@@ -219,25 +219,29 @@ class settingsPanelWidget(qt.QGroupBox, VTKObservationMixin):
 	@vtk.calldata_type(vtk.VTK_OBJECT)
 	def onScalerVolumeNodeAdded(self, caller, event, calldata):
 		node = calldata
+		nodeName = node.GetName()
+		if nodeName[-1].isdigit():
+			nodeName = '_'.join(nodeName.split('_')[:-1])
+
 		if isinstance(node, slicer.vtkMRMLScalarVolumeNode):
-			volMenu = self.volumeMenu.addAction(node.GetName())
-			volMenu.setObjectName(node.GetName())
+			volMenu = self.volumeMenu.addAction(nodeName)
+			volMenu.setObjectName(nodeName)
 			volMenu.setCheckable(True)
 
 			for iaction in self.volumeMenu.actions():
-				if iaction.text != node.GetName():
+				if iaction.text != nodeName:
 					iaction.setChecked(False)
 				else:
 					iaction.setChecked(True)
 
-			if 'coreg' not in node.GetName():
+			if 'coreg' not in nodeName:
 				file_sidecar = None
 				if 'derivFolder' in self._parameterNode.GetParameterNames():
-					if os.path.exists(os.path.join(self._parameterNode.GetParameter('derivFolder'), node.GetName() + '.json')):
-						with open(os.path.join(self._parameterNode.GetParameter('derivFolder'), node.GetName() + '.json')) as (file):
+					if os.path.exists(os.path.join(self._parameterNode.GetParameter('derivFolder'), nodeName + '.json')):
+						with open(os.path.join(self._parameterNode.GetParameter('derivFolder'), nodeName + '.json')) as (file):
 							file_sidecar = json.load(file)
-					elif os.path.exists(os.path.join(self._parameterNode.GetParameter('derivFolder'),'frame', node.GetName() + '.json')):
-						with open(os.path.join(self._parameterNode.GetParameter('derivFolder'), 'frame', node.GetName() + '.json')) as (file):
+					elif os.path.exists(os.path.join(self._parameterNode.GetParameter('derivFolder'),'frame', nodeName + '.json')):
+						with open(os.path.join(self._parameterNode.GetParameter('derivFolder'), 'frame', nodeName + '.json')) as (file):
 							file_sidecar = json.load(file)
 					
 					if file_sidecar is not None:

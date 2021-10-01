@@ -9,6 +9,7 @@ import stat
 import vtk, qt, slicer
 from slicer.ScriptedLoadableModule import *
 from slicer.util import VTKObservationMixin
+import sys, subprocess
 
 if getattr(sys, 'frozen', False):
 	cwd = os.path.dirname(sys.argv[0])
@@ -184,11 +185,16 @@ class registrationWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
 
 	def _setupConnections(self):
+
+		# Make sure parameter node is initialized (needed for module reload)
+		self.initializeParameterNode()
+
 		# These connections ensure that we update parameter node when scene is closed
 		self.addObserver(slicer.mrmlScene, slicer.mrmlScene.StartCloseEvent, self.onSceneStartClose)
 		self.addObserver(slicer.mrmlScene, slicer.mrmlScene.EndCloseEvent, self.onSceneEndClose)
 
 		self.addObserver(slicer.mrmlScene, slicer.vtkMRMLScene.NodeAddedEvent, self.onScalerVolumeNodeAdded)
+		self.addObserver(slicer.mrmlScene, slicer.vtkMRMLScene.NodeAboutToBeRemovedEvent, self.onScalerVolumeNodeRemoved)
 
 		# These connections ensure that whenever user changes some settings on the GUI, that is saved in the MRML scene
 		# (in the selected parameter node).
@@ -202,8 +208,7 @@ class registrationWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 		self.ui.compareVolumesButton.connect('clicked(bool)', self.onCompareVolumes)
 		self.ui.layerRevealCheckBox.connect('toggled(bool)', self.onlayerRevealCheckBox)
 
-		# Make sure parameter node is initialized (needed for module reload)
-		self.initializeParameterNode()
+		
 
 		templateSpaces = [x.split('tpl-')[(-1)] for x in os.listdir(os.path.join(self._parameterNode.GetParameter('trajectoryGuidePath'), 'resources', 'ext_libs', 'space')) if os.path.isdir(os.path.join(self._parameterNode.GetParameter('trajectoryGuidePath'), 'resources', 'ext_libs', 'space', x))]
 		self.ui.templateSpaceCB.addItems(['None']+templateSpaces)
@@ -505,7 +510,6 @@ class registrationWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 					transform_data_current.append(iimage.GetName())
 
 			if self.referenceVolume is not None:
-				self.referenceVolume.SetAttribute('refVol', '1')
 				self.referenceVolume.SetAndObserveTransformNodeID(self.transformNodeFrameSpace.GetID())
 				transform_data_current.append(self.referenceVolume.GetName())
 			
@@ -555,12 +559,20 @@ class registrationWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 			layoutManager.sliceWidget(sliceViewName).mrmlSliceNode().SetOrientation(orientations[sliceViewName])
 
 		layoutManager.setLayout(slicerLayout)
-				
-		alignVol=self.ui.referenceComboBox.currentText
+		
 		
 		self.ui.referenceComboBox.clear()
 		self.ui.templateSpaceCB.setCurrentIndex(self.ui.templateSpaceCB.findText('None'))
 		
+		if self.referenceVolume is not None:
+			nodeName = os.path.basename(self.referenceVolume.GetStorageNode().GetFileName()).split('.nii')[0]
+			alignFname = os.path.join(self._parameterNode.GetParameter('derivFolder'), nodeName + '.nii.gz')
+			self.referenceVolume.SetAttribute('frameVol', '0')
+			self.referenceVolume.SetAttribute('regVol', '1')
+			slicer.util.saveNode(self.referenceVolume, alignFname, {'useCompression': False})
+
+			slicer.mrmlScene.AddNode(self.referenceVolume)
+
 		sliceCompositeNodes = slicer.util.getNodesByClass('vtkMRMLSliceCompositeNode')
 		if not any([x for x in sliceCompositeNodes if not x.GetLinkedControl()]):
 			for sliceCompositeNode in sliceCompositeNodes:
@@ -1233,28 +1245,30 @@ class registrationLogic(ScriptedLoadableModuleLogic):
 		Creates an environment where executables are added to the path
 		:param regAlgo:
 		"""
-		regBinDir = self.getRegBinDir(regAlgo)
+		regBinDir = self.getRegBinDir(regAlgo['regAlgo'])
 		regEnv = os.environ.copy()
 		regEnv['PATH'] = regBinDir + os.pathsep + regEnv['PATH'] if regEnv.get('PATH') else regBinDir
-		import platform
-		if any([x in platform.system().lower() for x in ('linux', 'darwin')]):
-			if regAlgo in ('flirt','reg_aladin'):
+
+		if any([x in sys.platform.lower() for x in ('linux', 'darwin')]):
+			if regAlgo['regAlgo'] in ('flirt','reg_aladin'):
 				regLibDir = os.path.abspath(os.path.join(regBinDir, '../lib'))
 				regEnv['LD_LIBRARY_PATH'] = regLibDir + os.pathsep + regEnv['LD_LIBRARY_PATH'] if regEnv.get('LD_LIBRARY_PATH') else regLibDir
 				regEnv['FSLOUTPUTTYPE'] = 'NIFTI_GZ'
-			elif regAlgo in ('antsRegistration','antsRegistrationQuick'):
+			elif regAlgo['regAlgo'] in ('antsRegistration','antsRegistrationQuick'):
 				regEnv['ANTSPATH'] = regBinDir
-			elif regAlgo == 'c3d':
+			elif regAlgo['regAlgo'] == 'c3d':
 				regLibDir = os.path.abspath(os.path.join(regBinDir, '../lib'))
 				regEnv['LD_LIBRARY_PATH'] = regLibDir + os.pathsep + regEnv['LD_LIBRARY_PATH'] if regEnv.get('LD_LIBRARY_PATH') else regLibDir
+		elif sys.platform.lower() =='win32' and any(x in regAlgo['regAlgo'] for x in ('antsRegistration','antsRegistrationQuick')):
+			regEnv['ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS'] = str(regAlgo['parameters']['num_threads'])
+
 		return regEnv
 
 	def getStartupInfo(self):
 		"""
 		Gets the startup information
 		"""
-		import platform
-		if platform.system() != 'Windows':
+		if sys.platform != 'win32':
 			return
 		else:
 			import subprocess
@@ -1264,7 +1278,6 @@ class registrationLogic(ScriptedLoadableModuleLogic):
 			return info
 
 	def run_command(self, command):
-		import sys, subprocess
 		regEnv = os.environ.copy()
 		regEnv['PATH'] = self.c3dBinDir + ':' + regEnv['PATH']
 		regLibDir = os.path.abspath(os.path.join(self.c3dBinDir, '../lib'))
@@ -1282,8 +1295,8 @@ class registrationLogic(ScriptedLoadableModuleLogic):
 
 		"""
 		self.addLog(logText)
-		import sys, subprocess
-		if regAlgo ==10:
+		
+		if regAlgo['regAlgo'] == 10:
 			return subprocess.Popen(cmdLineArguments, env=slicer.util.startupEnvironment(), stdout=(subprocess.PIPE),
 				  universal_newlines=True,
 				  shell=True)
@@ -1374,7 +1387,8 @@ class registrationLogic(ScriptedLoadableModuleLogic):
 		qt.QDir().mkpath(inputDir)
 		outputDir = os.path.join(tempDir, 'output')
 		qt.QDir().mkpath(outputDir)
-		fixedVolume = os.path.join(inputDir, fixedVolumeNode[1])
+
+		fixedVolume = os.path.normpath(os.path.join(inputDir, fixedVolumeNode[1]))
 		slicer.util.saveNode(fixedVolumeNode[0], fixedVolume, {'useCompression': False})
 		
 		self.addLog('Registration started in working directory: ' + tempDir)
@@ -1395,12 +1409,12 @@ class registrationLogic(ScriptedLoadableModuleLogic):
 		
 		cnt = 1
 		for ivol in movingVolumeNode:
-			movingVolume = os.path.join(inputDir, ivol[1])
+			movingVolume = os.path.normpath(os.path.join(inputDir, ivol[1]))
 			slicer.util.saveNode(ivol[0], movingVolume, {'useCompression': False})
 			movingVolFilename = ivol[1].split('.nii')[0]
 			
-			resultTransformPath = os.path.join(outputDir, ivol[1].split('.nii')[0])
-			outputVolume = os.path.join(outputDir, ivol[1].split('.nii')[0] + '_coreg')
+			resultTransformPath = os.path.normpath(os.path.join(outputDir, ivol[1].split('.nii')[0]))
+			outputVolume = os.path.normpath(os.path.join(outputDir, ivol[1].split('.nii')[0] + '_coreg'))
 
 			if self.regAlgo['regAlgo'] == 'flirt':
 
@@ -1448,7 +1462,6 @@ class registrationLogic(ScriptedLoadableModuleLogic):
 				numOfBins=32
 				splineDistance=26
 				collapseOutputTransforms=1
-				ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS = self.regAlgo['parameters']['parameters']['num_threads']
 
 				rigidConvergence="[ 1000x500x250x0,1e-6,10 ]"
 				rigidShrinkFactors="8x4x2x1"
@@ -1489,7 +1502,6 @@ class registrationLogic(ScriptedLoadableModuleLogic):
 					numRegStages=2
 
 				reg_cmd = ' '.join([
-					f"export ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS={ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS}",
 					os.path.join(self.antsBinDir, self.antsExe),
 					'--verbose 1',
 					'--dimensionality 3',
@@ -1501,6 +1513,9 @@ class registrationLogic(ScriptedLoadableModuleLogic):
 					'--winsorize-image-intensities [0.005,0.995]',
 					stages
 				])
+
+				if sys.platform != 'win32':
+					reg_cmd = f"export ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS={self.regAlgo['parameters']['num_threads']}&&" + reg_cmd
 
 			elif self.regAlgo['regAlgo'] == 'reg_aladin':
 
@@ -1518,7 +1533,7 @@ class registrationLogic(ScriptedLoadableModuleLogic):
 			
 			logText = 'Register volumes {} of {}: {} to {}'.format(str(cnt), str(len(movingVolumeNode)), ivol[0].GetName(), fixedVolumeNode[0].GetName())
 			cnt += 1
-			ep = self.startReg(reg_cmd, logText, self.regAlgo['regAlgo'])
+			ep = self.startReg(reg_cmd, logText, self.regAlgo)
 			self.logProcessOutput(ep)
 			
 			if 'acq-' in ivol[0].GetName().lower():
@@ -1587,13 +1602,13 @@ class registrationLogic(ScriptedLoadableModuleLogic):
 					self.addLog('Failed load of output volume: ' + outputVolume + '\n')
 
 		if self.regAlgo['registerTemplate']:
-			self.ref_template = glob.glob(os.path.join(self.scriptPath, 'resources', 'ext_libs', 'space', 'tpl-' + self.regAlgo['templateSpace'], 'templates') + '/*_T1w.nii.gz')
+			self.ref_template = glob.glob(os.path.normpath(os.path.join(self.scriptPath, 'resources', 'ext_libs', 'space', 'tpl-' + self.regAlgo['templateSpace'], 'templates','*_T1w.nii.gz')))
 			
 			if self.ref_template:
 				self.ref_template = self.ref_template[0]
 
-			resultTransformPath = os.path.join(outputDir, f"{os.path.basename(derivFolder).replace(' ', '_')}_desc-affine_from-subject_to-{self.regAlgo['templateSpace']}")
-			outputVolume = os.path.join(outputDir, f"{os.path.basename(derivFolder).replace(' ', '_')}_space-{self.regAlgo['templateSpace']}_T1w")
+			resultTransformPath = os.path.normpath(os.path.join(outputDir, f"{os.path.basename(derivFolder).replace(' ', '_')}_desc-affine_from-subject_to-{self.regAlgo['templateSpace']}"))
+			outputVolume = os.path.normpath(os.path.join(outputDir, f"{os.path.basename(derivFolder).replace(' ', '_')}_space-{self.regAlgo['templateSpace']}_T1w"))
 
 			if self.regAlgo['regAlgoTemplateParams']['regAlgo'] == 'flirt':
 
@@ -1650,7 +1665,6 @@ class registrationLogic(ScriptedLoadableModuleLogic):
 				numOfBins=32
 				splineDistance=26
 				collapseOutputTransforms=1
-				ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS = self.regAlgo['regAlgoTemplateParams']['parameters']['num_threads']
 
 				rigidConvergence="[ 1000x500x250x0,1e-6,10 ]"
 				rigidShrinkFactors="8x4x2x1"
@@ -1725,7 +1739,6 @@ class registrationLogic(ScriptedLoadableModuleLogic):
 					numRegStages=1
 
 				reg_cmd = ' '.join([
-					f"export ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS={ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS}&&",
 					os.path.join(self.antsBinDir, self.antsExe),
 					'--verbose 1',
 					'--dimensionality 3',
@@ -1737,6 +1750,11 @@ class registrationLogic(ScriptedLoadableModuleLogic):
 					'--winsorize-image-intensities [0.005,0.995]',
 					stages
 				])
+				
+				if sys.platform != 'win32':
+					reg_cmd = f"export ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS={self.regAlgo['regAlgoTemplateParams']['parameters']['num_threads']}&&" + reg_cmd
+
+				
 
 			elif self.regAlgo['regAlgoTemplateParams']['regAlgo'] == 'reg_aladin':
 				

@@ -223,8 +223,8 @@ class dataImportWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 	def setExistingDirectory(self):
 		with open(self._parameterNode.GetParameter('trajectoryGuide_settings'), 'r') as (settings_file):
 			trajectoryGuide_settings = json.load(settings_file)
-		if os.path.exists(trajectoryGuide_settings['default_dir']):
-			default_dir = trajectoryGuide_settings['default_dir']
+		if os.path.exists(os.path.normpath(trajectoryGuide_settings['default_dir'])):
+			default_dir = os.path.normpath(trajectoryGuide_settings['default_dir'])
 		else:
 			default_dir = os.path.expanduser('HOME')
 		
@@ -234,7 +234,7 @@ class dataImportWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 				if w.objectName == 'qSlicerMainWindow':
 					parent=w
 
-		self.patient_data_directory = qt.QFileDialog().getExistingDirectory(parent, 'Open a folder', default_dir, qt.QFileDialog.ShowDirsOnly)
+		self.patient_data_directory = os.path.normpath(qt.QFileDialog().getExistingDirectory(parent, 'Open a folder', default_dir, qt.QFileDialog.ShowDirsOnly))
 		if self.patient_data_directory:
 			self.ui.directoryLabel.setText(self.patient_data_directory)
 
@@ -248,7 +248,7 @@ class dataImportWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 		data_directory = qt.QFileDialog().getExistingDirectory(parent, 'Open a folder', os.path.expanduser('HOME'), qt.QFileDialog.ShowDirsOnly)
 		with open(self._parameterNode.GetParameter('trajectoryGuide_settings'), 'r') as (settings_file):
 			trajectoryGuide_settings = json.load(settings_file)
-		trajectoryGuide_settings['default_dir'] = data_directory
+		trajectoryGuide_settings['default_dir'] = os.path.normpath(data_directory)
 		file = self._parameterNode.GetParameter('trajectoryGuide_settings')
 		json_output = json.dumps(trajectoryGuide_settings, indent=4)
 		with open(file, 'w') as (fid):
@@ -381,7 +381,7 @@ class dataImportLogic(ScriptedLoadableModuleLogic):
 
 		"""
 		
-		slicer.mrmlScene.Clear()
+		#slicer.mrmlScene.Clear()
 		self._parameterNode = self.getParameterNode()
 
 		self.bidsFolder = patient_data_directory
