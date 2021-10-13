@@ -228,6 +228,14 @@ class settingsPanelWidget(qt.QGroupBox, VTKObservationMixin):
 			volMenu.setObjectName(nodeName)
 			volMenu.setCheckable(True)
 
+			wasModified = self._parameterNode.StartModify()
+			if not self._parameterNode.GetParameter('addedVolumes'):
+				self._parameterNode.SetParameter("addedVolumes", node.GetName())
+			elif node.GetName() not in self._parameterNode.GetParameter("addedVolumes").split(','):
+				self._parameterNode.SetParameter("addedVolumes", ','.join([self._parameterNode.GetParameter("addedVolumes"), node.GetName()]))
+
+			self._parameterNode.EndModify(wasModified)
+
 			for iaction in self.volumeMenu.actions():
 				if iaction.text != nodeName:
 					iaction.setChecked(False)
@@ -263,6 +271,14 @@ class settingsPanelWidget(qt.QGroupBox, VTKObservationMixin):
 				for iaction in self.volumeMenu.actions():
 					if node.GetName() in iaction.text:
 						self.volumeMenu.removeAction(self.volumeMenu.findChild(qt.QAction,iaction.text))
+
+						wasModified = self._parameterNode.StartModify()
+						
+						if node.GetName() in self._parameterNode.GetParameter("addedVolumes").split(','):
+							self._parameterNode.SetParameter("addedVolumes", ','.join([x for x in self._parameterNode.GetParameter("addedVolumes").split(',') if x != node.GetName()]))
+
+						self._parameterNode.EndModify(wasModified)
+
 					else:
 						if iaction.text == volumeNode.GetName():
 							iaction.setChecked(True)
