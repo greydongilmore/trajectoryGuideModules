@@ -1769,7 +1769,7 @@ class registrationLogic(ScriptedLoadableModuleLogic):
 				])
 			
 			logText = f"Registering {fixedVolumeNode[0].GetName()} to {self.regAlgo['templateSpace']} space"
-			ep = self.startReg(reg_cmd, logText, self.regAlgo['regAlgoTemplateParams']['regAlgo'])
+			ep = self.startReg(reg_cmd, logText, self.regAlgo['regAlgoTemplateParams'])
 			self.logProcessOutput(ep)
 			
 			if self.regAlgo['regAlgoTemplateParams']['regAlgo'] == 'reg_aladin':

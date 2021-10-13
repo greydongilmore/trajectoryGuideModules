@@ -1,5 +1,5 @@
 {
-    "default_dir": "B:/projects/stealthMRI/imaging/clinical/deriv/validation/scenes",
+    "default_dir": ".",
     "surgical_targets": [
         "STN",
         "GPi",
