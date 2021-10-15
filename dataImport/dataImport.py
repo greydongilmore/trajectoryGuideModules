@@ -204,17 +204,10 @@ class dataImportWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 		if self._parameterNode is None or self._updatingGUIFromParameterNode:
 			return
 
-		wasModified = self._parameterNode.StartModify()  # Modify all properties in a single batch
+		#wasModified = self._parameterNode.StartModify()  # Modify all properties in a single batch
 
-		if self.ui.frameFidVolumeCBox.currentNode() is not None:
-			derivFolder = os.path.dirname(self.ui.frameFidVolumeCBox.currentNode().GetStorageNode().GetFileName())
-			self._parameterNode.SetParameter("derivFolder", derivFolder)
 
-		if isinstance(caller, qt.QRadioButton):
-			print(caller.name)
-			self._parameterNode.SetParameter("frame_system", caller.name)
-		
-		self._parameterNode.EndModify(wasModified)
+		#self._parameterNode.EndModify(wasModified)
 
 	def onLoadScansButton(self):
 
@@ -469,7 +462,7 @@ class dataImportLogic(ScriptedLoadableModuleLogic):
 				#frameFidsNode.GetDisplayNode().SetVisibility(0)
 
 				fidsDataframe = self.fcsvLPStoRAS(ifile)
-
+				
 				fidNodeFrame=slicer.mrmlScene.AddNewNodeByClass('vtkMRMLMarkupsFiducialNode')
 				fidNodeFrame.SetName(os.path.basename(ifile).split('.fcsv')[0])
 				fidNodeFrame.AddDefaultStorageNode()

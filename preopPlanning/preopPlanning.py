@@ -1787,8 +1787,8 @@ class preopPlanningWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 				coordsystem_file_json = json.load(coordsystem_file)
 		
 		coordsystem_file_json['IntendedFor'] = os.path.join(self._parameterNode.GetParameter('derivFolder').split(os.path.sep)[-1],volNode.GetName())
-		coordsystem_file_json['FiducialsCoordinates']['entry']=adjustPrecision(entry_coords_world).tolist()
-		coordsystem_file_json['FiducialsCoordinates']['target']=adjustPrecision(target_coords_world).tolist()
+		coordsystem_file_json['FiducialsCoordinates'][f'{plan_name}_entry']=adjustPrecision(entry_coords_world).tolist()
+		coordsystem_file_json['FiducialsCoordinates'][f'{plan_name}_target']=adjustPrecision(target_coords_world).tolist()
 		coordsystem_file_json['FiducialsCoordinates']['origin_point']=adjustPrecision(origin_point).tolist()
 
 		for ichan in list(surgical_data['trajectories'][plan_name]['pre']['mer_tracks']):

@@ -3043,10 +3043,11 @@ def addCustomLayouts():
 	layoutMenu = viewToolBar.widgetForAction(viewToolBar.actions()[0]).menu()
 	layoutSwitchActionParent = layoutMenu
 
-	layoutSwitchAction = layoutSwitchActionParent.addAction("trajectoryGuide")
-	layoutSwitchAction.setData(slicerLayout)
-	layoutSwitchAction.setIcon(qt.QIcon(os.path.join(cwd, 'Resources','Icons',"LayouttrajectoryGuide.png")))
-
-	layoutSwitchAction = layoutSwitchActionParent.addAction("trajectoryGuideAxial")
-	layoutSwitchAction.setData(slicerLayoutAxial)
-	layoutSwitchAction.setIcon(qt.QIcon(os.path.join(cwd, 'Resources','Icons',"LayouttrajectoryGuideAxial.png")))
+	if 'trajectoryGuide' not in [x.text for x in layoutMenu.actions()]:
+		layoutSwitchAction = layoutSwitchActionParent.addAction("trajectoryGuide")
+		layoutSwitchAction.setData(slicerLayout)
+		layoutSwitchAction.setIcon(qt.QIcon(os.path.join(cwd, 'Resources','Icons',"LayouttrajectoryGuide.png")))
+	if 'trajectoryGuideAxial' not in [x.text for x in layoutMenu.actions()]:
+		layoutSwitchAction = layoutSwitchActionParent.addAction("trajectoryGuideAxial")
+		layoutSwitchAction.setData(slicerLayoutAxial)
+		layoutSwitchAction.setIcon(qt.QIcon(os.path.join(cwd, 'Resources','Icons',"LayouttrajectoryGuideAxial.png")))

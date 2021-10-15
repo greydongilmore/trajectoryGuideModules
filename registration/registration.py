@@ -219,7 +219,7 @@ class registrationWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 		self.ui.compareVolumesButton.setIcon(qt.QIcon(os.path.join(self._parameterNode.GetParameter('trajectoryGuidePath'), 'registration', 'Resources', 'Icons', 'compare_light.png')))
 		self.ui.compareVolumesButton.setIconSize(buttonIconSize)
 
-		self.logic.addCustomLayouts()
+		self.logic._addCustomLayouts()
 
 	def cleanup(self):
 		"""
@@ -322,6 +322,18 @@ class registrationWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 		# All the GUI updates are done
 		self._updatingGUIFromParameterNode = False
 
+	def updateParameterNodeFromGUI(self, caller=None, event=None):
+		"""
+		This method is called when the user makes any change in the GUI.
+		The changes are saved into the parameter node (so that they are restored when the scene is saved and loaded).
+		"""
+
+		if self._parameterNode is None or self._updatingGUIFromParameterNode:
+			return
+
+		#wasModified = self._parameterNode.StartModify()  # Modify all properties in a single batch
+		#self._parameterNode.EndModify(wasModified)
+
 	@vtk.calldata_type(vtk.VTK_OBJECT)
 	def onScalerVolumeNodeAdded(self, caller, event, calldata):
 		node = calldata
@@ -357,33 +369,6 @@ class registrationWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 				index = self.regFloatingCB.findText(node.GetName(), qt.Qt.MatchFixedString)
 				if index is not None:
 					self.regFloatingCB.removeItem(index)
-
-	def updateParameterNodeFromGUI(self, caller=None, event=None):
-		"""
-		This method is called when the user makes any change in the GUI.
-		The changes are saved into the parameter node (so that they are restored when the scene is saved and loaded).
-		"""
-
-		if self._parameterNode is None or self._updatingGUIFromParameterNode:
-			return
-
-		wasModified = self._parameterNode.StartModify()  # Modify all properties in a single batch
-
-		if self.ui.frameFidVolumeCBox.currentNode() is not None:
-			derivFolder = os.path.dirname(self.ui.frameFidVolumeCBox.currentNode().GetStorageNode().GetFileName())
-			self._parameterNode.SetParameter("derivFolder", derivFolder)
-
-		if isinstance(caller, qt.QRadioButton):
-			print(caller.name)
-			self._parameterNode.SetParameter("frame_system", caller.name)
-
-		#self._parameterNode.SetNodeReferenceID("InputVolume", self.ui.inputSelector.currentNodeID)
-		#self._parameterNode.SetNodeReferenceID("OutputVolume", self.ui.outputSelector.currentNodeID)
-		#self._parameterNode.SetParameter("Threshold", str(self.ui.imageThresholdSliderWidget.value))
-		#self._parameterNode.SetParameter("Invert", "true" if self.ui.invertOutputCheckBox.checked else "false")
-		#self._parameterNode.SetNodeReferenceID("OutputVolumeInverse", self.ui.invertedOutputSelector.currentNodeID)
-
-		self._parameterNode.EndModify(wasModified)
 
 	def onButtonClick(self, button):
 		if 'nifty' in button.name:
@@ -1195,7 +1180,7 @@ class registrationLogic(ScriptedLoadableModuleLogic):
 						os.path.join(parameterNode.GetParameter('derivFolder'), ipath, 'model_color.json')
 					)
 
-	def addCustomLayouts(self):
+	def _addCustomLayouts(self):
 
 		addCustomLayouts()
 		slicer.app.layoutManager().setLayout(slicerLayout)

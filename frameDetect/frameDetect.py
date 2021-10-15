@@ -15,10 +15,8 @@ elif __file__:
 
 sys.path.insert(1, os.path.dirname(cwd))
 
-from helpers.helpers import frameDetection, warningBox,writeFCSV, addCustomLayouts
+from helpers.helpers import frameDetection, warningBox, writeFCSV, addCustomLayouts
 from helpers.variables import coordSys, slicerLayout,groupboxStyle, groupboxStyleTitle, slicerLayoutAxial, surgical_info_dict
-
-slicerComboBoxType=False
 
 #
 # frameDetect
@@ -61,6 +59,13 @@ class frameDetectWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 		self._parameterNode = None
 		self._updatingGUIFromParameterNode = False
 
+		self.frame_settings = None
+		self.originalFrameVolSidecar = None
+		self.framePointsManual = {}
+		self.frameSystem = None
+		self.framePreviousWindow = None
+		self.framePreviousLevel = None
+
 	def setup(self):
 		"""
 		Called when the user opens the module the first time and the widget is initialized.
@@ -78,16 +83,18 @@ class frameDetectWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 		# in batch mode, without a graphical user interface.
 		self.logic = frameDetectLogic()
 
-		self.frame_settings = None
-		self.originalFrameVolSidecar = None
-		self.framePointsManual = {}
-		self.frameSystem = None
-		self.framePreviousWindow = None
-		self.framePreviousLevel = None
+		# Connections
+		self._setupConnections()
 
-		
+	def _loadUI(self):
+		# Load widget from .ui file (created by Qt Designer)
+		self.uiWidget = slicer.util.loadUI(self.resourcePath('UI/frameDetect.ui'))
+		self.uiWidget.setMRMLScene(slicer.mrmlScene)
+		self.layout.addWidget(self.uiWidget)
+		self.ui = slicer.util.childWidgetVariables(self.uiWidget)
+
+		self.ui.frameFidVolumeCBox.setMRMLScene(slicer.mrmlScene)
 		self.ui.frameFiducialWig.setVisible(0)
-
 		self.text_color = slicer.util.findChild(slicer.util.mainWindow(), 'DialogToolBar').children()[3].palette.buttonText().color().name()
 
 		self.ui.advancedSettingsGB.setStyleSheet(groupboxStyle + f"color: {self.text_color}" + ';}' + groupboxStyleTitle + f"color: {self.text_color}" + ';}')
@@ -95,20 +102,7 @@ class frameDetectWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 		self.ui.transformTypeCB.setCurrentIndex(self.ui.transformTypeCB.findText('Rigidbody (6 DOF)'))
 		self.ui.advancedSettingsGB.collapsed = 1
 
-		# Connections
-		self._setupConnections()
-
-	def _loadUI(self):
-		# Load widget from .ui file (created by Qt Designer)
-		self.uiWidget = slicer.util.loadUI(self.resourcePath('UI/frameDetect.ui'))
-		self.layout.addWidget(self.uiWidget)
-		self.ui = slicer.util.childWidgetVariables(self.uiWidget)
-		self.uiWidget.setMRMLScene(slicer.mrmlScene)
-
-		self.ui.frameFidVolumeCBox.setMRMLScene(slicer.mrmlScene)
-
 	def _setupConnections(self):
-
 		# Make sure parameter node is initialized (needed for module reload)
 		self.initializeParameterNode()
 
@@ -119,10 +113,10 @@ class frameDetectWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 		# These connections ensure that whenever user changes some settings on the GUI, that is saved in the MRML scene
 		# (in the selected parameter node).
 		#self.ui.frameFidVolumeCBox.connect("currentNodeChanged(vtkMRMLNode*)", self.updateParameterNodeFromGUI)
-		#self.ui.frameSystemBG.connect('buttonClicked(QAbstractButton*)', self.updateParameterNodeFromGUI)
+		self.ui.frameSystemBG.connect('buttonClicked(QAbstractButton*)', self.updateParameterNodeFromGUI)
 		
 		self.ui.frameDetectButton.clicked.connect(self.onFrameDetectButton)
-		#self.ui.frameFidVolumeCBox.connect("currentNodeChanged(vtkMRMLNode*)", self.onFrameVolumeCB)
+		self.ui.frameFidVolumeCBox.connect("currentNodeChanged(vtkMRMLNode*)", self.onFrameVolumeCB)
 		self.ui.frameFidConfirmButton.connect('clicked(bool)', self.onFrameFidConfirmButton)
 		self.ui.manualDetectionButton.connect('clicked(bool)', self.onManualDetectButton)
 		self.ui.showFrameLegendButton.connect('clicked(bool)', self.onShowFrameLegendButton)
@@ -140,8 +134,7 @@ class frameDetectWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
 		self.ui.frameSystemBG.connect('buttonClicked(int)', self.onFrameSystemButtonGroupClicked)
 
-		
-		self.logic.addCustomLayouts()
+		self.logic._addCustomLayouts()
 
 	def cleanup(self):
 		"""
@@ -161,7 +154,7 @@ class frameDetectWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 		Called each time the user opens a different module.
 		"""
 		# Do not react to parameter node changes (GUI wlil be updated when the user enters into the module)
-		#self.removeObserver(self._parameterNode, vtk.vtkCommand.ModifiedEvent, self.updateGUIFromParameterNode)
+		self.removeObserver(self._parameterNode, vtk.vtkCommand.ModifiedEvent, self.updateGUIFromParameterNode)
 
 	def onSceneStartClose(self, caller, event):
 		"""
@@ -199,50 +192,55 @@ class frameDetectWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 		# Unobserve previously selected parameter node and add an observer to the newly selected.
 		# Changes of parameter node are observed so that whenever parameters are changed by a script or any other module
 		# those are reflected immediately in the GUI.
-		#if self._parameterNode is not None:
-		#	self.removeObserver(self._parameterNode, vtk.vtkCommand.ModifiedEvent, self.updateGUIFromParameterNode)
+		if self._parameterNode is not None:
+			self.removeObserver(self._parameterNode, vtk.vtkCommand.ModifiedEvent, self.updateGUIFromParameterNode)
 		self._parameterNode = inputParameterNode
-		#if self._parameterNode is not None:
-		#	self.addObserver(self._parameterNode, vtk.vtkCommand.ModifiedEvent, self.updateGUIFromParameterNode)
+		if self._parameterNode is not None:
+			self.addObserver(self._parameterNode, vtk.vtkCommand.ModifiedEvent, self.updateGUIFromParameterNode)
 
 		# Initial GUI update
-		#self.updateGUIFromParameterNode()
+		self.updateGUIFromParameterNode()
 
-	#def updateGUIFromParameterNode(self, caller=None, event=None):
-	#	"""
-	#	This method is called whenever parameter node is changed.
-	#	The module GUI is updated to show the current state of the parameter node.
-	#	"""
-#
-#	#	if self._parameterNode is None or self._updatingGUIFromParameterNode:
-#	#		return
-#
-#	#	# Make sure GUI changes do not call updateParameterNodeFromGUI (it could cause infinite loop)
-#	#	self._updatingGUIFromParameterNode = True
-#
-#	#	# All the GUI updates are done
-#	#	self._updatingGUIFromParameterNode = False
-#
-#	#def updateParameterNodeFromGUI(self, caller=None, event=None):
-#	#	"""
-#	#	This method is called when the user makes any change in the GUI.
-#	#	The changes are saved into the parameter node (so that they are restored when the scene is saved and loaded).
-#	#	"""
-#
-#	#	if self._parameterNode is None or self._updatingGUIFromParameterNode:
-#	#		return
-#
-#	#	wasModified = self._parameterNode.StartModify()  # Modify all properties in a single batch
-#
-#	#	if self.ui.frameFidVolumeCBox.currentNode() is not None and not self._parameterNode.GetParameter("derivFolder"):
-#	#		derivFolder = os.path.dirname(self.ui.frameFidVolumeCBox.currentNode().GetStorageNode().GetFileName())
-#	#		self._parameterNode.SetParameter("derivFolder", derivFolder)
-#
-#	#	if isinstance(caller, qt.QRadioButton):
-#	#		print(caller.name)
-#	#		self._parameterNode.SetParameter("frame_system", caller.name)
-#
-	#	self._parameterNode.EndModify(wasModified)
+	def updateGUIFromParameterNode(self, caller=None, event=None):
+		"""
+		This method is called whenever parameter node is changed.
+		The module GUI is updated to show the current state of the parameter node.
+		"""
+
+		if self._parameterNode is None or self._updatingGUIFromParameterNode:
+			return
+
+		# Make sure GUI changes do not call updateParameterNodeFromGUI (it could cause infinite loop)
+		self._updatingGUIFromParameterNode = True
+
+		# All the GUI updates are done
+		self._updatingGUIFromParameterNode = False
+
+	def updateParameterNodeFromGUI(self, caller=None, event=None):
+		"""
+		This method is called when the user makes any change in the GUI.
+		The changes are saved into the parameter node (so that they are restored when the scene is saved and loaded).
+		"""
+
+		if self._parameterNode is None or self._updatingGUIFromParameterNode:
+			return
+
+		wasModified = self._parameterNode.StartModify()  # Modify all properties in a single batch
+
+		if self.ui.frameFidVolumeCBox.currentNode() is not None and not self._parameterNode.GetParameter("derivFolder"):
+			derivFolder = os.path.dirname(self.ui.frameFidVolumeCBox.currentNode().GetStorageNode().GetFileName())
+			self._parameterNode.SetParameter("derivFolder", derivFolder)
+
+		frame_sys=None
+		children = self.ui.frameSystemGB.findChildren('QRadioButton')
+		for i in children:
+			if i.isChecked():
+				frame_sys = i.name
+
+		if frame_sys is not None:
+			self._parameterNode.SetParameter("frame_system", frame_sys)
+
+		self._parameterNode.EndModify(wasModified)
 
 	def resetValues(self):
 
@@ -781,7 +779,7 @@ class frameDetectLogic(ScriptedLoadableModuleLogic):
 						os.path.join(parameterNode.GetParameter('derivFolder'), ipath, 'model_color.json')
 					)
 
-	def addCustomLayouts(self):
+	def _addCustomLayouts(self):
 
 		addCustomLayouts()
 		slicer.app.layoutManager().setLayout(slicerLayout)
@@ -961,7 +959,7 @@ class frameDetectLogic(ScriptedLoadableModuleLogic):
 		interactionNode = applicationLogic.GetInteractionNode()
 		interactionNode.Reset(None)
 		layoutManager = slicer.app.layoutManager()
-		layoutManager.setLayout(slicerLayoutAxial)
+		layoutManager.setLayout(6)
 		layoutManager = slicer.app.layoutManager()
 		layoutManager.sliceWidget('Red').mrmlSliceNode().RotateToVolumePlane(frameFidVolume)
 		zAxisCoordFrame = frameFidVolume.GetImageData().GetExtent()[(-1)] / 2
