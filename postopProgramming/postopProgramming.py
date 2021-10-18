@@ -267,9 +267,8 @@ class postopProgrammingWidget(ScriptedLoadableModuleWidget, VTKObservationMixin)
 		if self._parameterNode is None or self._updatingGUIFromParameterNode and not self.active:
 			return
 
-		wasModified = self._parameterNode.StartModify()  # Modify all properties in a single batch
-
-		self._parameterNode.EndModify(wasModified)
+		#wasModified = self._parameterNode.StartModify()  # Modify all properties in a single batch
+		#self._parameterNode.EndModify(wasModified)
 
 	def onButtonClick(self, button):
 

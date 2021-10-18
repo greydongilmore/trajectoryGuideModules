@@ -182,8 +182,7 @@ class registrationWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 		self.ui.fslParametersTemplateGB.collapsed = 1
 		self.ui.antsParametersTemplateGB.collapsed = 1
 		self.ui.antsSynParametersTemplateGB.collapsed = 1
-
-
+		
 	def _setupConnections(self):
 
 		# Make sure parameter node is initialized (needed for module reload)
@@ -207,8 +206,6 @@ class registrationWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 		self.ui.declineRegistration.connect('clicked(bool)', self.onDeclineRegistration)
 		self.ui.compareVolumesButton.connect('clicked(bool)', self.onCompareVolumes)
 		self.ui.layerRevealCheckBox.connect('toggled(bool)', self.onlayerRevealCheckBox)
-
-		
 
 		templateSpaces = [x.split('tpl-')[(-1)] for x in os.listdir(os.path.join(self._parameterNode.GetParameter('trajectoryGuidePath'), 'resources', 'ext_libs', 'space')) if os.path.isdir(os.path.join(self._parameterNode.GetParameter('trajectoryGuidePath'), 'resources', 'ext_libs', 'space', x))]
 		self.ui.templateSpaceCB.addItems(['None']+templateSpaces)
@@ -303,21 +300,6 @@ class registrationWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
 		# Make sure GUI changes do not call updateParameterNodeFromGUI (it could cause infinite loop)
 		self._updatingGUIFromParameterNode = True
-
-		# Update node selectors and sliders
-		#self.ui.inputSelector.setCurrentNode(self._parameterNode.GetNodeReference("InputVolume"))
-		#self.ui.outputSelector.setCurrentNode(self._parameterNode.GetNodeReference("OutputVolume"))
-		#self.ui.invertedOutputSelector.setCurrentNode(self._parameterNode.GetNodeReference("OutputVolumeInverse"))
-		#self.ui.imageThresholdSliderWidget.value = float(self._parameterNode.GetParameter("Threshold"))
-		#self.ui.invertOutputCheckBox.checked = (self._parameterNode.GetParameter("Invert") == "true")
-
-		# Update buttons states and tooltips
-		#if self._parameterNode.GetNodeReference("InputVolume") and self._parameterNode.GetNodeReference("OutputVolume"):
-		#	self.ui.applyButton.toolTip = "Compute output volume"
-		#	self.ui.applyButton.enabled = True
-		#else:
-		#	self.ui.applyButton.toolTip = "Select input and output volume nodes"
-		#	self.ui.applyButton.enabled = False
 
 		# All the GUI updates are done
 		self._updatingGUIFromParameterNode = False

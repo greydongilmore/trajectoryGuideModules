@@ -246,17 +246,8 @@ class postopLocalizationWidget(ScriptedLoadableModuleWidget, VTKObservationMixin
 		if self._parameterNode is None or self._updatingGUIFromParameterNode:
 			return
 
-		wasModified = self._parameterNode.StartModify()  # Modify all properties in a single batch
-
-		if self.ui.frameFidVolumeCBox.currentNode() is not None:
-			derivFolder = os.path.dirname(self.ui.frameFidVolumeCBox.currentNode().GetStorageNode().GetFileName())
-			self._parameterNode.SetParameter("derivFolder", derivFolder)
-
-		if isinstance(caller, qt.QRadioButton):
-			print(caller.name)
-			self._parameterNode.SetParameter("frame_system", caller.name)
-
-		self._parameterNode.EndModify(wasModified)
+		#wasModified = self._parameterNode.StartModify()  # Modify all properties in a single batch
+		#self._parameterNode.EndModify(wasModified)
 
 	def setupMarkupNodes(self):
 		self.markupsLogic = slicer.modules.markups.logic()

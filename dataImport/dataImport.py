@@ -205,8 +205,6 @@ class dataImportWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 			return
 
 		#wasModified = self._parameterNode.StartModify()  # Modify all properties in a single batch
-
-
 		#self._parameterNode.EndModify(wasModified)
 
 	def onLoadScansButton(self):
