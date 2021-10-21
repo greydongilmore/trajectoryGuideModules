@@ -5,3 +5,4 @@ resources/ext_libs/space/*
 resources/frames/frameless_system/*
 dataImport/__pycache__/*.pyc
 */__pycache__/*.pyc
+resources/settings/trajectoryGuide_settings.json

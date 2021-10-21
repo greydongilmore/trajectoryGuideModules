@@ -145,56 +145,104 @@ class anatomicalLandmarksWidget(ScriptedLoadableModuleWidget, VTKObservationMixi
 		self.initializeParameterNode()
 		self.active = True
 		if self._parameterNode.GetParameter('derivFolder'):
-			if len(slicer.util.getNodes('ac')) == 0:
+			self.markupsLogic = slicer.modules.markups.logic()
+			if len(slicer.util.getNodes('acpc')) > 0:
+				fiducialNode = getMarkupsNode('acpc')
+				for ifid in range(fiducialNode.GetNumberOfControlPoints()):
+					fidLabel = fiducialNode.GetNthControlPointLabel(ifid)
+					fidX = self.uiWidget.findChild(qt.QDoubleSpinBox, f'{fidLabel}X')
+					fidY = self.uiWidget.findChild(qt.QDoubleSpinBox, f'{fidLabel}Y')
+					fidZ = self.uiWidget.findChild(qt.QDoubleSpinBox, f'{fidLabel}Z')
+					if all(x is not None for x in (fidX, fidY, fidZ)):
+						pointCoordsWorld = np.zeros(3)
+						fiducialNode.GetNthControlPointPositionWorld(ifid, pointCoordsWorld)
+						
+						fidX.value = pointCoordsWorld[0]
+						fidY.value = pointCoordsWorld[1]
+						fidZ.value = pointCoordsWorld[2]
+						
+						markupsNode = slicer.mrmlScene.GetNodeByID(self.markupsLogic.AddNewFiducialNode())
+						markupsNode.SetName(fidLabel)
+						markupsNode.AddDefaultStorageNode()
+
+						pointNode = self.uiWidget.findChild(slicer.qSlicerMarkupsPlaceWidget, f'{fidLabel}Point')
+						pointNode.setCurrentNode(markupsNode)
+
+						if 'mcp' in fidLabel:
+							self.ui.mcpWig.setVisible(1)
+			else:
+				if len(slicer.util.getNodes('ac')) == 0:
+					self.markupsNodeAC = slicer.mrmlScene.GetNodeByID(self.markupsLogic.AddNewFiducialNode())
+					self.markupsNodeAC.SetName('ac')
+					self.markupsNodeAC.AddDefaultStorageNode()
+					self.markupsNodeAC.GetStorageNode().SetCoordinateSystem(coordSys)
+					self.ui.acPoint.setCurrentNode(self.markupsNodeAC)
+
+					self.markupsNodeAC.AddObserver(slicer.vtkMRMLMarkupsNode.PointPositionDefinedEvent, self.onPointAdd)
+					#self.markupsNodeAC.AddObserver(slicer.vtkMRMLMarkupsNode.PointPositionUndefinedEvent, self.onPointDelete)
+				
+				if len(slicer.util.getNodes('pc')) == 0:
+					self.markupsNodePC = slicer.mrmlScene.GetNodeByID(self.markupsLogic.AddNewFiducialNode())
+					self.markupsNodePC.SetName('pc')
+					self.markupsNodePC.AddDefaultStorageNode()
+					self.markupsNodePC.GetStorageNode().SetCoordinateSystem(coordSys)
+					self.ui.pcPoint.setCurrentNode(self.markupsNodePC)
+
+					self.markupsNodePC.AddObserver(slicer.vtkMRMLMarkupsNode.PointPositionDefinedEvent, self.onPointAdd)
+					#self.markupsNodePC.AddObserver(slicer.vtkMRMLMarkupsNode.PointPositionUndefinedEvent, self.onPointDelete)
+				
+				if len(slicer.util.getNodes('mcp')) == 0:
+					self.markupsNodeMCP = slicer.mrmlScene.GetNodeByID(self.markupsLogic.AddNewFiducialNode())
+					self.markupsNodeMCP.SetName('mcp')
+					self.markupsNodeMCP.AddDefaultStorageNode()
+					self.markupsNodeMCP.GetStorageNode().SetCoordinateSystem(coordSys)
+					self.ui.mcpPoint.setCurrentNode(self.markupsNodeMCP)
+
+					self.markupsNodeMCP.AddObserver(slicer.vtkMRMLMarkupsNode.PointPositionDefinedEvent, self.onPointAdd)
+					#self.markupsNodeMCP.AddObserver(slicer.vtkMRMLMarkupsNode.PointPositionUndefinedEvent, self.onPointDelete)
+			
+			if len(slicer.util.getNodes('midline')) > 0:
+				midlineNode = getMarkupsNode('midline')
+				for ifid in range(midlineNode.GetNumberOfControlPoints()):
+					fidLabel = midlineNode.GetNthControlPointLabel(ifid)
+					fidX = self.uiWidget.findChild(qt.QDoubleSpinBox, f'{fidLabel}X')
+					fidY = self.uiWidget.findChild(qt.QDoubleSpinBox, f'{fidLabel}Y')
+					fidZ = self.uiWidget.findChild(qt.QDoubleSpinBox, f'{fidLabel}Z')
+					if all(x is not None for x in (fidX, fidY, fidZ)):
+						pointCoordsWorld = np.zeros(3)
+						midlineNode.GetNthControlPointPositionWorld(ifid, pointCoordsWorld)
+						
+						fidX.value = pointCoordsWorld[0]
+						fidY.value = pointCoordsWorld[1]
+						fidZ.value = pointCoordsWorld[2]
+
+						markupsNode = slicer.mrmlScene.GetNodeByID(self.markupsLogic.AddNewFiducialNode())
+						markupsNode.SetName(fidLabel)
+						markupsNode.AddDefaultStorageNode()
+
+						pointNode = self.uiWidget.findChild(slicer.qSlicerMarkupsPlaceWidget, f'{fidLabel}Point')
+						pointNode.setCurrentNode(markupsNode)
+			else:
 				self.markupsLogic = slicer.modules.markups.logic()
-				self.markupsNodeAC = slicer.mrmlScene.GetNodeByID(self.markupsLogic.AddNewFiducialNode())
-				self.markupsNodeAC.SetName('ac')
-				self.markupsNodeAC.AddDefaultStorageNode()
-				self.markupsNodeAC.GetStorageNode().SetCoordinateSystem(coordSys)
-				self.ui.acPoint.setCurrentNode(self.markupsNodeAC)
+				if len(slicer.util.getNodes('mid1')) == 0:
+					self.markupsNodeMid1 = slicer.mrmlScene.GetNodeByID(self.markupsLogic.AddNewFiducialNode())
+					self.markupsNodeMid1.SetName('mid1')
+					self.markupsNodeMid1.AddDefaultStorageNode()
+					self.markupsNodeMid1.GetStorageNode().SetCoordinateSystem(coordSys)
+					self.ui.mid1Point.setCurrentNode(self.markupsNodeMid1)
 
-				self.markupsNodeAC.AddObserver(slicer.vtkMRMLMarkupsNode.PointPositionDefinedEvent, self.onPointAdd)
-				#self.markupsNodeAC.AddObserver(slicer.vtkMRMLMarkupsNode.PointPositionUndefinedEvent, self.onPointDelete)
-			
-			if len(slicer.util.getNodes('pc')) == 0:
-				self.markupsNodePC = slicer.mrmlScene.GetNodeByID(self.markupsLogic.AddNewFiducialNode())
-				self.markupsNodePC.SetName('pc')
-				self.markupsNodePC.AddDefaultStorageNode()
-				self.markupsNodePC.GetStorageNode().SetCoordinateSystem(coordSys)
-				self.ui.pcPoint.setCurrentNode(self.markupsNodePC)
+					self.markupsNodeMid1.AddObserver(slicer.vtkMRMLMarkupsNode.PointPositionDefinedEvent, self.onPointAdd)
+					#self.markupsNodeMid1.AddObserver(slicer.vtkMRMLMarkupsNode.PointPositionUndefinedEvent, self.onPointDelete)
+				
+				if len(slicer.util.getNodes('mid2')) == 0:
+					self.markupsNodeMid2 = slicer.mrmlScene.GetNodeByID(self.markupsLogic.AddNewFiducialNode())
+					self.markupsNodeMid2.SetName('mid2')
+					self.markupsNodeMid2.AddDefaultStorageNode()
+					self.markupsNodeMid2.GetStorageNode().SetCoordinateSystem(coordSys)
+					self.ui.mid2Point.setCurrentNode(self.markupsNodeMid2)
 
-				self.markupsNodePC.AddObserver(slicer.vtkMRMLMarkupsNode.PointPositionDefinedEvent, self.onPointAdd)
-				#self.markupsNodePC.AddObserver(slicer.vtkMRMLMarkupsNode.PointPositionUndefinedEvent, self.onPointDelete)
-			
-			if len(slicer.util.getNodes('mcp')) == 0:
-				self.markupsNodeMCP = slicer.mrmlScene.GetNodeByID(self.markupsLogic.AddNewFiducialNode())
-				self.markupsNodeMCP.SetName('mcp')
-				self.markupsNodeMCP.AddDefaultStorageNode()
-				self.markupsNodeMCP.GetStorageNode().SetCoordinateSystem(coordSys)
-				self.ui.mcpPoint.setCurrentNode(self.markupsNodeMCP)
-
-				self.markupsNodeMCP.AddObserver(slicer.vtkMRMLMarkupsNode.PointPositionDefinedEvent, self.onPointAdd)
-				#self.markupsNodeMCP.AddObserver(slicer.vtkMRMLMarkupsNode.PointPositionUndefinedEvent, self.onPointDelete)
-			
-			if len(slicer.util.getNodes('mid1')) == 0:
-				self.markupsNodeMid1 = slicer.mrmlScene.GetNodeByID(self.markupsLogic.AddNewFiducialNode())
-				self.markupsNodeMid1.SetName('mid1')
-				self.markupsNodeMid1.AddDefaultStorageNode()
-				self.markupsNodeMid1.GetStorageNode().SetCoordinateSystem(coordSys)
-				self.ui.mid1Point.setCurrentNode(self.markupsNodeMid1)
-
-				self.markupsNodeMid1.AddObserver(slicer.vtkMRMLMarkupsNode.PointPositionDefinedEvent, self.onPointAdd)
-				#self.markupsNodeMid1.AddObserver(slicer.vtkMRMLMarkupsNode.PointPositionUndefinedEvent, self.onPointDelete)
-			
-			if len(slicer.util.getNodes('mid2')) == 0:
-				self.markupsNodeMid2 = slicer.mrmlScene.GetNodeByID(self.markupsLogic.AddNewFiducialNode())
-				self.markupsNodeMid2.SetName('mid2')
-				self.markupsNodeMid2.AddDefaultStorageNode()
-				self.markupsNodeMid2.GetStorageNode().SetCoordinateSystem(coordSys)
-				self.ui.mid2Point.setCurrentNode(self.markupsNodeMid2)
-
-				self.markupsNodeMid2.AddObserver(slicer.vtkMRMLMarkupsNode.PointPositionDefinedEvent, self.onPointAdd)
-				#self.markupsNodeMid2.AddObserver(slicer.vtkMRMLMarkupsNode.PointPositionUndefinedEvent, self.onPointDelete)
+					self.markupsNodeMid2.AddObserver(slicer.vtkMRMLMarkupsNode.PointPositionDefinedEvent, self.onPointAdd)
+					#self.markupsNodeMid2.AddObserver(slicer.vtkMRMLMarkupsNode.PointPositionUndefinedEvent, self.onPointDelete)
 
 	def exit(self):
 		"""
