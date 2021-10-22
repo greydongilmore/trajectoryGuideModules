@@ -104,6 +104,9 @@ class anatomicalLandmarksWidget(ScriptedLoadableModuleWidget, VTKObservationMixi
 		self.ui.mid5Wig.setVisible(0)
 
 	def _setupConnections(self):
+		# Make sure parameter node is initialized (needed for module reload)
+		self.initializeParameterNode()
+		
 		# These connections ensure that we update parameter node when scene is closed
 		self.addObserver(slicer.mrmlScene, slicer.mrmlScene.StartCloseEvent, self.onSceneStartClose)
 		self.addObserver(slicer.mrmlScene, slicer.mrmlScene.EndCloseEvent, self.onSceneEndClose)
@@ -125,8 +128,7 @@ class anatomicalLandmarksWidget(ScriptedLoadableModuleWidget, VTKObservationMixi
 		self.ui.acpcTransformDelete.connect('clicked(bool)', self.onAcpcTransformDeleteButton)
 		self.ui.acpcTransformCBox.connect('currentNodeChanged(bool)', self.onACPCTransformCBox)
 		
-		# Make sure parameter node is initialized (needed for module reload)
-		self.initializeParameterNode()
+		
 
 		self.logic.addCustomLayouts()
 
@@ -666,38 +668,38 @@ class anatomicalLandmarksWidget(ScriptedLoadableModuleWidget, VTKObservationMixi
 			#self.markupsNodeMid5.AddObserver(slicer.vtkMRMLMarkupsNode.PointPositionUndefinedEvent, self.onPointDelete)
 
 	def onCursorPositionModifiedEvent(self, caller=None, event=None):
-		if self.active:
-			if self._parameterNode.GetNodeReference('frame_system') and caller.GetCrosshairMode() == 1:
-				cursorRAS = np.zeros(3)
-				self.crosshairNode.GetCursorPositionRAS(cursorRAS)
+		crosshairNode = caller
+		if all([crosshairNode.GetCrosshairMode() == 1, self.active, self._parameterNode.GetParameter('frame_system')]):
+			cursorRAS = np.zeros(3)
+			self.crosshairNode.GetCursorPositionRAS(cursorRAS)
+			crossHairRAS = np.array(self.crosshairNode.GetCrosshairRAS())
+			self.crossHairLastPosition.append(cursorRAS.copy())
+			if np.array_equal(adjustPrecision(crossHairRAS), adjustPrecision(self.crossHairLastPosition[0])):
 				crossHairRAS = np.array(self.crosshairNode.GetCrosshairRAS())
-				self.crossHairLastPosition.append(cursorRAS.copy())
-				if np.array_equal(adjustPrecision(crossHairRAS), adjustPrecision(self.crossHairLastPosition[0])):
-					crossHairRAS = np.array(self.crosshairNode.GetCrosshairRAS())
 
-					fc = getFrameCenter(self._parameterNode.GetParameter('frame_system'))
-					if fc is not None:
-						if 'leksell' in self._parameterNode.GetParameter('frame_system'):
-							RASToFrame = np.array([
-								[ -1, 0, 0, -fc[0]],
-								[ 0, 1, 0, -fc[1]],
-								[ 0, 0, -1, -fc[2]],
-								[ 0, 0, 0,   1]
-							])
-							coordsFrame=np.dot(RASToFrame, np.append(crossHairRAS,1))[:3]
-							frameToRAS = np.array([
-								[ 1, 0, 0, 100],
-								[ 0, 1, 0, 100],
-								[ 0, 0, 1, 100],
-								[ 0, 0, 0,   1]
-							])
-							coordsFrame=np.dot(frameToRAS, np.append(coordsFrame,1))[:3]
-						else:
-							coordsFrame=crossHairRAS-fc
-						
-						self.ui.frameCoordsX.value = coordsFrame[0]
-						self.ui.frameCoordsY.value = coordsFrame[1]
-						self.ui.frameCoordsZ.value = coordsFrame[2]
+				fc = getFrameCenter(self._parameterNode.GetParameter('frame_system'))
+				if fc is not None:
+					if 'leksell' in self._parameterNode.GetParameter('frame_system'):
+						RASToFrame = np.array([
+							[ -1, 0, 0, -fc[0]],
+							[ 0, 1, 0, -fc[1]],
+							[ 0, 0, -1, -fc[2]],
+							[ 0, 0, 0,   1]
+						])
+						coordsFrame=np.dot(RASToFrame, np.append(crossHairRAS,1))[:3]
+						frameToRAS = np.array([
+							[ 1, 0, 0, 100],
+							[ 0, 1, 0, 100],
+							[ 0, 0, 1, 100],
+							[ 0, 0, 0,   1]
+						])
+						coordsFrame=np.dot(frameToRAS, np.append(coordsFrame,1))[:3]
+					else:
+						coordsFrame=crossHairRAS-fc
+					
+					self.ui.frameCoordsX.value = coordsFrame[0]
+					self.ui.frameCoordsY.value = coordsFrame[1]
+					self.ui.frameCoordsZ.value = coordsFrame[2]
 
 	def onUpdateCrosshairFrame(self, button):
 		"""

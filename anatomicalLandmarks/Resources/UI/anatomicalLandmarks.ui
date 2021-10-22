@@ -24,7 +24,7 @@
      </property>
      <property name="minimumSize">
       <size>
-       <width>280</width>
+       <width>0</width>
        <height>0</height>
       </size>
      </property>
@@ -3417,7 +3417,7 @@
       <enum>Qt::Vertical</enum>
      </property>
      <property name="sizeType">
-      <enum>QSizePolicy::Fixed</enum>
+      <enum>QSizePolicy::MinimumExpanding</enum>
      </property>
      <property name="sizeHint" stdset="0">
       <size>

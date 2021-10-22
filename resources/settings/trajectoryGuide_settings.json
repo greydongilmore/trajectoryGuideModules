@@ -1,5 +1,5 @@
 {
-    "default_dir": "/media/veracrypt6/projects/stealthMRI/imaging/clinical/deriv/validation/scenes",
+    "default_dir": "/home/greydon/Downloads/trajG/out/bids",
     "surgical_targets": [
         "STN",
         "GPi",
