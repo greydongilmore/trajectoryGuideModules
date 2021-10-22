@@ -385,10 +385,20 @@ class postopLocalizationWidget(ScriptedLoadableModuleWidget, VTKObservationMixin
 			warningBox('No plan selected for deletion!')
 			return
 		
-		qm = qt.QMessageBox()
-		ret = qm.question(self, '', f"Are you sure you want to delete {self.ui.planName.currentText}", qm.Yes | qm.No)
+		parent = None
+		for w in slicer.app.topLevelWidgets():
+			if hasattr(w,'objectName'):
+				if w.objectName == 'qSlicerMainWindow':
+					parent=w
+
+		windowTitle = "Confirm plan removal"
+		windowText = f"Are you sure you want to delete {self.ui.planName.currentText}"
+		if parent is None:
+			ret = qt.QMessageBox.question(self, windowTitle, windowText, qt.QMessageBox.Yes | qt.QMessageBox.No)
+		else:
+			ret = qt.QMessageBox.question(parent, windowTitle, windowText, qt.QMessageBox.Yes | qt.QMessageBox.No)
 		
-		if ret == qm.Yes:
+		if ret == qt.QMessageBox.Yes:
 			with open(os.path.join(self._parameterNode.GetParameter('derivFolder'), f"{self._parameterNode.GetParameter('derivFolder').split(os.path.sep)[-1]}_surgical_data.json")) as (surg_file):
 				surgical_data = json.load(surg_file)
 			

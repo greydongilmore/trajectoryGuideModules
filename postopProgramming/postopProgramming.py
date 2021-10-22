@@ -491,9 +491,14 @@ class postopProgrammingWidget(ScriptedLoadableModuleWidget, VTKObservationMixin)
 				if w.objectName == 'qSlicerMainWindow':
 					parent=w
 
-		qm = qt.QMessageBox()
-		ret = qm.question(parent, '', f"Are you sure you want to delete {self.ui.planName.currentText}", qm.Yes | qm.No)
-		if ret == qm.Yes:
+		windowTitle = "Confirm plan removal"
+		windowText = f"Are you sure you want to delete {self.ui.planName.currentText}"
+		if parent is None:
+			ret = qt.QMessageBox.question(self, windowTitle, windowText, qt.QMessageBox.Yes | qt.QMessageBox.No)
+		else:
+			ret = qt.QMessageBox.question(parent, windowTitle, windowText, qt.QMessageBox.Yes | qt.QMessageBox.No)
+		
+		if ret == qt.QMessageBox.Yes:
 
 			planName = self.ui.planName.currentText
 			self.ui.planName.removeItem(self.ui.planName.findText(planName))

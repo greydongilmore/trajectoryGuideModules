@@ -148,31 +148,39 @@ class anatomicalLandmarksWidget(ScriptedLoadableModuleWidget, VTKObservationMixi
 		self.active = True
 		if self._parameterNode.GetParameter('derivFolder'):
 			self.markupsLogic = slicer.modules.markups.logic()
-			if len(slicer.util.getNodes('acpc')) > 0:
-				fiducialNode = getMarkupsNode('acpc')
-				for ifid in range(fiducialNode.GetNumberOfControlPoints()):
-					fidLabel = fiducialNode.GetNthControlPointLabel(ifid)
-					fidX = self.uiWidget.findChild(qt.QDoubleSpinBox, f'{fidLabel}X')
-					fidY = self.uiWidget.findChild(qt.QDoubleSpinBox, f'{fidLabel}Y')
-					fidZ = self.uiWidget.findChild(qt.QDoubleSpinBox, f'{fidLabel}Z')
-					if all(x is not None for x in (fidX, fidY, fidZ)):
-						pointCoordsWorld = np.zeros(3)
-						fiducialNode.GetNthControlPointPositionWorld(ifid, pointCoordsWorld)
-						
-						fidX.value = pointCoordsWorld[0]
-						fidY.value = pointCoordsWorld[1]
-						fidZ.value = pointCoordsWorld[2]
-						
-						markupsNode = slicer.mrmlScene.GetNodeByID(self.markupsLogic.AddNewFiducialNode())
-						markupsNode.SetName(fidLabel)
-						markupsNode.AddDefaultStorageNode()
+			acpcPresent = False
+			midlinePresent = False
+			for ifidNode in [getMarkupsNode('acpc'), getMarkupsNode('midline')]:
+				if ifidNode is not None:
+					for ifid in range(ifidNode.GetNumberOfControlPoints()):
+						fidLabel = ifidNode.GetNthControlPointLabel(ifid)
+						fidX = self.uiWidget.findChild(qt.QDoubleSpinBox, f'{fidLabel}X')
+						fidY = self.uiWidget.findChild(qt.QDoubleSpinBox, f'{fidLabel}Y')
+						fidZ = self.uiWidget.findChild(qt.QDoubleSpinBox, f'{fidLabel}Z')
+						if all(x is not None for x in (fidX, fidY, fidZ)):
+							pointCoordsWorld = np.zeros(3)
+							ifidNode.GetNthControlPointPositionWorld(ifid, pointCoordsWorld)
+							
+							fidX.value = pointCoordsWorld[0]
+							fidY.value = pointCoordsWorld[1]
+							fidZ.value = pointCoordsWorld[2]
+							
+							markupsNode = slicer.mrmlScene.GetNodeByID(self.markupsLogic.AddNewFiducialNode())
+							markupsNode.SetName(fidLabel)
+							markupsNode.AddDefaultStorageNode()
 
-						pointNode = self.uiWidget.findChild(slicer.qSlicerMarkupsPlaceWidget, f'{fidLabel}Point')
-						pointNode.setCurrentNode(markupsNode)
+							pointNode = self.uiWidget.findChild(slicer.qSlicerMarkupsPlaceWidget, f'{fidLabel}Point')
+							pointNode.setCurrentNode(markupsNode)
 
-						if 'mcp' in fidLabel:
-							self.ui.mcpWig.setVisible(1)
-			else:
+							if 'mcp' in fidLabel:
+								self.ui.mcpWig.setVisible(1)
+					
+					if ifidNode.GetName() == 'acpc':
+						acpcPresent=True 
+					elif ifidNode.GetName() == 'midline':
+						midlinePresent=True 
+								
+			if not acpcPresent:
 				if len(slicer.util.getNodes('ac')) == 0:
 					self.markupsNodeAC = slicer.mrmlScene.GetNodeByID(self.markupsLogic.AddNewFiducialNode())
 					self.markupsNodeAC.SetName('ac')
@@ -202,30 +210,8 @@ class anatomicalLandmarksWidget(ScriptedLoadableModuleWidget, VTKObservationMixi
 
 					self.markupsNodeMCP.AddObserver(slicer.vtkMRMLMarkupsNode.PointPositionDefinedEvent, self.onPointAdd)
 					#self.markupsNodeMCP.AddObserver(slicer.vtkMRMLMarkupsNode.PointPositionUndefinedEvent, self.onPointDelete)
-			
-			if len(slicer.util.getNodes('midline')) > 0:
-				midlineNode = getMarkupsNode('midline')
-				for ifid in range(midlineNode.GetNumberOfControlPoints()):
-					fidLabel = midlineNode.GetNthControlPointLabel(ifid)
-					fidX = self.uiWidget.findChild(qt.QDoubleSpinBox, f'{fidLabel}X')
-					fidY = self.uiWidget.findChild(qt.QDoubleSpinBox, f'{fidLabel}Y')
-					fidZ = self.uiWidget.findChild(qt.QDoubleSpinBox, f'{fidLabel}Z')
-					if all(x is not None for x in (fidX, fidY, fidZ)):
-						pointCoordsWorld = np.zeros(3)
-						midlineNode.GetNthControlPointPositionWorld(ifid, pointCoordsWorld)
-						
-						fidX.value = pointCoordsWorld[0]
-						fidY.value = pointCoordsWorld[1]
-						fidZ.value = pointCoordsWorld[2]
 
-						markupsNode = slicer.mrmlScene.GetNodeByID(self.markupsLogic.AddNewFiducialNode())
-						markupsNode.SetName(fidLabel)
-						markupsNode.AddDefaultStorageNode()
-
-						pointNode = self.uiWidget.findChild(slicer.qSlicerMarkupsPlaceWidget, f'{fidLabel}Point')
-						pointNode.setCurrentNode(markupsNode)
-			else:
-				self.markupsLogic = slicer.modules.markups.logic()
+			if not midlinePresent:
 				if len(slicer.util.getNodes('mid1')) == 0:
 					self.markupsNodeMid1 = slicer.mrmlScene.GetNodeByID(self.markupsLogic.AddNewFiducialNode())
 					self.markupsNodeMid1.SetName('mid1')
@@ -1059,6 +1045,26 @@ class anatomicalLandmarksWidget(ScriptedLoadableModuleWidget, VTKObservationMixi
 			if len(slicer.util.getNodes('*from-ctFrame_to*')) > 0:
 				transformNodeCT = list(slicer.util.getNodes('*from-ctFrame_to*').values())[0]
 			
+			if transformNodeCT:
+				transformNodeCT.SetAndObserveTransformNodeID(self.ACPCTransform.GetID())
+				if inputTransform is not None:
+					self.ACPCTransform.SetAndObserveTransformNodeID(inputTransform.GetID())
+
+					markupNodes = slicer.util.getNodesByClass('vtkMRMLMarkupsFiducialNode')
+					for ifid in markupNodes:
+						ifid.SetAndObserveTransformNodeID(self.ACPCTransform.GetID())
+				else:
+					markupNodes = slicer.util.getNodesByClass('vtkMRMLMarkupsFiducialNode')
+					for ifid in markupNodes:
+						ifid.SetAndObserveTransformNodeID(self.ACPCTransform.GetID())
+			else:
+				markupNodes = slicer.util.getNodesByClass('vtkMRMLMarkupsFiducialNode')
+				for ifid in markupNodes:
+					ifid.SetAndObserveTransformNodeID(self.ACPCTransform.GetID())
+				volumes = slicer.util.getNodesByClass('vtkMRMLScalarVolumeNode')
+				for ivol in volumes:
+					ivol.SetAndObserveTransformNodeID(self.ACPCTransform.GetID())
+
 			fids = slicer.util.getNode('midline')
 			for ifid in range(fids.GetNumberOfControlPoints()):
 				rasCoord = np.zeros(3)

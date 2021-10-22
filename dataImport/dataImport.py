@@ -734,6 +734,18 @@ class dataImportLogic(ScriptedLoadableModuleLogic):
 						node=slicer.util.getNode(inode)
 						node.SetAndObserveTransformNodeID(slicer.util.getNode(itransform).GetID())
 
+		if self.acpcTransform is not None:
+			if self.frameTransform is not None:
+				self.frameTransform.SetAndObserveTransformNodeID(self.acpcTransform.GetID())
+			else:
+				volumes = slicer.util.getNodesByClass('vtkMRMLScalarVolumeNode')
+				for ivol in volumes:
+					ivol.SetAndObserveTransformNodeID(self.acpcTransform.GetID())
+
+			markupNodes = slicer.util.getNodesByClass('vtkMRMLMarkupsFiducialNode')
+			for ifid in markupNodes:
+				ifid.SetAndObserveTransformNodeID(self.acpcTransform.GetID())
+
 		#### Get frame center if frame fiducials have been detected
 		if len(slicer.util.getNodes('*fiducial_fids*')) > 0 and len(slicer.util.getNodes('*topbottom_fids*')) > 0:
 			if 'frame_system' in list(surgical_data):
