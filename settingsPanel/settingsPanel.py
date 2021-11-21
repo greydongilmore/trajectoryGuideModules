@@ -92,8 +92,11 @@ class settingsPanelWidget(qt.QGroupBox, VTKObservationMixin):
 		self.ui.windowVolButton.connect('clicked(bool)', self.onWindowVolButton)
 		self.ui.linkViewsButton.connect('clicked(bool)', self.onLinkViewsButton)
 		self.ui.recenterButton.connect('clicked(bool)', self.onRecenterButton)
-		self.ui.volumeButton.triggered.connect(self.onVolumeButtonChange)
+		
 		self.ui.orientationMarkerButton.clicked.connect(self.onToggleOrientationMarker)
+
+		self.volumeMenu.aboutToShow.connect(self.onVolumeButtonClick)
+		self.ui.volumeButton.triggered.connect(self.onVolumeButtonChange)
 
 		slicer.mrmlScene.AddObserver(slicer.vtkMRMLScene.NodeAddedEvent, self.onScalerVolumeNodeAdded)
 		slicer.mrmlScene.AddObserver(slicer.vtkMRMLScene.NodeAboutToBeRemovedEvent, self.onScalerVolumeNodeRemoved)
@@ -194,10 +197,23 @@ class settingsPanelWidget(qt.QGroupBox, VTKObservationMixin):
 			selectionNode.SetReferenceActiveVolumeID(slicer.util.getNode(volumeName).GetID())
 			slicer.util.resetSliceViews()
 
-	def onVolumeButtonChange(self, sender):
-		volName=sender.text
-		if volName != '':
+	def onVolumeButtonClick(self):
+		current_vols = [x.text for x in self.volumeMenu.actions()]
+		for iimage in [x.GetName() for x in slicer.util.getNodesByClass('vtkMRMLScalarVolumeNode')]:
+			if iimage[-1].isdigit():
+				node = slicer.util.getNode(iimage)
+				iimage = '_'.join(iimage.split('_')[:-1])
+				node.SetName(iimage)
 
+			if iimage not in current_vols:
+				print(iimage)
+				volMenu = self.volumeMenu.addAction(iimage)
+				volMenu.setObjectName(iimage)
+				volMenu.setCheckable(True)
+
+	def onVolumeButtonChange(self, sender):
+		volName = sender.text
+		if volName != '':
 			for iaction in self.volumeMenu.actions():
 				if iaction.text != volName:
 					iaction.setChecked(False)

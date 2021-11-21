@@ -229,6 +229,18 @@
           <height>38</height>
          </size>
         </property>
+        <property name="checkable">
+         <bool>true</bool>
+        </property>
+        <property name="checked">
+         <bool>false</bool>
+        </property>
+        <property name="autoRepeat">
+         <bool>true</bool>
+        </property>
+        <property name="autoExclusive">
+         <bool>false</bool>
+        </property>
         <property name="popupMode">
          <enum>QToolButton::InstantPopup</enum>
         </property>

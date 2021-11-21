@@ -90,7 +90,9 @@ class dataViewWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 		with open(os.path.join(self._parameterNode.GetParameter('trajectoryGuidePath'), 'resources', 'settings', 'model_color.json')) as (settings_file):
 			self.modelColors = json.load(settings_file)
 
-		templateSpaces = [x.split('tpl-')[(-1)] for x in os.listdir(os.path.join(self._parameterNode.GetParameter('trajectoryGuidePath'), 'resources', 'ext_libs', 'space')) if os.path.isdir(os.path.join(self._parameterNode.GetParameter('trajectoryGuidePath'), 'resources', 'ext_libs', 'space', x))]
+		default_template_path = os.path.join(self._parameterNode.GetParameter('trajectoryGuidePath'), 'resources', 'ext_libs', 'space')
+
+		templateSpaces = [x.split('tpl-')[(-1)] for x in os.listdir(default_template_path) if os.path.isdir(os.path.join(default_template_path, x))]
 		self.ui.templateSpaceCB.addItems(templateSpaces)
 		self.ui.templateSpaceCB.setCurrentIndex(self.ui.templateSpaceCB.findText(defaultTemplateSpace))
 		
@@ -107,8 +109,6 @@ class dataViewWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 		self.ui.actualMERActivityVisColor.setColor(qt.QColor(rgbToHex(self.modelColors['actualMERActivityColor'])))
 		self.ui.actualVTAVisColor.setColor(qt.QColor(rgbToHex(self.modelColors['actualVTAColor'])))
 		
-		space = self.ui.templateSpaceCB.currentText
-
 		self.setupModelWigets()
 
 		self.text_color = slicer.util.findChild(slicer.util.mainWindow(), 'DialogToolBar').children()[3].palette.buttonText().color().name()
@@ -166,6 +166,13 @@ class dataViewWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 		self.ui.allModelsButtonGroup.connect('buttonClicked(QAbstractButton*)', self.onAllModelsGroupButton)
 		self.ui.templateViewButtonGroup.connect('buttonClicked(QAbstractButton*)', self.onTemplateViewGroupButton)
 		
+		if self._parameterNode.GetParameter('derivFolder'):
+			if os.path.exists(os.path.join(self._parameterNode.GetParameter('derivFolder'),'space')):
+
+				templateSpaces = [x.split('_to-')[-1].split('_xfm')[0] for x in os.listdir(os.path.join(self._parameterNode.GetParameter('derivFolder'),'space')) if x.endswith('.h5')]
+				self.ui.templateSpaceCB.clear()
+				self.ui.templateSpaceCB.addItems(templateSpaces)
+
 		self.logic.addCustomLayouts()
 
 	def cleanup(self):
@@ -274,79 +281,82 @@ class dataViewWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 		#self._parameterNode.EndModify(wasModified)
 
 	def setupModelWigets(self):
+
 		space = self.ui.templateSpaceCB.currentText
 
-		self.templateModelNames = np.unique([x.split('_desc-')[(-1)].split('.vtk')[0] for x in os.listdir(os.path.join(self._parameterNode.GetParameter('trajectoryGuidePath'), 'resources', 'ext_libs', 'space', 'tpl-' + space, 'active_models')) if x.endswith('vtk')])
+		if self.active and space != 'Select template':
 		
-		with open(os.path.join(self._parameterNode.GetParameter('trajectoryGuidePath'), 'resources', 'ext_libs', 'space', 'tpl-' + space, 'active_models', 'template_model_colors.json')) as (settings_file):
-			templateModelColors = json.load(settings_file)
+			self.templateModelNames = np.unique([x.split('_desc-')[(-1)].split('.vtk')[0] for x in os.listdir(os.path.join(self._parameterNode.GetParameter('trajectoryGuidePath'), 'resources', 'ext_libs', 'space', 'tpl-' + space, 'active_models')) if x.endswith('vtk')])
+			
+			with open(os.path.join(self._parameterNode.GetParameter('trajectoryGuidePath'), 'resources', 'ext_libs', 'space', 'tpl-' + space, 'active_models', 'template_model_colors.json')) as (settings_file):
+				templateModelColors = json.load(settings_file)
 
-		with open(os.path.join(self._parameterNode.GetParameter('trajectoryGuidePath'), 'resources', 'ext_libs', 'space', 'template_model_dictionary.json')) as (name_file):
-			templateModelNameDict= json.load(name_file)
+			with open(os.path.join(self._parameterNode.GetParameter('trajectoryGuidePath'), 'resources', 'ext_libs', 'space', 'template_model_dictionary.json')) as (name_file):
+				templateModelNameDict= json.load(name_file)
 
-		modelWig_dict={}
-		for modelName in self.templateModelNames:
-			modelWig_dict = createModelBox(modelName, templateModelNameDict, modelWig_dict)
-		
-		new_models = self.uiWidget.findChild(qt.QWidget,'new_models')
-		modelGridLayout = self.uiWidget.findChild(qt.QWidget,'new_models').layout()
-		
-		while modelGridLayout.count():
-			child = modelGridLayout.takeAt(0)
-			if child.widget():
-				child.widget().deleteLater()
+			modelWig_dict={}
+			for modelName in self.templateModelNames:
+				modelWig_dict = createModelBox(modelName, templateModelNameDict, modelWig_dict)
+			
+			new_models = self.uiWidget.findChild(qt.QWidget,'new_models')
+			modelGridLayout = self.uiWidget.findChild(qt.QWidget,'new_models').layout()
+			
+			while modelGridLayout.count():
+				child = modelGridLayout.takeAt(0)
+				if child.widget():
+					child.widget().deleteLater()
 
-		self.ui.templateModelsButtonGroup = qt.QButtonGroup()
-		self.ui.templateModelsButtonGroup.setExclusive(False)
+			self.ui.templateModelsButtonGroup = qt.QButtonGroup()
+			self.ui.templateModelsButtonGroup.setExclusive(False)
 
-		colorPickers_dict={}
-		opacitySliders_dict={}
-		bntCnt=0
-		cnt=0
-		for ititle in sorted_nicely(list(modelWig_dict)):
-			fontSettings = qt.QFont("font-size: 10pt;font-family: Arial")
-			fontSettings.setBold(False)
-			mainLabel=qt.QLabel(ititle.title())
-			mainLabel.setFont(fontSettings)
-			modelGridLayout.addWidget(mainLabel,cnt,0,1,2)
-			titleLine = qt.QFrame()
-			titleLine.setFrameShape(qt.QFrame.HLine)
-			titleLine.setFixedWidth(435)
-			modelGridLayout.addWidget(titleLine,cnt+1,0,1,2)
-			cnt += 2
-			wigCnt=1
-			for iwig in modelWig_dict[ititle]:
-				modelGridLayout.addWidget(iwig[1],cnt,1)
-				cnt += 1
-				self.ui.templateModelsButtonGroup.addButton(iwig[1].findChild(qt.QCheckBox,f'{iwig[0]}Model3DVisLeft'), bntCnt)
-				self.ui.templateModelsButtonGroup.addButton(iwig[1].findChild(qt.QCheckBox,f'{iwig[0]}Model2DVisLeft'), bntCnt+1)
-				self.ui.templateModelsButtonGroup.addButton(iwig[1].findChild(qt.QCheckBox,f'{iwig[0]}Model3DVisRight'), bntCnt+2)
-				self.ui.templateModelsButtonGroup.addButton(iwig[1].findChild(qt.QCheckBox,f'{iwig[0]}Model2DVisRight'), bntCnt+3)
-				self.ui.templateModelsButtonGroup.addButton(iwig[1].findChild(ctk.ctkColorPickerButton,f'{iwig[0]}ModelVisColor'), bntCnt+4)
-				
-				opacitySliders_dict[iwig[0] + 'ModelOpacity']=iwig[1].findChild(qt.QDoubleSpinBox, f'{iwig[0]}ModelOpacity')
-
-				colorPickers_dict[iwig[0] + 'ModelVisColor']=iwig[1].findChild(ctk.ctkColorPickerButton,f'{iwig[0]}ModelVisColor')
-				colorPickers_dict[iwig[0] + 'ModelVisColor'].setColor(qt.QColor(templateModelColors[iwig[0]]))
-
-				bntCnt +=5
-				if wigCnt < len(modelWig_dict[ititle]):
-					sepLine = qt.QFrame()
-					sepLine.setFrameShape(qt.QFrame.HLine)
-					sepLine.setFixedWidth(250)
-					modelGridLayout.addWidget(sepLine,cnt,1,1,1,qt.Qt.AlignRight)
+			colorPickers_dict={}
+			opacitySliders_dict={}
+			bntCnt=0
+			cnt=0
+			for ititle in sorted_nicely(list(modelWig_dict)):
+				fontSettings = qt.QFont("font-size: 10pt;font-family: Arial")
+				fontSettings.setBold(False)
+				mainLabel=qt.QLabel(ititle.title())
+				mainLabel.setFont(fontSettings)
+				modelGridLayout.addWidget(mainLabel,cnt,0,1,2)
+				titleLine = qt.QFrame()
+				titleLine.setFrameShape(qt.QFrame.HLine)
+				titleLine.setFixedWidth(435)
+				modelGridLayout.addWidget(titleLine,cnt+1,0,1,2)
+				cnt += 2
+				wigCnt=1
+				for iwig in modelWig_dict[ititle]:
+					modelGridLayout.addWidget(iwig[1],cnt,1)
 					cnt += 1
-					wigCnt += 1
+					self.ui.templateModelsButtonGroup.addButton(iwig[1].findChild(qt.QCheckBox,f'{iwig[0]}Model3DVisLeft'), bntCnt)
+					self.ui.templateModelsButtonGroup.addButton(iwig[1].findChild(qt.QCheckBox,f'{iwig[0]}Model2DVisLeft'), bntCnt+1)
+					self.ui.templateModelsButtonGroup.addButton(iwig[1].findChild(qt.QCheckBox,f'{iwig[0]}Model3DVisRight'), bntCnt+2)
+					self.ui.templateModelsButtonGroup.addButton(iwig[1].findChild(qt.QCheckBox,f'{iwig[0]}Model2DVisRight'), bntCnt+3)
+					self.ui.templateModelsButtonGroup.addButton(iwig[1].findChild(ctk.ctkColorPickerButton,f'{iwig[0]}ModelVisColor'), bntCnt+4)
+					
+					opacitySliders_dict[iwig[0] + 'ModelOpacity']=iwig[1].findChild(qt.QDoubleSpinBox, f'{iwig[0]}ModelOpacity')
 
-		for slider in opacitySliders_dict:
-			opacitySliders_dict[slider].valueChanged.connect(lambda _, b=opacitySliders_dict[slider]: self.onModelOpacityChange(button=b))
-		
-		self.templateModelVisDict={}
-		children = self.ui.templateModelsVisGB.findChildren('QCheckBox')
-		for i in children:
-			self.templateModelVisDict[i.name]=i.isChecked()
+					colorPickers_dict[iwig[0] + 'ModelVisColor']=iwig[1].findChild(ctk.ctkColorPickerButton,f'{iwig[0]}ModelVisColor')
+					colorPickers_dict[iwig[0] + 'ModelVisColor'].setColor(qt.QColor(templateModelColors[iwig[0]]))
 
-		self.ui.templateModelsButtonGroup.connect('buttonClicked(QAbstractButton*)', self.onTemplateGroupButton)
+					bntCnt +=5
+					if wigCnt < len(modelWig_dict[ititle]):
+						sepLine = qt.QFrame()
+						sepLine.setFrameShape(qt.QFrame.HLine)
+						sepLine.setFixedWidth(250)
+						modelGridLayout.addWidget(sepLine,cnt,1,1,1,qt.Qt.AlignRight)
+						cnt += 1
+						wigCnt += 1
+
+			for slider in opacitySliders_dict:
+				opacitySliders_dict[slider].valueChanged.connect(lambda _, b=opacitySliders_dict[slider]: self.onModelOpacityChange(button=b))
+			
+			self.templateModelVisDict={}
+			children = self.ui.templateModelsVisGB.findChildren('QCheckBox')
+			for i in children:
+				self.templateModelVisDict[i.name]=i.isChecked()
+
+			self.ui.templateModelsButtonGroup.connect('buttonClicked(QAbstractButton*)', self.onTemplateGroupButton)
 
 	def onAllModelsGroupButton(self, button):
 		viewType = [x for x in ['3D','2D'] if x in button.name][0]
@@ -416,11 +426,13 @@ class dataViewWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 					modelType='_vta'
 					modelTypeButton='VTA'
 				
-				self.uiWidget.findChild(qt.QRadioButton, descTypeButton + modelTypeButton + viewType + 'Vis' + viewToggle).checked=True
-				if viewToggle == 'On':
-					self.uiWidget.findChild(qt.QRadioButton, descTypeButton + modelTypeButton + viewType + 'VisOff').checked=False
-				else:
-					self.uiWidget.findChild(qt.QRadioButton, descTypeButton + modelTypeButton + viewType + 'VisOn').checked=False
+				if None not in (descTypeButton, modelTypeButton):
+					print(descTypeButton + modelTypeButton + viewType + 'Vis' + viewToggle)
+					self.uiWidget.findChild(qt.QRadioButton, descTypeButton + modelTypeButton + viewType + 'Vis' + viewToggle).checked=True
+					if viewToggle == 'On':
+						self.uiWidget.findChild(qt.QRadioButton, descTypeButton + modelTypeButton + viewType + 'VisOff').checked=False
+					else:
+						self.uiWidget.findChild(qt.QRadioButton, descTypeButton + modelTypeButton + viewType + 'VisOn').checked=False
 
 				if descType is not None and modelType is not None:
 					if all([viewType == '3D', descType in modelNode.GetName(), modelType in modelNode.GetName(), 'task-' + planName in modelNode.GetName()]):

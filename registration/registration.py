@@ -411,7 +411,7 @@ class registrationWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 		if f"space-{self.regAlgo['templateSpace']}_desc-affine" in self.ui.floatingComboBox.currentText:
 			loadedOutputVolumeNode=None
 			for ifile in [x for x in glob.glob(os.path.join(self._parameterNode.GetParameter('derivFolder'), 'space','*')) if not os.path.isdir(x)]:
-				if any(ifile.endswith(x) for x in {'.nii','.nii.gz'}):
+				if any(ifile.endswith(x) for x in {'.nii','.nii.gz'}) and self.regAlgo['templateSpace'] in os.path.split(ifile)[-1]:
 					loadedOutputVolumeNode = slicer.util.loadVolume(ifile)
 
 			if loadedOutputVolumeNode is not None:
@@ -457,13 +457,18 @@ class registrationWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
 
 	def cleanUpPost(self):
-		if self.transformNodeFrameSpace is not None:
 
-			if os.path.exists(os.path.join(self._parameterNode.GetParameter('derivFolder'), f"{self._parameterNode.GetParameter('derivFolder').split(os.path.sep)[-1]}_transform_items.json")):
-				with open(os.path.join(self._parameterNode.GetParameter('derivFolder'), f"{self._parameterNode.GetParameter('derivFolder').split(os.path.sep)[-1]}_transform_items.json")) as (transform_file):
-					transform_data = json.load(transform_file)
-			else:
-				transform_data={}
+		if os.path.exists(os.path.join(self._parameterNode.GetParameter('derivFolder'), f"{self._parameterNode.GetParameter('derivFolder').split(os.path.sep)[-1]}_transform_items.json")):
+			with open(os.path.join(self._parameterNode.GetParameter('derivFolder'), f"{self._parameterNode.GetParameter('derivFolder').split(os.path.sep)[-1]}_transform_items.json")) as (transform_file):
+				transform_data = json.load(transform_file)
+		else:
+			transform_data={}
+
+		if self.transformNodeFrameSpace is None and len(list(transform_data)) > 0:
+			if len(slicer.util.getNodes(list(transform_data)[0])) > 0:
+				self.transformNodeFrameSpace=list(slicer.util.getNodes(list(transform_data)[0]).values())[0]
+		
+		if self.transformNodeFrameSpace is not None:
 
 			transform_data_current=[]
 			if not self.transformNodeFrameSpace.GetName().endswith('_reverse'):
@@ -472,35 +477,43 @@ class registrationWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 			imageVolumes = slicer.util.getNodesByClass('vtkMRMLScalarVolumeNode')
 			for iimage in imageVolumes:
 				if f"space-{self.ui.referenceComboBox.currentText.split('_')[-1]}" in iimage.GetName():
-					iimage.SetAttribute('refVol', '0')
-					iimage.SetAndObserveTransformNodeID(self.transformNodeFrameSpace.GetID())
-					transform_data_current.append(iimage.GetName())
+					if iimage.GetParentTransformNode() is None:
+						iimage.SetAttribute('refVol', '0')
+						iimage.SetAndObserveTransformNodeID(self.transformNodeFrameSpace.GetID())
+						transform_data_current.append(iimage.GetName())
 
 			if self.referenceVolume is not None:
-				self.referenceVolume.SetAndObserveTransformNodeID(self.transformNodeFrameSpace.GetID())
-				transform_data_current.append(self.referenceVolume.GetName())
+				if self.referenceVolume.GetParentTransformNode() is None:
+					if self.transformNodeFrameSpace.GetName() in list(transform_data):
+						if not self.referenceVolume.GetName() in list(transform_data[self.transformNodeFrameSpace.GetName()]):
+							self.referenceVolume.SetAndObserveTransformNodeID(self.transformNodeFrameSpace.GetID())
+							transform_data_current.append(self.referenceVolume.GetName())
 			
-			markupNodes = slicer.util.getNodesByClass('vtkMRMLMarkupsFiducialNode')
-			for ifid in markupNodes:
-				if ifid.GetName() in ('acpc','midline'):
-					if ifid.GetNumberOfControlPoints() > 0:
-						ifid.SetAndObserveTransformNodeID(self.transformNodeFrameSpace.GetID())
-						transform_data_current.append(ifid.GetName())
-
-			markupLineNode = slicer.util.getNodesByClass('vtkMRMLMarkupsLineNode')
-			for ifid in markupLineNode:
-				if ifid.GetNumberOfControlPoints() > 0:
-					ifid.SetAndObserveTransformNodeID(self.transformNodeFrameSpace.GetID())
-					transform_data_current.append(ifid.GetName())
-
-			models = [x for x in slicer.util.getNodesByClass('vtkMRMLModelNode') if not slicer.vtkMRMLSliceLogic.IsSliceModelNode(x)]
-			for imodel in models:
-				if any(imodel.GetName().endswith(x) for x in ('_contact','_track','_lead','_vta','_activity')):
-					imodel.SetAndObserveTransformNodeID(self.transformNodeFrameSpace.GetID())
-					transform_data_current.append(imodel.GetName())
+			#markupNodes = slicer.util.getNodesByClass('vtkMRMLMarkupsFiducialNode')
+			#for ifid in markupNodes:
+			#	if ifid.GetName() in ('acpc','midline'):
+			#		if ifid.GetNumberOfControlPoints() > 0:
+			#			ifid.SetAndObserveTransformNodeID(self.transformNodeFrameSpace.GetID())
+			#			transform_data_current.append(ifid.GetName())
+#
+#			#markupLineNode = slicer.util.getNodesByClass('vtkMRMLMarkupsLineNode')
+#			#for ifid in markupLineNode:
+#			#	if ifid.GetNumberOfControlPoints() > 0:
+#			#		ifid.SetAndObserveTransformNodeID(self.transformNodeFrameSpace.GetID())
+#			#		transform_data_current.append(ifid.GetName())
+#
+#			##models = [x for x in slicer.util.getNodesByClass('vtkMRMLModelNode') if not slicer.vtkMRMLSliceLogic.IsSliceModelNode(x)]
+#			#for imodel in models:
+#			#	if any(imodel.GetName().endswith(x) for x in ('_contact','_track','_lead','_vta','_activity')):
+#			#		imodel.SetAndObserveTransformNodeID(self.transformNodeFrameSpace.GetID())
+			#		transform_data_current.append(imodel.GetName())
 
 			if transform_data_current:
-				transform_data[self.transformNodeFrameSpace.GetName()]=transform_data_current
+				if self.transformNodeFrameSpace.GetName() in list(transform_data):
+					transform_data[self.transformNodeFrameSpace.GetName()] = transform_data[self.transformNodeFrameSpace.GetName()] + transform_data_current
+				else:
+					transform_data[self.transformNodeFrameSpace.GetName()]=transform_data_current
+				
 				json_output = json.dumps(transform_data, indent=4)
 				with open(os.path.join(self._parameterNode.GetParameter('derivFolder'), f"{self._parameterNode.GetParameter('derivFolder').split(os.path.sep)[-1]}_transform_items.json"), 'w') as (fid):
 					fid.write(json_output)

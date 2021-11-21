@@ -1004,10 +1004,10 @@ class postopLocalizationLogic(ScriptedLoadableModuleLogic):
 		for ichan in channels_used:
 
 			activity_filename = os.path.join(parameterNode.GetParameter('derivFolder'), 
-				f"{parameterNode.GetParameter('derivFolder').split(os.path.sep)[-1]}_ses-post_task-{plan_name}_type-mer_label-{ichan}_activity.vtk")
+				f"{parameterNode.GetParameter('derivFolder').split(os.path.sep)[-1]}_ses-post_task-{plan_name}_type-mer_label-{ichan}_activity")
 			
 			track_filename = os.path.join(parameterNode.GetParameter('derivFolder'), 
-				f"{parameterNode.GetParameter('derivFolder').split(os.path.sep)[-1]}_ses-post_task-{plan_name}_type-mer_label-{ichan}_track.vtk")
+				f"{parameterNode.GetParameter('derivFolder').split(os.path.sep)[-1]}_ses-post_task-{plan_name}_type-mer_label-{ichan}_track")
 			
 			models = [x for x in slicer.util.getNodesByClass('vtkMRMLModelNode') if not slicer.vtkMRMLSliceLogic.IsSliceModelNode(x)]
 			for imodel in models:

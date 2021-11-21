@@ -1,5 +1,5 @@
 {
-    "default_dir": "/media/veracrypt6/projects/stealthMRI/imaging/clinical/deriv/trajectoryGuide/imaging",
+    "default_dir": "/media/veracrypt6/projects/stealthMRI/imaging/clinical/derivatives/trajectoryGuide/bids",
     "surgical_targets": [
         "STN",
         "GPi",
