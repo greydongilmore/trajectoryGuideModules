@@ -15,7 +15,7 @@ elif __file__:
 
 sys.path.insert(1, os.path.dirname(cwd))
 
-from helpers.helpers import frameDetection, warningBox, writeFCSV, addCustomLayouts
+from helpers.helpers import frameDetection, warningBox, writeFCSV, addCustomLayouts, imagePopup
 from helpers.variables import coordSys, slicerLayout,groupboxStyle, groupboxStyleTitle, slicerLayoutAxial, surgical_info_dict
 
 #
@@ -653,21 +653,20 @@ class frameDetectWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 		if self.frameSystem is None:
 			pic_fname = 'all_fiducial_numbers.png'
 			title = 'all frames'
-			aspectRatio=1500
+			aspectRatio=1400
 		else:
 			title = self.frameSystem
 			pic_fname = f'{self.frameSystem}_fiducial_numbers.png'
 			aspectRatio=700
 
-		self.pic = qt.QLabel()
-		self.pic.setWindowTitle(title)
-		self.pic.setScaledContents(True)
-		pixmap = qt.QPixmap(os.path.join(self._parameterNode.GetParameter('trajectoryGuidePath'), 'resources', 'static', pic_fname))
-		#pixmap = pixmap.scaled(0.5 * pixmap.size(), qt.Qt.SmoothTransformation)
-		pixmap = pixmap.scaled(aspectRatio, aspectRatio, qt.Qt.KeepAspectRatio, qt.Qt.SmoothTransformation)
-		self.pic.setPixmap(pixmap)
-		self.pic.frameGeometry.moveCenter(qt.QDesktopWidget().availableGeometry().center())
-		self.pic.show()
+		parent = None
+		for w in slicer.app.topLevelWidgets():
+			if hasattr(w,'objectName'):
+				if w.objectName == 'qSlicerMainWindow':
+					parent=w
+
+		imagePopup(title, os.path.join(self._parameterNode.GetParameter('trajectoryGuidePath'), 'resources', 'static', pic_fname),parent,aspectRatio)
+
 
 	def onApplyButton(self):
 		"""

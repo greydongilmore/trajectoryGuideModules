@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>452</width>
-    <height>1612</height>
+    <height>1684</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -19,36 +19,8 @@
   <property name="windowTitle">
    <string>Form</string>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout">
-   <item alignment="Qt::AlignHCenter">
-    <widget class="QGroupBox" name="planNameGB">
-     <property name="font">
-      <font>
-       <family>Arial</family>
-       <pointsize>11</pointsize>
-      </font>
-     </property>
-     <property name="title">
-      <string>Plan Name</string>
-     </property>
-     <layout class="QGridLayout" name="gridLayout_22">
-      <property name="topMargin">
-       <number>20</number>
-      </property>
-      <item row="1" column="0">
-       <widget class="QComboBox" name="planName">
-        <property name="minimumSize">
-         <size>
-          <width>250</width>
-          <height>0</height>
-         </size>
-        </property>
-       </widget>
-      </item>
-     </layout>
-    </widget>
-   </item>
-   <item alignment="Qt::AlignHCenter">
+  <layout class="QGridLayout" name="gridLayout_10">
+   <item row="2" column="0" colspan="2" alignment="Qt::AlignHCenter">
     <widget class="QGroupBox" name="planModelsGB">
      <property name="title">
       <string>Patient Data</string>
@@ -4310,7 +4282,7 @@
      </layout>
     </widget>
    </item>
-   <item>
+   <item row="3" column="0">
     <spacer name="verticalSpacer_3">
      <property name="orientation">
       <enum>Qt::Vertical</enum>
@@ -4326,7 +4298,7 @@
      </property>
     </spacer>
    </item>
-   <item alignment="Qt::AlignHCenter">
+   <item row="4" column="0" colspan="2" alignment="Qt::AlignHCenter">
     <widget class="ctkCollapsibleGroupBox" name="templateModelsVisGB">
      <property name="sizePolicy">
       <sizepolicy hsizetype="MinimumExpanding" vsizetype="Preferred">
@@ -4871,7 +4843,7 @@
      </layout>
     </widget>
    </item>
-   <item>
+   <item row="5" column="1">
     <spacer name="verticalSpacer">
      <property name="orientation">
       <enum>Qt::Vertical</enum>
@@ -4886,6 +4858,71 @@
       </size>
      </property>
     </spacer>
+   </item>
+   <item row="0" column="0" colspan="2" alignment="Qt::AlignHCenter">
+    <widget class="QGroupBox" name="sortSceneDataGB">
+     <property name="font">
+      <font>
+       <family>Arial</family>
+       <pointsize>11</pointsize>
+      </font>
+     </property>
+     <property name="title">
+      <string>Sort Scene Data</string>
+     </property>
+     <layout class="QGridLayout" name="gridLayout_24">
+      <property name="topMargin">
+       <number>20</number>
+      </property>
+      <item row="0" column="0">
+       <widget class="QPushButton" name="sortSceneDataButton">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="minimumSize">
+         <size>
+          <width>70</width>
+          <height>0</height>
+         </size>
+        </property>
+        <property name="text">
+         <string>Sort</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item row="1" column="0" colspan="2" alignment="Qt::AlignHCenter">
+    <widget class="QGroupBox" name="planNameGB">
+     <property name="font">
+      <font>
+       <family>Arial</family>
+       <pointsize>11</pointsize>
+      </font>
+     </property>
+     <property name="title">
+      <string>Plan Name</string>
+     </property>
+     <layout class="QGridLayout" name="gridLayout_22">
+      <property name="topMargin">
+       <number>20</number>
+      </property>
+      <item row="1" column="0">
+       <widget class="QComboBox" name="planName">
+        <property name="minimumSize">
+         <size>
+          <width>250</width>
+          <height>0</height>
+         </size>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
    </item>
   </layout>
  </widget>
@@ -4912,13 +4949,13 @@
  <connections/>
  <buttongroups>
   <buttongroup name="templateViewButtonGroup"/>
-  <buttongroup name="colorPickerButtonGroup">
+  <buttongroup name="allModelsButtonGroup"/>
+  <buttongroup name="patientModelsViewButtonGroup">
    <property name="exclusive">
     <bool>false</bool>
    </property>
   </buttongroup>
-  <buttongroup name="allModelsButtonGroup"/>
-  <buttongroup name="patientModelsViewButtonGroup">
+  <buttongroup name="colorPickerButtonGroup">
    <property name="exclusive">
     <bool>false</bool>
    </property>

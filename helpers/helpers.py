@@ -1,6 +1,7 @@
 
 import qt, ctk, slicer, vtk, numpy as np, pandas as pd,os, shutil, csv, json, sys, subprocess, platform, math, re
-from .variables import electrodeModels, coordSys, slicerLayout, trajectoryGuideLayout, trajectoryGuideAxialLayout, slicerLayoutAxial
+from .variables import electrodeModels, coordSys, slicerLayout, trajectoryGuideLayout, trajectoryGuideAxialLayout, slicerLayoutAxial,\
+microelectrodeModels
 from random import uniform
 
 cwd = os.path.dirname(os.path.realpath(__file__))
@@ -2203,12 +2204,19 @@ def plotLead(entry,target,origin,model_parameters):
 	#### remove any pre-existing vtk models of the same name
 	nodes = [x for x in slicer.util.getNodesByClass('vtkMRMLModelNode') if not slicer.vtkMRMLSliceLogic.IsSliceModelNode(x)]
 	for inodes in nodes:
-		if os.path.split(model_parameters['lead_fileN'])[(-1)].split('.vtk')[0] in inodes.GetName():
+		if os.path.split(model_parameters['lead_fileN'])[(-1)].split('type-')[0] in inodes.GetName() and '_lead' in inodes.GetName():
+			filepath = slicer.util.getNode(inodes.GetID()).GetStorageNode().GetFileName()
 			slicer.mrmlScene.RemoveNode(slicer.util.getNode(inodes.GetID()))
+			os.remove(filepath)
+
+
+	electrode_index = [i for i, x in enumerate(electrodeModels.keys()) if model_parameters['elecUsed'].lower() == x.lower()][0]
+	e_specs = electrodeModels[list(electrodeModels)[electrode_index]]
+
 
 	vtkModelBuilder = vtkModelBuilderClass()
 	vtkModelBuilder.coords = np.hstack((np.array(target), np.array(entry)))
-	vtkModelBuilder.tube_radius = 1.1
+	vtkModelBuilder.tube_radius = e_specs['diameter']
 	vtkModelBuilder.tube_thickness = 0.2
 	vtkModelBuilder.filename = os.path.join(model_parameters['data_dir'], model_parameters['lead_fileN'])
 	vtkModelBuilder.model_color = model_parameters['model_col']
@@ -2217,16 +2225,15 @@ def plotLead(entry,target,origin,model_parameters):
 	if model_parameters['plot_model']:
 		vtkModelBuilder.add_to_scene()
 
-	electrode_index = [i for i, x in enumerate(electrodeModels.keys()) if model_parameters['elecUsed'].lower() == x.lower()][0]
-	e_specs = electrodeModels[list(electrodeModels)[electrode_index]]
-
+	
 	#### this will be updated within the loop so need to assign to variable.
 	start = e_specs['encapsultation']
-	
+	contact_diameter = e_specs['diameter']+.01
+
 	#### build each contact in the electrode
 	bottomTop = np.empty([0, 6])
 	contactFile = []
-	for iContact in range(0, e_specs['num_contacts']):
+	for iContact in range(0, e_specs['num_groups']):
 		bottomTop = np.append(bottomTop, (np.hstack((
 			np.array([[target[0] + NormVec[0] * start], 
 				[target[1] + NormVec[1] * start], 
@@ -2242,17 +2249,19 @@ def plotLead(entry,target,origin,model_parameters):
 		nodes = [x for x in slicer.util.getNodesByClass('vtkMRMLModelNode') if not slicer.vtkMRMLSliceLogic.IsSliceModelNode(x)]
 		for inodes in nodes:
 			if os.path.split(model_parameters['contact_fileN'])[(-1)].split('.vtk')[0] in inodes.GetName():
+				filepath = slicer.util.getNode(inodes.GetID()).GetStorageNode().GetFileName()
 				slicer.mrmlScene.RemoveNode(slicer.util.getNode(inodes.GetID()))
+				os.remove(filepath)
 
 		midContact = bottomTop[iContact, :3] + (bottomTop[iContact, 3:] - bottomTop[iContact, :3]) / 2
 		contactFile.append([model_parameters['plan_name'], model_parameters['type'], str(iContact + 1), midContact[0] * -1, midContact[1] * -1, midContact[2]])
-		if model_parameters['elecUsed'].lower() in ('directional', 'directional', 'bsci_directional'):
+		if any(x.lower() in model_parameters['elecUsed'].lower() for x in ('directional', 'bsci_directional')):
 			if iContact == 0:
 				vtkModelBuilder = vtkModelBuilderClass()
 				vtkModelBuilder.coords = bottomTop[iContact, :]
-				vtkModelBuilder.tube_radius = 1.2
+				vtkModelBuilder.tube_radius = contact_diameter
 				vtkModelBuilder.tube_thickness = 0.3
-				vtkModelBuilder.electrodeLen = 1.4
+				vtkModelBuilder.electrodeLen = e_specs['encapsultation']
 				vtkModelBuilder.filename = filen
 				vtkModelBuilder.model_color = model_parameters['contact_col']
 				vtkModelBuilder.model_visibility = model_parameters['contact_vis']
@@ -2275,11 +2284,13 @@ def plotLead(entry,target,origin,model_parameters):
 				nodes = [x for x in slicer.util.getNodesByClass('vtkMRMLModelNode') if not slicer.vtkMRMLSliceLogic.IsSliceModelNode(x)]
 				for inodes in nodes:
 					if os.path.split(os.path.basename(filen1))[(-1)].split('.vtk')[0] in inodes.GetName():
+						filepath = slicer.util.getNode(inodes.GetID()).GetStorageNode().GetFileName()				
 						slicer.mrmlScene.RemoveNode(slicer.util.getNode(inodes.GetID()))
+						os.remove(filepath)
 
 				vtkModelBuilder = vtkModelBuilderClass()
 				vtkModelBuilder.coords = bottomTop[iContact, :]
-				vtkModelBuilder.tube_radius = 1.2
+				vtkModelBuilder.tube_radius = contact_diameter
 				vtkModelBuilder.tube_thickness = 0.3
 				vtkModelBuilder.plane = plane
 				vtkModelBuilder.filename = filen1
@@ -2299,11 +2310,13 @@ def plotLead(entry,target,origin,model_parameters):
 				nodes = [x for x in slicer.util.getNodesByClass('vtkMRMLModelNode') if not slicer.vtkMRMLSliceLogic.IsSliceModelNode(x)]
 				for inodes in nodes:
 					if os.path.split(os.path.basename(filen2))[(-1)].split('.vtk')[0] in inodes.GetName():
+						filepath = slicer.util.getNode(inodes.GetID()).GetStorageNode().GetFileName()				
 						slicer.mrmlScene.RemoveNode(slicer.util.getNode(inodes.GetID()))
+						os.remove(filepath)
 
 				vtkModelBuilder = vtkModelBuilderClass()
 				vtkModelBuilder.coords = bottomTop[iContact, :]
-				vtkModelBuilder.tube_radius = 1.2
+				vtkModelBuilder.tube_radius = contact_diameter
 				vtkModelBuilder.tube_thickness = 0.3
 				vtkModelBuilder.plane = plane
 				vtkModelBuilder.filename = filen2
@@ -2322,11 +2335,13 @@ def plotLead(entry,target,origin,model_parameters):
 				nodes = [x for x in slicer.util.getNodesByClass('vtkMRMLModelNode') if not slicer.vtkMRMLSliceLogic.IsSliceModelNode(x)]
 				for inodes in nodes:
 					if os.path.split(os.path.basename(filen3))[(-1)].split('.vtk')[0] in inodes.GetName():
+						filepath = slicer.util.getNode(inodes.GetID()).GetStorageNode().GetFileName()				
 						slicer.mrmlScene.RemoveNode(slicer.util.getNode(inodes.GetID()))
+						os.remove(filepath)
 
 				vtkModelBuilder = vtkModelBuilderClass()
 				vtkModelBuilder.coords = bottomTop[iContact, :]
-				vtkModelBuilder.tube_radius = 1.2
+				vtkModelBuilder.tube_radius = contact_diameter
 				vtkModelBuilder.tube_thickness = 0.3
 				vtkModelBuilder.plane = plane
 				vtkModelBuilder.filename = filen3
@@ -2339,7 +2354,7 @@ def plotLead(entry,target,origin,model_parameters):
 			else:
 				vtkModelBuilder = vtkModelBuilderClass()
 				vtkModelBuilder.coords = bottomTop[iContact, :]
-				vtkModelBuilder.tube_radius = 1.2
+				vtkModelBuilder.tube_radius = contact_diameter
 				vtkModelBuilder.tube_thickness = 0.3
 				vtkModelBuilder.filename = filen
 				vtkModelBuilder.model_color = model_parameters['contact_col']
@@ -2351,7 +2366,7 @@ def plotLead(entry,target,origin,model_parameters):
 		else:
 			vtkModelBuilder = vtkModelBuilderClass()
 			vtkModelBuilder.coords = bottomTop[iContact, :]
-			vtkModelBuilder.tube_radius = 1.2
+			vtkModelBuilder.tube_radius = contact_diameter
 			vtkModelBuilder.tube_thickness = 0.3
 			vtkModelBuilder.filename = filen
 			vtkModelBuilder.model_color = model_parameters['contact_col']
@@ -2407,12 +2422,11 @@ def plotMicroelectrode(coords, alpha, beta, model_parameters):
 	nodes = [x for x in slicer.util.getNodesByClass('vtkMRMLModelNode') if not slicer.vtkMRMLSliceLogic.IsSliceModelNode(x)]
 	for inodes in nodes:
 		if os.path.basename(model_parameters['mer_filename']) in inodes.GetName():
+			filepath = slicer.util.getNode(inodes.GetID()).GetStorageNode().GetFileName()				
 			slicer.mrmlScene.RemoveNode(slicer.util.getNode(inodes.GetID()))
+			os.remove(filepath)
 
-	if os.path.exists(model_parameters['mer_filename']+'.stl'):
-		os.remove(model_parameters['mer_filename']+'.stl')
-
-	node = slicer.util.loadModel(os.path.join(os.path.join(os.path.dirname(cwd), 'resources', 'models', 'alphaomega_neuroprobe_3mm_micromacro_25mm_above.stl')))
+	node = slicer.util.loadModel(os.path.join(os.path.join(os.path.dirname(cwd), 'resources', 'models', microelectrodeModels['probes'][model_parameters['microUsed']])))
 	node.SetName(os.path.basename(model_parameters['mer_filename']))
 	node.GetModelDisplayNode().SetColor(model_parameters['model_col'])
 	node.GetModelDisplayNode().SetSelectedColor(model_parameters['model_col'])
@@ -2484,7 +2498,7 @@ class VTAModelBuilderClass:
 			if val['perc'] > 0:
 				stimulation.append(key)
 		
-		radius = np.kron(np.ones((e_specs['num_contacts'], 1)), e_specs['contact_size'])
+		radius = np.kron(np.ones((e_specs['num_groups'], 1)), e_specs['contact_size'])
 		sources = [int(x) for x in np.linspace(0, len(S) - 1, len(S))]
 		volume = np.zeros(len(radius))
 		VAT = []
@@ -3051,3 +3065,219 @@ def addCustomLayouts():
 		layoutSwitchAction = layoutSwitchActionParent.addAction("trajectoryGuideAxial")
 		layoutSwitchAction.setData(slicerLayoutAxial)
 		layoutSwitchAction.setIcon(qt.QIcon(os.path.join(cwd, 'Resources','Icons',"LayouttrajectoryGuideAxial.png")))
+
+def createElecBox(electrode_number,electrode_name):
+	
+	fontSettings = qt.QFont("font-size: 11pt;font-family: Arial")
+	fontSettings.setBold(False)
+	modelLabel = qt.QLabel(electrode_name)
+	modelLabel.setFont(fontSettings)
+	modelLabel.setAlignment(qt.Qt.AlignVCenter)
+	modelLabel.setMinimumWidth(55)
+
+	fontSettings = qt.QFont("font-size: 10pt;font-family: Arial")
+	fontSettings.setBold(False)
+
+	negCB=qt.QCheckBox()
+	negCB.setText('Neg')
+	negCB.setFont(fontSettings)
+	negCB.setObjectName(f'contact{str(electrode_number).zfill(2)}Neg')
+	negCB.setChecked(False)
+	negCB.setAutoExclusive(False)
+	negCB.setMinimumWidth(40)
+
+	posCB=qt.QCheckBox()
+	posCB.setText('Pos')
+	posCB.setFont(fontSettings)
+	posCB.setObjectName(f'contact{str(electrode_number).zfill(2)}Pos')
+	posCB.setChecked(False)
+	posCB.setAutoExclusive(False)
+	posCB.setMinimumWidth(40)
+
+	polarityButtonGroup = qt.QButtonGroup()
+	polarityButtonGroup.setExclusive(False)
+	polarityButtonGroup.addButton(negCB, 0)
+	polarityButtonGroup.addButton(posCB, 1)
+
+
+	ampCombobox=qt.QDoubleSpinBox()
+	ampCombobox.setFont(fontSettings)
+	ampCombobox.setObjectName(f'contact{str(electrode_number).zfill(2)}Amp')
+	ampCombobox.setMinimum(-1000)
+	ampCombobox.setMaximum(1000)
+	ampCombobox.setSingleStep(1)
+	ampCombobox.setValue(0)
+	ampCombobox.setFixedWidth(70)
+
+	frqCombobox=qt.QDoubleSpinBox()
+	frqCombobox.setFont(fontSettings)
+	frqCombobox.setObjectName(f'contact{str(electrode_number).zfill(2)}Freq')
+	frqCombobox.setMinimum(-1000)
+	frqCombobox.setMaximum(1000)
+	frqCombobox.setSingleStep(1)
+	frqCombobox.setValue(0)
+	frqCombobox.setFixedWidth(70)
+
+	PWCombobox=qt.QDoubleSpinBox()
+	PWCombobox.setFont(fontSettings)
+	PWCombobox.setObjectName(f'contact{str(electrode_number).zfill(2)}PW')
+	PWCombobox.setMinimum(-1000)
+	PWCombobox.setMaximum(1000)
+	PWCombobox.setSingleStep(1)
+	PWCombobox.setValue(0)
+	PWCombobox.setFixedWidth(70)
+
+	impCombobox=qt.QDoubleSpinBox()
+	impCombobox.setFont(fontSettings)
+	impCombobox.setObjectName(f'contact{str(electrode_number).zfill(2)}Imp')
+	impCombobox.setMinimum(-10000)
+	impCombobox.setMaximum(10000)
+	impCombobox.setSingleStep(1)
+	impCombobox.setValue(0)
+	impCombobox.setFixedWidth(90)
+
+	elecGridLayout = qt.QGridLayout()
+	elecGridLayout.setAlignment(qt.Qt.AlignVCenter)
+	elecGridLayout.addWidget(modelLabel,0,0,2,1)
+	elecGridLayout.addWidget(negCB,0,1,1,1)
+	elecGridLayout.addWidget(posCB,1,1,1,1)
+	elecGridLayout.addWidget(ampCombobox,0,2,2,1)
+	elecGridLayout.addWidget(frqCombobox,0,3,2,1)
+	elecGridLayout.addWidget(PWCombobox,0,4,2,1)
+	elecGridLayout.addWidget(impCombobox,0,5,2,1)
+
+
+	elecWig = qt.QWidget()
+	elecWig.setObjectName(f'contact{str(electrode_number).zfill(2)}Wig')
+	elecWig.setLayout(elecGridLayout)
+	
+	return elecWig
+
+class imagePopup(qt.QDialog):
+
+	def __init__(self, title, path, parent=None, aspectRatio=None):
+		super().__init__(parent)
+
+		self.pic = qt.QLabel()
+		self.pic.setWindowTitle(title)
+		self.pic.setScaledContents(True)
+		pixmap = qt.QPixmap(path)
+		if aspectRatio is None:
+			pixmap = pixmap.scaled(0.7 * pixmap.size(), qt.Qt.KeepAspectRatio, qt.Qt.SmoothTransformation)
+		else:
+			pixmap = pixmap.scaled(aspectRatio,aspectRatio, qt.Qt.KeepAspectRatio, qt.Qt.SmoothTransformation)
+		self.pic.setPixmap(pixmap)
+		self.pic.frameGeometry.moveCenter(qt.QDesktopWidget().availableGeometry().center())
+		self.pic.show()
+
+
+def sortSceneData():
+
+	### Create Subject Hierchy
+	shNode = slicer.vtkMRMLSubjectHierarchyNode.GetSubjectHierarchyNode(slicer.mrmlScene)
+
+	# Markups
+	MarkupsFolder = shNode.CreateFolderItem(shNode.GetSceneItemID(), "Markups")
+	shNode.SetItemExpanded(MarkupsFolder, 0)
+
+	# Volumes
+	VolumesFolder = shNode.CreateFolderItem(shNode.GetSceneItemID(), "Volumes")
+	shNode.SetItemExpanded(VolumesFolder, 0)
+
+	# Transforms
+	TransformsFolder = shNode.CreateFolderItem(shNode.GetSceneItemID(), "Transforms")
+	shNode.SetItemExpanded(TransformsFolder, 0)
+
+	# Leads
+	leadFolder = shNode.CreateFolderItem(shNode.GetSceneItemID(), "Leads")
+	shNode.SetItemExpanded(leadFolder, 0)
+	preLeadFolder = shNode.CreateFolderItem(shNode.GetSceneItemID(), "Pre")
+	shNode.SetItemParent(preLeadFolder, leadFolder)
+	shNode.SetItemExpanded(preLeadFolder, 0)
+	periLeadFolder = shNode.CreateFolderItem(shNode.GetSceneItemID(), "Peri")
+	shNode.SetItemParent(periLeadFolder, leadFolder)
+	shNode.SetItemExpanded(periLeadFolder, 0)
+	postLeadFolder = shNode.CreateFolderItem(shNode.GetSceneItemID(), "Post")
+	shNode.SetItemParent(postLeadFolder, leadFolder)
+	shNode.SetItemExpanded(postLeadFolder, 0)
+
+	# Contacts
+	contactsFolder = shNode.CreateFolderItem(shNode.GetSceneItemID(), "Contacts")
+	preContactsFolder = shNode.CreateFolderItem(shNode.GetSceneItemID(), "Pre")
+	shNode.SetItemParent(preContactsFolder, contactsFolder)
+	periContactsFolder = shNode.CreateFolderItem(shNode.GetSceneItemID(), "Peri")
+	shNode.SetItemParent(periContactsFolder, contactsFolder)
+	postContactsFolder = shNode.CreateFolderItem(shNode.GetSceneItemID(), "Post")
+	shNode.SetItemParent(postContactsFolder, contactsFolder)
+
+	# Microelectrodes
+	microelectrodesFolder = shNode.CreateFolderItem(shNode.GetSceneItemID(), "Microelectrodes")
+	preMicroelectrodesFolder = shNode.CreateFolderItem(shNode.GetSceneItemID(), "Pre")
+	shNode.SetItemParent(preMicroelectrodesFolder, microelectrodesFolder)
+	periMicroelectrodesFolder = shNode.CreateFolderItem(shNode.GetSceneItemID(), "Peri")
+	shNode.SetItemParent(periMicroelectrodesFolder, microelectrodesFolder)
+	postMicroelectrodesFolder = shNode.CreateFolderItem(shNode.GetSceneItemID(), "Post")
+	shNode.SetItemParent(postMicroelectrodesFolder, microelectrodesFolder)
+
+	# STN Activity
+	merFolder = shNode.CreateFolderItem(shNode.GetSceneItemID(), "MER")
+	periMERFolder = shNode.CreateFolderItem(shNode.GetSceneItemID(), "Peri")
+	shNode.SetItemParent(periMERFolder, merFolder)
+	postMERFolder = shNode.CreateFolderItem(shNode.GetSceneItemID(), "Right")
+	shNode.SetItemParent(postMERFolder, merFolder)
+
+	# Markups
+	if len([x for x in slicer.util.getNodesByClass('vtkMRMLMarkupsFiducialNode')]) > 0:
+		for item in sorted_nicely([x.GetName() for x in slicer.util.getNodesByClass('vtkMRMLMarkupsFiducialNode')]):
+			shNode.SetItemParent(shNode.GetItemByDataNode(slicer.util.getNode(item)), MarkupsFolder)
+
+	if len([x for x in slicer.util.getNodesByClass('vtkMRMLMarkupsLineNode')]) > 0:
+		for item in sorted_nicely([x.GetName() for x in slicer.util.getNodesByClass('vtkMRMLMarkupsLineNode')]):
+			shNode.SetItemParent(shNode.GetItemByDataNode(slicer.util.getNode(item)), MarkupsFolder)
+
+	# Volumes
+	if len([x for x in slicer.util.getNodesByClass('vtkMRMLScalarVolumeNode')]) > 0:
+		for item in sorted_nicely([x.GetName() for x in slicer.util.getNodesByClass('vtkMRMLScalarVolumeNode')]):
+			shNode.SetItemParent(shNode.GetItemByDataNode(slicer.util.getNode(item)), VolumesFolder)
+
+	# Transforms
+	if len([x for x in slicer.util.getNodesByClass('vtkMRMLLinearTransformNode')]) > 0:
+		for item in sorted_nicely([x.GetName() for x in slicer.util.getNodesByClass('vtkMRMLLinearTransformNode')]):
+			shNode.SetItemParent(shNode.GetItemByDataNode(slicer.util.getNode(item)), TransformsFolder)
+
+	#
+	### Move Model Items
+	#
+	if len([x for x in slicer.util.getNodesByClass('vtkMRMLModelNode') if x.GetName().endswith('_lead')]) > 0:
+		for item in sorted_nicely([x.GetName() for x in slicer.util.getNodesByClass('vtkMRMLModelNode') if x.GetName().endswith('_lead')]):
+			if 'ses-pre' in item:
+				shNode.SetItemParent(shNode.GetItemByDataNode(slicer.util.getNode(item)), preLeadFolder)
+			elif 'ses-peri' in item:
+				shNode.SetItemParent(shNode.GetItemByDataNode(slicer.util.getNode(item)), periLeadFolder)
+			elif 'ses-post' in iitem:
+				shNode.SetItemParent(shNode.GetItemByDataNode(slicer.util.getNode(item)), postLeadFolder)
+
+	if len([x for x in slicer.util.getNodesByClass('vtkMRMLModelNode') if x.GetName().endswith('_contact')]) > 0:
+		for item in sorted_nicely([x.GetName() for x in slicer.util.getNodesByClass('vtkMRMLModelNode') if x.GetName().endswith('_contact')]):
+			if 'ses-pre' in item:
+				shNode.SetItemParent(shNode.GetItemByDataNode(slicer.util.getNode(item)), preContactsFolder)
+			elif 'ses-peri' in item:
+				shNode.SetItemParent(shNode.GetItemByDataNode(slicer.util.getNode(item)), periContactsFolder)
+			elif 'ses-post' in item:
+				shNode.SetItemParent(shNode.GetItemByDataNode(slicer.util.getNode(item)), postContactsFolder)
+
+	if len([x for x in slicer.util.getNodesByClass('vtkMRMLModelNode') if x.GetName().endswith('_track')]) > 0:
+		for item in sorted_nicely([x.GetName() for x in slicer.util.getNodesByClass('vtkMRMLModelNode') if x.GetName().endswith('_track')]):
+			if 'ses-pre' in item:
+				shNode.SetItemParent(shNode.GetItemByDataNode(slicer.util.getNode(item)), preMicroelectrodesFolder)
+			elif 'ses-peri' in item:
+				shNode.SetItemParent(shNode.GetItemByDataNode(slicer.util.getNode(item)), periMicroelectrodesFolder)
+			elif 'ses-post' in item:
+				shNode.SetItemParent(shNode.GetItemByDataNode(slicer.util.getNode(item)), postMicroelectrodesFolder)
+
+	if len([x for x in slicer.util.getNodesByClass('vtkMRMLModelNode') if x.GetName().endswith('_activity')]) > 0:
+		for item in sorted_nicely([x.GetName() for x in slicer.util.getNodesByClass('vtkMRMLModelNode') if x.GetName().endswith('_activity')]):
+			if 'ses-peri' in item:
+				shNode.SetItemParent(shNode.GetItemByDataNode(slicer.util.getNode(item)), periMERFolder)
+			elif 'ses-post' in item:
+				shNode.SetItemParent(shNode.GetItemByDataNode(slicer.util.getNode(item)), postMERFolder)

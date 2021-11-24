@@ -16,7 +16,8 @@ elif __file__:
 
 sys.path.insert(1, os.path.dirname(cwd))
 
-from helpers.helpers import vtkModelBuilderClass,getFrameCenter, getReverseTransform, addCustomLayouts, hex2rgb
+from helpers.helpers import vtkModelBuilderClass,getFrameCenter, getReverseTransform,\
+addCustomLayouts, hex2rgb, sorted_nicely, sortSceneData
 from helpers.variables import coordSys, slicerLayout, surgical_info_dict
 
 #
@@ -372,7 +373,8 @@ class dataImportLogic(ScriptedLoadableModuleLogic):
 
 		"""
 		
-		#slicer.mrmlScene.Clear()
+		slicer.app.setOverrideCursor(qt.Qt.WaitCursor)
+
 		self._parameterNode = self.getParameterNode()
 
 		self.bidsFolder = patient_data_directory
@@ -524,7 +526,7 @@ class dataImportLogic(ScriptedLoadableModuleLogic):
 					shutil.copy2(inifti, os.path.join(self._parameterNode.GetParameter('derivFolder'), os.path.basename(inifti)))
 
 		#### Load all files within subject root derivative directory
-		for ifile in [x for x in glob.glob(os.path.join(self._parameterNode.GetParameter('derivFolder'), '*')) if not os.path.isdir(x)]:
+		for ifile in sorted_nicely([x for x in glob.glob(os.path.join(self._parameterNode.GetParameter('derivFolder'), '*')) if not os.path.isdir(x)]):
 			if any(ifile.endswith(x) for x in {'.nii','.nii.gz'}):
 
 				# Will only rename if in BIDS format
@@ -786,6 +788,10 @@ class dataImportLogic(ScriptedLoadableModuleLogic):
 			layoutManager.sliceWidget(sliceViewName).mrmlSliceNode().SetOrientation(orientations[sliceViewName])
 
 		slicer.util.resetSliceViews()
+
+		slicer.app.restoreOverrideCursor()
+
+		sortSceneData()
 
 	def fcsvLPStoRAS(self, fcsv_fname):
 		coord_sys=[]

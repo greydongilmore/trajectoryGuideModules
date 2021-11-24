@@ -29,47 +29,145 @@ slicerLayoutAxial = 1001
         
 electrodeModels = {}
 medtronic_3387 = {
+        'num_groups': 4,
         'num_contacts': 4,
         'encapsultation': 1.5,
         'contact_size': 1.5,
         'contact_spacing': 1.5,
+        'diameter': 1.1,
         'electrode_1': [0,1,2,3],
-        'electrode_2': [8,9,10,11]
+        'electrode_2': [8,9,10,11],
+        'contact_label':['','','',''],
+        'filename': '3387'
      }
-electrodeModels['3387'] = medtronic_3387
+electrodeModels['Medtronic 3387'] = medtronic_3387
 
 medtronic_3389 = {
+        'num_groups': 4,
         'num_contacts': 4,
         'encapsultation': 1.5,
         'contact_size': 1.5,
         'contact_spacing': 0.5,
+        'diameter': 1.1,
         'electrode_1': [0,1,2,3],
-        'electrode_2': [8,9,10,11]
+        'electrode_2': [8,9,10,11],
+        'contact_label':['','','',''],
+        'filename': '3389'
      }
-electrodeModels['3389'] = medtronic_3389
+electrodeModels['Medtronic 3389'] = medtronic_3389
 
 bsci_directional = {
-        'num_contacts': 4,
+        'num_groups': 4,
+        'num_contacts': 8,
         'encapsultation': 0,
         'contact_size': 1.5,
         'contact_spacing': 0.5,
+        'diameter': 1.1,
         'electrode_1': [1,2,3,4,5,6,7,8],
         'electrode_2': [9,10,11,12,13,14,15,16],
-        'contact_label':['','seg ','seg ','seg ','seg ','seg ','seg ', '']
+        'contact_label':['','seg ','seg ','seg ','seg ','seg ','seg ', ''],
+        'filename': 'directional'
      }
-electrodeModels['directional'] = bsci_directional
+electrodeModels['B.Sci. directional'] = bsci_directional
 
 bsci_nondirectional = {
+        'num_groups': 8,
         'num_contacts': 8,
         'encapsultation': 1.1,
         'contact_size': 1.5,
         'contact_spacing': 0.5,
+        'diameter': 1.1,
         'electrode_1': [1,2,3,4,5,6,7,8],
         'electrode_2': [9,10,11,12,13,14,15,16],
-        'contact_label':['','','','','','','', '']
+        'contact_label':['','','','','','','', ''],
+        'filename': 'nondirectional'
      }
-electrodeModels['non-directional'] = bsci_nondirectional
 
+electrodeModels['B.Sci. non-directional'] = bsci_nondirectional
+
+
+RD10RSP03 = {
+        'num_groups': 10,
+        'num_contacts': 10,
+        'encapsultation': 0.71,
+        'contact_size': 2.29,
+        'contact_spacing': 0.71,
+        'diameter': 0.86,
+        'electrode_1': [1,2,3,4,5,6,7,8,9,10],
+        'electrode_2': [1,2,3,4,5,6,7,8,9,10],
+        'contact_label':['','','','','','','', ''],
+        'filename': 'rd10rsp03'
+     }
+     
+electrodeModels['RD10R-SP03X'] = RD10RSP03
+
+RD10RSP04 = {
+        'num_groups': 10,
+        'num_contacts': 10,
+        'encapsultation': 1.71,
+        'contact_size': 2.29,
+        'contact_spacing': 1.71,
+        'diameter': 0.86,
+        'electrode_1': [1,2,3,4,5,6,7,8,9,10],
+        'electrode_2': [1,2,3,4,5,6,7,8,9,10],
+        'contact_label':['','','','','','','', ''],
+        'filename': 'rd10rsp04'
+     }
+     
+electrodeModels['RD10R-SP04X'] = RD10RSP04
+
+RD10RSP05 = {
+        'num_groups': 10,
+        'num_contacts': 10,
+        'encapsultation': 2.71,
+        'contact_size': 2.29,
+        'contact_spacing': 2.71,
+        'diameter': 0.86,
+        'electrode_1': [1,2,3,4,5,6,7,8,9,10],
+        'electrode_2': [1,2,3,4,5,6,7,8,9,10],
+        'contact_label':['','','','','','','', ''],
+        'filename': 'rd10rsp05'
+     }
+     
+electrodeModels['RD10R-SP05X'] = RD10RSP05
+
+RD10RSP06 = {
+        'num_groups': 10,
+        'num_contacts': 10,
+        'encapsultation': 3.71,
+        'contact_size': 2.29,
+        'contact_spacing': 3.71,
+        'diameter': 0.86,
+        'electrode_1': [1,2,3,4,5,6,7,8,9,10],
+        'electrode_2': [1,2,3,4,5,6,7,8,9,10],
+        'contact_label':['','','','','','','', ''],
+        'filename': 'rd10rsp06'
+     }
+     
+electrodeModels['RD10R-SP06X'] = RD10RSP06
+
+RD10RSP07 = {
+        'num_groups': 10,
+        'num_contacts': 10,
+        'encapsultation': 4.71,
+        'contact_size': 2.29,
+        'contact_spacing': 4.71,
+        'diameter': 0.86,
+        'electrode_1': [1,2,3,4,5,6,7,8,9,10],
+        'electrode_2': [1,2,3,4,5,6,7,8,9,10],
+        'contact_label':['','','','','','','', ''],
+        'filename': 'rd10rsp07'
+     }
+     
+electrodeModels['RD10R-SP07X'] = RD10RSP07
+
+microelectrodeModels = {
+        'probes':{
+                'AO 3mm MicroMacro 25 above':'alphaomega-neuroprobe_micromacro-3mm_above-25mm.stl',
+                'AO 10mm MicroMacro 25 above':'alphaomega-neuroprobe_micromacro-10mm_above-25mm.stl'
+        },
+        'default':'AO 10mm MicroMacro 25 above'
+}
 
 #
 #-------------------------------- JSON Files ----------------------------------

@@ -15,7 +15,7 @@ from helpers.helpers import norm_vec, mag_vec, plotLead, warningBox, \
 rotation_matrix, vtkModelBuilderClass,getMarkupsNode,getPointCoords,adjustPrecision,getFrameCenter,applyTransformToPoints,frame_angles,\
 getFrameRotation,dotdict,addCustomLayouts, plotMicroelectrode
 
-from helpers.variables import coordSys, groupboxStyle, slicerLayout
+from helpers.variables import coordSys, groupboxStyle, slicerLayout, electrodeModels, microelectrodeModels
 
 #
 # preopPlanning
@@ -162,6 +162,11 @@ class preopPlanningWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 		self.ui.planPosLatMERWig.setSizePolicy(not_resize)
 		self.ui.planPosLatMERWig.setVisible(0)
 
+		self.ui.planElecCB.addItems(['Select Electrode']+list(electrodeModels))
+		self.ui.planMicroModel.addItems(['Select Microlectrode']+list(microelectrodeModels['probes']))
+		self.ui.planMicroModel.setCurrentIndex(self.ui.planMicroModel.findText(microelectrodeModels['default']))
+
+
 	def _setupConnections(self):
 		# These connections ensure that we update parameter node when scene is closed
 		self.addObserver(slicer.mrmlScene, slicer.mrmlScene.StartCloseEvent, self.onSceneStartClose)
@@ -195,7 +200,6 @@ class preopPlanningWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 		self.ui.planTargetSetButton.clicked.connect(lambda : self.onButtonClick(self.ui.planTargetSetButton))
 		self.ui.planTargetJumpButton.clicked.connect(lambda : self.onButtonClick(self.ui.planTargetJumpButton))
 		self.ui.planAllMER.clicked.connect(lambda : self.onSelectAllMERClicked(self.ui.planAllMER))
-		self.ui.planElecModelButtonGroup.connect('buttonClicked(int)', self.onElecModelButtonGroup)
 		self.ui.planShowLeadButtonGroup.connect('buttonClicked(QAbstractButton*)', self.onPlanShowLeadButtonGroup)
 		self.ui.merOrientationButtonGroup.connect('buttonClicked(QAbstractButton*)', self.onMEROrientationButtonGroup)
 		self.ui.planShowMERTracksButtonGroup.connect('buttonClicked(QAbstractButton*)', self.onPlanShowMERTracksButton)
@@ -304,6 +308,9 @@ class preopPlanningWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
 			plansAdd = [x for x in list(surgical_info_json['trajectories']) if x not in planNames]
 			self.ui.planName.addItems(plansAdd)
+			for iplan in plansAdd:
+				self.ui.planName.setCurrentIndex(self.ui.planName.findText(iplan))
+				#self.onPlanChange()
 
 		# All the GUI updates are done
 		self._updatingGUIFromParameterNode = False
@@ -726,9 +733,7 @@ class preopPlanningWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 			if i.name in set(self.crossBenGunLabels+self.plusBenGunLabels+['planAllMER']):
 				i.checked = False
 
-		children = self.ui.planElectrodeGB.findChildren('QRadioButton')
-		for i in children:
-			i.checked = False
+		self.ui.planElecCB.setCurrentIndex(self.ui.planElecCB.findText('Select Electrode'))
 
 		if self.ui.planName.currentText != '' and self.ui.planName.currentText != 'Select plan':
 
@@ -971,11 +976,12 @@ class preopPlanningWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
 						if 'elecUsed' in list(surgical_data['trajectories'][planName]['pre']):
 							if surgical_data['trajectories'][planName]['pre']['elecUsed']:
-								children = self.ui.planElectrodeGB.findChildren('QRadioButton')
-								for i in children:
-									if i.text.lower() == surgical_data['trajectories'][planName]['pre']['elecUsed']:
-										i.checked = True
-										self.planElecModel = i.text.lower()
+								self.ui.planElecCB.setCurrentIndex(self.ui.planElecCB.findText(surgical_data['trajectories'][planName]['pre']['elecUsed']))
+								self.planElecModel = electrodeModels[self.ui.planElecCB.currentText]['filename']
+
+						if 'microUsed' in list(surgical_data['trajectories'][planName]['pre']):
+							if surgical_data['trajectories'][planName]['pre']['microUsed']:
+								self.ui.planMicroModel.setCurrentIndex(self.ui.planMicroModel.findText(surgical_data['trajectories'][planName]['pre']['microUsed']))
 
 						lineNode = getMarkupsNode((self.ui.planName.currentText + '_line'), node_type='vtkMRMLMarkupsLineNode')
 						if lineNode is None:
@@ -1100,6 +1106,7 @@ class preopPlanningWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 				qt.QMessageBox.warning(qt.QWidget(),'','Reslice Driver Module not Found')
 				return
 
+			
 			if self.ui.probeEyeModelCBox.currentNode().GetNodeTagName() =='MarkupsLine':
 				currentPlanName = self.ui.probeEyeModelCBox.currentNode().GetName().split('_')[0]
 			else:
@@ -1125,6 +1132,9 @@ class preopPlanningWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 					layoutManager.sliceWidget(settings['color']).sliceLogic().FitSliceToAll()
 					fov=layoutManager.sliceWidget(settings['color']).sliceLogic().GetSliceNode().GetFieldOfView()
 					layoutManager.sliceWidget(settings['color']).sliceLogic().GetSliceNode().SetFieldOfView(fov[0]/3,fov[1]/3,fov[2])
+
+			#mouseTrack = SteeredPolyAffineRegistrationLogic(self.ui.MRMLSliderWidget)
+			#mouseTrack.run()
 
 			if self.previousProbeEye == currentPlanName:
 				self.probeEyeProcess(self.ui.MRMLSliderWidget.value)
@@ -1536,28 +1546,7 @@ class preopPlanningWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 						i.checked = False
 				self.planAllChecked=False
 
-	def onElecModelButtonGroup(self, button):
-		"""
-		Slot for electrode type in ``Left Plan - Electrode:``
-		
-		"""
-		children = self.ui.planElectrodeGB.findChildren('QRadioButton')
-		for i in children:
-			if i.isChecked():
-				self.planElecModel = i.text.lower()
-			i.checked = False
-
-		button_idx = abs(button - -2)
-		if children[button_idx].text.lower() != self.planElecModel.lower():
-			if self.planElecModel:
-				children[button_idx].setChecked(True)
-				self.planElecModel = []
-			else:
-				children[button_idx].setChecked(False)
-				self.planElecModel = children[button_idx].text.lower()
-		elif children[button_idx].text.lower() == self.planElecModel.lower():
-			children[button_idx].setChecked(True)
-			self.planElecModel = []
+	
 
 	def onPlanShowLeadButtonGroup(self, button):
 		"""
@@ -1603,20 +1592,23 @@ class preopPlanningWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 				if i.name in set(self.crossBenGunLabels+self.plusBenGunLabels):
 					self.planChans.append(self.uiWidget.findChild(qt.QLabel, i.name + 'Label').text.lower())
 
-		children = self.ui.planElectrodeGB.findChildren('QRadioButton')
-		for i in children:
-			if i.isChecked():
-				self.planElecModel = i.text.lower()
+		if self.plannedMERTracksPlot and self.ui.planMicroModel.currentText == 'Select Microelectrode':
+			warningBox('Please choose an microelectrode model.')
+			return
+
+		if self.ui.planElecCB.currentText == 'Select Electrode':
+			warningBox('Please choose an electrode model.')
+			return
 
 		if sum(np.array([self.ui.planEntryX.value, self.ui.planEntryY.value, self.ui.planEntryZ.value])) == 0:
 			warningBox('Please choose entry point.')
 			return
+
 		if sum(np.array([self.ui.planTargetX.value, self.ui.planTargetY.value, self.ui.planTargetZ.value])) == 0:
 			warningBox('Please choose target point.')
 			return
-		if not self.planElecModel:
-			warningBox('Please choose electrode model.')
-			return
+
+		self.planElecModel = electrodeModels[self.ui.planElecCB.currentText]['filename']
 
 		self.ct_frame_present = False
 		if len(slicer.util.getNodes('*from-*Frame_to*')) > 0:
@@ -1660,6 +1652,12 @@ class preopPlanningWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 		with open(os.path.join(self._parameterNode.GetParameter('derivFolder'), f"{self._parameterNode.GetParameter('derivFolder').split(os.path.sep)[-1]}_surgical_data.json")) as (surgical_file):
 			surgical_data = json.load(surgical_file)
 
+		
+		if self.ui.planElecCB.currentText == 'Select Electrode':
+			warningBox('You need to choose an electrode model.')
+			return
+
+		
 		surgical_data['trajectories'][plan_name] = {
 			'side':'left' if target_coords_world[0] < origin_point[0] else 'right', 
 			'pre':{
@@ -1668,7 +1666,8 @@ class preopPlanningWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 				'origin_point':list(adjustPrecision(origin_point)), 
 				'chansUsed':self.planChans, 
 				'chanIndex':channel_index,
-				'elecUsed':self.planElecModel.lower(), 
+				'elecUsed':self.ui.planElecCB.currentText, 
+				'microUsed': self.ui.planMicroModel.currentText if self.ui.planMicroModel.currentText != 'Select Microelectrode' else [],
 				'traj_len':float(adjustPrecision(trajectory_dist)) if self.ct_frame_present else [],
 				'axial_ang':float(adjustPrecision(ringAngle)) if self.ct_frame_present else [],
 				'sag_ang': float(adjustPrecision(arcAngle)) if self.ct_frame_present else [], 
@@ -1688,7 +1687,8 @@ class preopPlanningWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 			'plan_name':plan_name,
 			'type':'pre',
 			'side': surgical_data['trajectories'][plan_name]['side'],
-			'elecUsed':self.planElecModel.lower(), 
+			'elecUsed':self.ui.planElecCB.currentText, 
+			'microUsed': surgical_data['trajectories'][plan_name]['pre']['microUsed'],
 			'data_dir':self._parameterNode.GetParameter('derivFolder'),
 			'lead_fileN':f"{self._parameterNode.GetParameter('derivFolder').split(os.path.sep)[-1]}_ses-pre_task-{plan_name}_type-{self.planElecModel.lower()}_lead.vtk",
 			'contact_fileN':f"{self._parameterNode.GetParameter('derivFolder').split(os.path.sep)[-1]}_ses-pre_task-{plan_name}_type-{self.planElecModel.lower()}_label-%s_contact.vtk", 
@@ -1751,7 +1751,7 @@ class preopPlanningWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 							'acpc_target':list(adjustPrecision(new_coords_final.T[idx]))
 						}
 
-			if coords is not None:
+			if coords is not None and self.plannedMERTracksPlot:
 				ch_info[ichan] = ch_info_temp
 
 				model_parameters['mer_filename'] = mer_filename
@@ -1807,6 +1807,92 @@ class preopPlanningWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 #
 # preopPlanningLogic
 #
+
+class SteeredPolyAffineRegistrationLogic(object):
+	def __init__(self, sliderWig):
+
+		self.sliceWidgetsPerStyle = {}		
+		self.interactorObserverTags = []
+		self.sliderWig = sliderWig
+
+	def run(self):
+		layoutManager = slicer.app.layoutManager()
+		sliceNodeCount = slicer.mrmlScene.GetNumberOfNodesByClass('vtkMRMLSliceNode')
+		for nodeIndex in range(sliceNodeCount):
+			# find the widget for each node in scene
+			sliceNode = slicer.mrmlScene.GetNthNodeByClass(nodeIndex, 'vtkMRMLSliceNode')
+			sliceWidget = layoutManager.sliceWidget(sliceNode.GetLayoutName())
+
+			if sliceWidget:
+				# sliceWidget to operate on and convenience variables
+				# to access the internals
+				style = sliceWidget.sliceView().interactorStyle()
+				self.interactor = style.GetInteractor()
+				
+				self.sliceWidgetsPerStyle[self.interactor] = sliceWidget
+				self.sliceLogic = sliceWidget.sliceLogic()
+				self.sliceView = sliceWidget.sliceView()
+				
+				
+				events = (
+					vtk.vtkCommand.MouseMoveEvent,
+					vtk.vtkCommand.MouseWheelForwardEvent,
+					vtk.vtkCommand.MouseWheelBackwardEvent)
+				for e in events:
+					tag = self.interactor.AddObserver(e, self.processEvent, 1.0)
+					self.interactorObserverTags.append(tag)
+
+				
+
+	def processEvent(self,caller=None, event=None):
+
+		eventProcessed = None
+		from slicer import app
+		layoutManager = slicer.app.layoutManager()
+		if caller in list (self.sliceWidgetsPerStyle):
+
+			sliceWidget = self.sliceWidgetsPerStyle[caller]
+			interactor = sliceWidget.sliceView().interactorStyle().GetInteractor()
+
+			self.lastDrawnSliceWidget = sliceWidget
+			if any(x == event for x in ("MouseWheelForwardEvent","MouseWheelBackwardEvent")):
+
+				"""
+				xy = style.GetInteractor().GetEventPosition()
+				xyz = sliceWidget.sliceView().convertDeviceToXYZ(xy)
+				ras = sliceWidget.sliceView().convertXYZToRAS(xyz)
+
+				w = slicer.modules.SteeredPolyAffineRegistrationWidget
+
+				movingRAStoIJK = vtk.vtkMatrix4x4()
+				w.movingSelector.currentNode().GetRASToIJKMatrix(movingRAStoIJK)
+
+				ijk = movingRAStoIJK.MultiplyPoint(ras + (1,))
+				"""
+				
+				xy = interactor.GetEventPosition()
+				xyz = sliceWidget.sliceView().convertDeviceToXYZ(xy)
+				ras = sliceWidget.sliceView().convertXYZToRAS(xyz)
+				print(ras)
+				self.sliderWig.value = self.sliderWig.value-(self.sliderWig.value-ras[2])
+
+				
+				self.abortEvent(event)	  
+			else:
+				eventProcessed = None
+
+
+	def abortEvent(self,event):
+		"""Set the AbortFlag on the vtkCommand associated
+		with the event - causes other things listening to the
+		interactor not to receive the events"""
+		# TODO: make interactorObserverTags a map to we can
+		# explicitly abort just the event we handled - it will
+		# be slightly more efficient
+		for tag in self.interactorObserverTags:
+			cmd = self.interactor.GetCommand(tag)
+			cmd.SetAbortFlag(1)
+
 
 class preopPlanningLogic(ScriptedLoadableModuleLogic):
 	"""This class should implement all the actual

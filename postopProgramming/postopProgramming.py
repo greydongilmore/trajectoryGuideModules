@@ -14,7 +14,7 @@ elif __file__:
 
 sys.path.insert(1, os.path.dirname(cwd))
 
-from helpers.helpers import warningBox, VTAModelBuilderClass, dotdict, getMarkupsNode, getPointCoords, addCustomLayouts
+from helpers.helpers import warningBox, VTAModelBuilderClass, dotdict, getMarkupsNode, getPointCoords, addCustomLayouts, createElecBox, imagePopup
 from helpers.variables import electrodeModels,groupboxStyle, slicerLayout
 
 #
@@ -93,16 +93,16 @@ class postopProgrammingWidget(ScriptedLoadableModuleWidget, VTKObservationMixin)
 		self.ui = slicer.util.childWidgetVariables(self.uiWidget)
 		self.uiWidget.setMRMLScene(slicer.mrmlScene)
 
-		self.polarityButtonGroups = [
-			self.ui.polarity01,
-			self.ui.polarity02,
-			self.ui.polarity03,
-			self.ui.polarity04,
-			self.ui.polarity05,
-			self.ui.polarity06,
-			self.ui.polarity07,
-			self.ui.polarity08
-		]
+		#self.polarityButtonGroups = [
+		#	self.ui.polarity01,
+		#	self.ui.polarity02,
+		#	self.ui.polarity03,
+		#	self.ui.polarity04,
+		#	self.ui.polarity05,
+		#	self.ui.polarity06,
+		#	self.ui.polarity07,
+		#	self.ui.polarity08
+		#]
 
 		self.text_color = slicer.util.findChild(slicer.util.mainWindow(), 'DialogToolBar').children()[3].palette.buttonText().color().name()
 		self.ui.planNameGB.setStyleSheet(groupboxStyle + f"color: {self.text_color}" + '}')
@@ -111,16 +111,9 @@ class postopProgrammingWidget(ScriptedLoadableModuleWidget, VTKObservationMixin)
 		self.ui.stimSettingsGB.setStyleSheet(groupboxStyle + f"color: {self.text_color}" + '}')
 		self.ui.vtaAlgoGB.setStyleSheet(groupboxStyle + f"color: {self.text_color}" + '}')
 
-		self.ui.contact01Wig.setVisible(0)
-		self.ui.contact02Wig.setVisible(0)
-		self.ui.contact03Wig.setVisible(0)
-		self.ui.contact04Wig.setVisible(0)
-		self.ui.contact05Wig.setVisible(0)
-		self.ui.contact06Wig.setVisible(0)
-		self.ui.contact07Wig.setVisible(0)
-		self.ui.contact08Wig.setVisible(0)
-		self.ui.bottomTableLineWig.setVisible(0)
 
+		self.ui.postElecCB.addItems(['Select Electrode']+list(electrodeModels))
+		
 	def _setupConnections(self):
 		# These connections ensure that we update parameter node when scene is closed
 		self.addObserver(slicer.mrmlScene, slicer.mrmlScene.StartCloseEvent, self.onSceneStartClose)
@@ -142,17 +135,9 @@ class postopProgrammingWidget(ScriptedLoadableModuleWidget, VTKObservationMixin)
 		
 		self.ui.showVTAButton.clicked.connect(self.onVTAModelButton)
 		self.ui.clearTableButton.clicked.connect(self.clearTable)
-		self.ui.electrodeModelButtonGroup.buttonClicked.connect(self.onButtonClick)
+		self.ui.postElecCB.currentIndexChanged.connect(lambda: self.onButtonClick(self.ui.postElecCB))
 		self.ui.electrodeChannelButtonGroup.buttonClicked.connect(self.onButtonClick)
 		self.ui.electrodeShowDiagram.clicked.connect(self.onElectrodeShowDiagram)
-		self.ui.polarity01.buttonClicked.connect(self.onButtonClick)
-		self.ui.polarity02.buttonClicked.connect(self.onButtonClick)
-		self.ui.polarity03.buttonClicked.connect(self.onButtonClick)
-		self.ui.polarity04.buttonClicked.connect(self.onButtonClick)
-		self.ui.polarity05.buttonClicked.connect(self.onButtonClick)
-		self.ui.polarity06.buttonClicked.connect(self.onButtonClick)
-		self.ui.polarity07.buttonClicked.connect(self.onButtonClick)
-		self.ui.polarity08.buttonClicked.connect(self.onButtonClick)
 		
 		# Make sure parameter node is initialized (needed for module reload)
 		self.initializeParameterNode()
@@ -275,42 +260,14 @@ class postopProgrammingWidget(ScriptedLoadableModuleWidget, VTKObservationMixin)
 		if isinstance(button,tuple):
 			buttonName = button[0]
 			buttonText = button[1]
+		elif button.name == 'postElecCB':
+			buttonName = button.name
+			buttonText = self.ui.postElecCB.currentText
 		else:
 			buttonName = button.name
 			buttonText = button.text
 
-		if 'electrode_' in buttonName:
-
-			if buttonName != 'electrode_pass':
-				children = self.ui.electrodeModelGB.findChildren('QRadioButton')
-				for i in children:
-					i.setChecked(False)
-
-				cnt=0
-				for i in children:
-					if i.text == buttonText:
-						self.elecModelButton=cnt
-					cnt+=1
-
-				if np.all([children[self.elecModelButton].isChecked(), self.elecModelButton == self.elecModelLastButton]):
-					children[button_idx].setChecked(True)
-					self.elecModelLastButton = self.elecModelButton
-				elif np.all([children[self.elecModelButton].isChecked()==False, self.elecModelButton == self.elecModelLastButton]):
-					children[self.elecModelButton].setChecked(False)
-					self.elecModelLastButton = None
-					self.ui.contact01Wig.setVisible(0)
-					self.ui.contact02Wig.setVisible(0)
-					self.ui.contact03Wig.setVisible(0)
-					self.ui.contact04Wig.setVisible(0)
-					self.ui.contact05Wig.setVisible(0)
-					self.ui.contact06Wig.setVisible(0)
-					self.ui.contact07Wig.setVisible(0)
-					self.ui.contact08Wig.setVisible(0)
-					self.ui.bottomTableLineWig.setVisible(0)
-				elif np.all([children[self.elecModelButton].isChecked()==False, self.elecModelButton != self.elecModelLastButton]):
-					children[self.elecModelButton].setChecked(True)
-					self.elecModelLastButton = self.elecModelButton
-
+		if 'postElecCB' in buttonName:
 
 			self.elecNumber = []
 			children = self.ui.electrodeChannelGB.findChildren('QCheckBox')
@@ -322,46 +279,79 @@ class postopProgrammingWidget(ScriptedLoadableModuleWidget, VTKObservationMixin)
 				pass
 	# 			warningBox("Please select electrode number.")
 			else:
-				children = self.ui.electrodeModelGB.findChildren('QRadioButton')
-				for i in children:
-					if i.isChecked():
-						self.clearTable()
-						self.elecModel = i.text.lower()
-						self.elspec = electrodeModels[self.elecModel]
-							
-						if any(x in self.elecModel for x in ('3389','3387')):
-							self.ui.contact01Wig.setVisible(1)
-							self.ui.contact01Text.setText('' + str(self.elspec[self.elecNumber][0]))
-							self.ui.contact02Wig.setVisible(1)
-							self.ui.contact02Text.setText('' + str(self.elspec[self.elecNumber][1]))
-							self.ui.contact03Wig.setVisible(1)
-							self.ui.contact03Text.setText('' + str(self.elspec[self.elecNumber][2]))
-							self.ui.contact04Wig.setVisible(1)
-							self.ui.contact04Text.setText('' + str(self.elspec[self.elecNumber][3]))
-							self.ui.contact05Wig.setVisible(0)
-							self.ui.contact06Wig.setVisible(0)
-							self.ui.contact07Wig.setVisible(0)
-							self.ui.contact08Wig.setVisible(0)
-							self.ui.bottomTableLineWig.setVisible(1)
-							
-						if any(x in self.elecModel for x in ('directional','non-directional')):
-							self.ui.contact01Wig.setVisible(1)
-							self.ui.contact01Text.setText(self.elspec['contact_label'][0]+str(self.elspec[self.elecNumber][0]))
-							self.ui.contact02Wig.setVisible(1)
-							self.ui.contact02Text.setText(self.elspec['contact_label'][1]+str(self.elspec[self.elecNumber][1]))
-							self.ui.contact03Wig.setVisible(1)
-							self.ui.contact03Text.setText(self.elspec['contact_label'][2]+str(self.elspec[self.elecNumber][2]))
-							self.ui.contact04Wig.setVisible(1)
-							self.ui.contact04Text.setText(self.elspec['contact_label'][3]+str(self.elspec[self.elecNumber][3]))
-							self.ui.contact05Wig.setVisible(1)
-							self.ui.contact05Text.setText(self.elspec['contact_label'][4]+str(self.elspec[self.elecNumber][4]))
-							self.ui.contact06Wig.setVisible(1)
-							self.ui.contact06Text.setText(self.elspec['contact_label'][5]+str(self.elspec[self.elecNumber][5]))
-							self.ui.contact07Wig.setVisible(1)
-							self.ui.contact07Text.setText(self.elspec['contact_label'][6]+str(self.elspec[self.elecNumber][6]))
-							self.ui.contact08Wig.setVisible(1)
-							self.ui.contact08Text.setText(self.elspec['contact_label'][7]+str(self.elspec[self.elecNumber][7]))
-							self.ui.bottomTableLineWig.setVisible(1)
+				if self.ui.postElecCB.currentText != 'Select Electrode':
+					self.clearTable()
+					self.elecModel = self.ui.postElecCB.currentText
+					self.elspec = electrodeModels[self.elecModel]
+					
+					elecWig_dict={}
+					for icon in range(self.elspec['num_contacts']):
+						elecWig_dict[icon+1]=createElecBox(icon+1, self.elspec['contact_label'][icon]+str(self.elspec[self.elecNumber][icon]))
+
+					new_elecs = self.uiWidget.findChild(qt.QWidget,'new_elecs')
+					elecGridLayout = self.uiWidget.findChild(qt.QWidget,'new_elecs').layout()
+					
+					while elecGridLayout.count():
+						child = elecGridLayout.takeAt(0)
+						if child.widget():
+							child.widget().deleteLater()
+
+					
+					titleLine = qt.QFrame()
+					titleLine.setFrameShape(qt.QFrame.HLine)
+					titleLine.setFixedWidth(290)
+
+					botLine = qt.QFrame()
+					botLine.setFrameShape(qt.QFrame.HLine)
+					botLine.setFixedWidth(420)
+
+					spaceItem = qt.QLabel('')
+					spaceItem.setFixedWidth(60)
+					spaceItem.setAlignment(qt.Qt.AlignLeft)
+
+					fontSettings = qt.QFont("font-size: 11pt;font-family: Arial")
+					fontSettings.setBold(True)
+
+					ampLabel = qt.QLabel('Amp')
+					ampLabel.setFont(fontSettings)
+					ampLabel.setFixedWidth(70)
+					ampLabel.setAlignment(qt.Qt.AlignLeft)
+
+					freqLabel = qt.QLabel('Freq')
+					freqLabel.setFont(fontSettings)
+					freqLabel.setFixedWidth(70)
+					freqLabel.setAlignment(qt.Qt.AlignLeft)
+
+					pwLabel = qt.QLabel('PW')
+					pwLabel.setFont(fontSettings)
+					pwLabel.setFixedWidth(70)
+					pwLabel.setAlignment(qt.Qt.AlignLeft)
+
+					impLabel = qt.QLabel('Imp')
+					impLabel.setFont(fontSettings)
+					impLabel.setFixedWidth(75)
+					impLabel.setAlignment(qt.Qt.AlignLeft)
+
+					headGridLayout = qt.QGridLayout()
+					headGridLayout.addWidget(spaceItem,0,0,2,2)
+					headGridLayout.addWidget(titleLine,0,1,1,4)
+					headGridLayout.addWidget(ampLabel,1,1,1,1)
+					headGridLayout.addWidget(freqLabel,1,2,1,1)
+					headGridLayout.addWidget(pwLabel,1,3,1,1)
+					headGridLayout.addWidget(impLabel,1,4,1,1)
+					headGridLayout.addWidget(botLine,2,0,1,5)
+
+					headWig = qt.QWidget()
+					headWig.setLayout(headGridLayout)
+
+					elecGridLayout.addWidget(headWig,0,1)
+
+					polarityButtonGroup_dict={}
+					cnt=1
+					bntCnt=0
+					for ielec in list(elecWig_dict):
+						elecGridLayout.addWidget(elecWig_dict[ielec],cnt,1)
+						cnt += 1
 
 		elif 'elecNumber' in buttonName:
 
@@ -378,18 +368,6 @@ class postopProgrammingWidget(ScriptedLoadableModuleWidget, VTKObservationMixin)
 			if np.all([children[self.elecChanButton].isChecked(), self.elecChanButton == self.elecChanLastButton]):
 				children[self.elecChanButton].setChecked(True)
 				self.elecChanLastButton = self.elecChanButton
-			elif np.all([children[self.elecChanButton].isChecked()==False, self.elecChanButton == self.elecChanLastButton]):
-				children[self.elecChanButton].setChecked(False)
-				self.elecChanLastButton = 0
-				self.ui.contact01Wig.setVisible(0)
-				self.ui.contact02Wig.setVisible(0)
-				self.ui.contact03Wig.setVisible(0)
-				self.ui.contact04Wig.setVisible(0)
-				self.ui.contact05Wig.setVisible(0)
-				self.ui.contact06Wig.setVisible(0)
-				self.ui.contact07Wig.setVisible(0)
-				self.ui.contact08Wig.setVisible(0)
-				self.ui.bottomTableLineWig.setVisible(0)
 			elif np.all([children[self.elecChanButton].isChecked()==False, self.elecChanButton != self.elecChanLastButton]):
 				children[self.elecChanButton].setChecked(True)
 				self.elecChanLastButton = self.elecChanButton
@@ -402,21 +380,15 @@ class postopProgrammingWidget(ScriptedLoadableModuleWidget, VTKObservationMixin)
 
 			if self.elecNumber:
 				button_send=None
-				children = self.ui.electrodeModelGB.findChildren('QRadioButton')
-				for ibut in children:
-					if ibut.isChecked():
-						button_send = dotdict({'name':'electrode_pass'})
+				if self.ui.postElecCB.currentText != 'Select Electrode':
+					button_send = dotdict({'name':'postElecCB'})
 
 				if button_send is not None:
 					self.onButtonClick(button_send)
 
 	def clearTable(self):
-		for ibutton in self.polarityButtonGroups:
-			checked = ibutton.checkedButton()
-			if checked:
-				ibutton.setExclusive(False)
-				checked.setChecked(False)
-				ibutton.setExclusive(True)
+		for ibutton in self.ui.stimSettingsGB.findChildren('QCheckBox'):
+			ibutton.setChecked(False)
 
 		children = self.ui.stimSettingsGB.findChildren('QWidget')
 		for i in children:
@@ -432,9 +404,7 @@ class postopProgrammingWidget(ScriptedLoadableModuleWidget, VTKObservationMixin)
 		for i in children:
 			i.checked = False
 
-		children = self.ui.electrodeModelGB.findChildren('QRadioButton')
-		for i in children:
-			i.checked = False
+		self.ui.postElecCB.setCurrentIndex(self.ui.postElecCB.findText('Select Electrode'))
 
 		children = self.ui.vtaAlgoGB.findChildren('QRadioButton')
 		for i in children:
@@ -445,14 +415,6 @@ class postopProgrammingWidget(ScriptedLoadableModuleWidget, VTKObservationMixin)
 		self.elecChanLastButton = None
 		self.elecChanButton = 0
 
-		self.ui.contact01Wig.setVisible(0)
-		self.ui.contact02Wig.setVisible(0)
-		self.ui.contact03Wig.setVisible(0)
-		self.ui.contact04Wig.setVisible(0)
-		self.ui.contact05Wig.setVisible(0)
-		self.ui.contact06Wig.setVisible(0)
-		self.ui.contact07Wig.setVisible(0)
-		self.ui.contact08Wig.setVisible(0)
 
 	def onPlanAdd(self):
 		if not self.ui.planNameEdit.isVisible():
@@ -544,11 +506,8 @@ class postopProgrammingWidget(ScriptedLoadableModuleWidget, VTKObservationMixin)
 
 					if 'elecUsed' in list(surgical_data['trajectories'][planName]["pre"]):
 						if surgical_data['trajectories'][planName]["pre"]['elecUsed']:
-								children = self.ui.electrodeModelGB.findChildren('QRadioButton')
-								for i in children:
-									if i.text.lower() == surgical_data['trajectories'][planName]["pre"]['elecUsed'].lower():
-										i.checked = True
-										self.elecModel = i.text.lower()
+								self.ui.postElecCB.setCurrentIndex(self.ui.postElecCB.findText(surgical_data['trajectories'][planName]['pre']['elecUsed']))
+								self.elecModel = self.ui.postElecCB.currentText
 					
 					if 'programming' in list(surgical_data['trajectories'][planName]):
 						if 'elecNumber' in list(surgical_data['trajectories'][planName]['programming']):
@@ -583,22 +542,21 @@ class postopProgrammingWidget(ScriptedLoadableModuleWidget, VTKObservationMixin)
 		
 		"""
 		self.elecModelShow = []
-		children = self.ui.electrodeModelGB.findChildren('QRadioButton')
-		for i in children:
-			if i.isChecked():
-				self.elecModelShow = i.text
+		if self.ui.postElecCB.currentText != 'Select Electrode':
+			self.elecModelShow = electrodeModels[self.ui.postElecCB.currentText]['filename']
 
 		if not self.elecModelShow:
 			self.elecModelShow = 'allElectrodes'
 		
-		self.pic = qt.QLabel()
-		self.pic.setWindowTitle(self.elecModelShow + ' electrode')
-		self.pic.setScaledContents(True)
-		pixmap = qt.QPixmap(os.path.join(self._parameterNode.GetParameter('script_path'), 'resources', 'static', self.elecModelShow + '.png'))
-		pixmap = pixmap.scaled(0.7 * pixmap.size(), qt.Qt.KeepAspectRatio, qt.Qt.SmoothTransformation)
-		self.pic.setPixmap(pixmap)
-		self.pic.frameGeometry.moveCenter(qt.QDesktopWidget().availableGeometry().center())
-		self.pic.show()
+		parent = None
+		for w in slicer.app.topLevelWidgets():
+			if hasattr(w,'objectName'):
+				if w.objectName == 'qSlicerMainWindow':
+					parent=w
+		
+		imagePopup(self.elecModelShow + ' electrode', os.path.join(self._parameterNode.GetParameter('trajectoryGuidePath'), 'resources', 'static', self.elecModelShow + '.png'),parent)
+
+		
 
 	def get_contact_coords(self, side):
 		DirVec = [side['entry'][0] - side['target'][0], side['entry'][1] - side['target'][1], side['entry'][2] - side['target'][2]]
@@ -611,7 +569,7 @@ class postopProgrammingWidget(ScriptedLoadableModuleWidget, VTKObservationMixin)
 		conSize = e_specs['contact_size']
 		conSpace = e_specs['contact_spacing']
 		midContact = []
-		for iContact in range(0, e_specs['num_contacts']):
+		for iContact in range(0, e_specs['num_groups']):
 			bottomTop = np.append(bottomTop, (np.hstack((
 					np.array([[side['target'][0] + NormVec[0] * start],[side['target'][1] + NormVec[1] * start], [side['target'][2] + NormVec[2] * start]]).T,
 					np.array(([side['target'][0] + NormVec[0] * (start + conSize)], [side['target'][1] + NormVec[1] * (start + conSize)], [side['target'][2] + NormVec[2] * (start + conSize)])).T
@@ -631,31 +589,25 @@ class postopProgrammingWidget(ScriptedLoadableModuleWidget, VTKObservationMixin)
 
 	def onVTAModelButton(self):
 		
-		children = self.ui.electrodeModelGB.findChildren('QRadioButton')
-		for i in children:
-			if i.isChecked():
-				self.elecModel = i.text.lower()
+		self.elecModel = self.ui.postElecCB.currentText
 
-		if self.elecModel is None:
+		if self.elecModel == 'Select Electrode' :
 			warningBox(f'Please select electrode for {self.ui.planName.currentText}.')
 			return
 
-		if self.elecModel in {'3387', '3389'}:
-			contactRange = range(1,5)
-		elif self.elecModel.lower() in {'non-directional', 'directional'}:
-			contactRange = range(1,9)
+		contactRange = range(1, electrodeModels[self.elecModel]['num_contacts']+1)
 
 		contact_info = {}
 		for icontact in contactRange:
-			contact_info[self.ui.stimSettingsGB.findChild(qt.QLabel, f'contact0{icontact}Text').text] = {
-				'perc': 100 if self.ui.stimSettingsGB.findChild(qt.QDoubleSpinBox, f'contact0{icontact}Amp').value > 0 else 0,
-				'amp': self.ui.stimSettingsGB.findChild(qt.QDoubleSpinBox, f'contact0{icontact}Amp').value,
-				'freq': self.ui.stimSettingsGB.findChild(qt.QDoubleSpinBox, f'contact0{icontact}Freq').value,
-				'pw': self.ui.stimSettingsGB.findChild(qt.QDoubleSpinBox, f'contact0{icontact}PW').value,
-				'imp': self.ui.stimSettingsGB.findChild(qt.QDoubleSpinBox, f'contact0{icontact}Imp').value,
-				'neg': self.ui.stimSettingsGB.findChild(qt.QCheckBox, f'contact0{icontact}Neg').isChecked(),
-				'pos': self.ui.stimSettingsGB.findChild(qt.QCheckBox, f'contact0{icontact}Pos').isChecked(),
-				'boxNum':icontact - 1
+			contact_info[self.ui.stimSettingsGB.findChild(qt.QLabel, f'contact{str(icontact).zfill(2)}Text').text] = {
+				'perc': 100 if self.ui.stimSettingsGB.findChild(qt.QDoubleSpinBox, f'contact{str(icontact).zfill(2)}Amp').value > 0 else 0,
+				'amp': self.ui.stimSettingsGB.findChild(qt.QDoubleSpinBox, f'contact{str(icontact).zfill(2)}Amp').value,
+				'freq': self.ui.stimSettingsGB.findChild(qt.QDoubleSpinBox, f'contact{str(icontact).zfill(2)}Freq').value,
+				'pw': self.ui.stimSettingsGB.findChild(qt.QDoubleSpinBox, f'contact{str(icontact).zfill(2)}PW').value,
+				'imp': self.ui.stimSettingsGB.findChild(qt.QDoubleSpinBox, f'contact{str(icontact).zfill(2)}Imp').value,
+				'neg': self.ui.stimSettingsGB.findChild(qt.QCheckBox, f'contact{str(icontact).zfill(2)}Neg').isChecked(),
+				'pos': self.ui.stimSettingsGB.findChild(qt.QCheckBox, f'contact{str(icontact).zfill(2)}Pos').isChecked(),
+				'boxNum':icontact
 			 }
 
 		self.vtaAlgorithm = []
@@ -797,6 +749,7 @@ class postopProgrammingLogic(ScriptedLoadableModuleLogic):
 		elif __file__:
 			trajectoryGuidePath = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 
+		print(os.path.dirname(os.path.realpath(__file__)))
 		if not parameterNode.GetParameter("trajectoryGuidePath"):
 			parameterNode.SetParameter("trajectoryGuidePath", trajectoryGuidePath)
 		if not parameterNode.GetParameter("trajectoryGuide_settings"):

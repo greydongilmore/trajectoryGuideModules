@@ -7,14 +7,14 @@
     <x>0</x>
     <y>0</y>
     <width>450</width>
-    <height>935</height>
+    <height>1008</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Form</string>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout">
-   <item alignment="Qt::AlignHCenter">
+  <layout class="QGridLayout" name="gridLayout_9">
+   <item row="0" column="0" alignment="Qt::AlignHCenter">
     <widget class="QGroupBox" name="planNameGB">
      <property name="font">
       <font>
@@ -170,7 +170,7 @@
      </layout>
     </widget>
    </item>
-   <item alignment="Qt::AlignHCenter">
+   <item row="1" column="0" alignment="Qt::AlignHCenter">
     <widget class="QGroupBox" name="postTrajUsedGB">
      <property name="font">
       <font>
@@ -194,127 +194,7 @@
       <property name="bottomMargin">
        <number>15</number>
       </property>
-      <item row="1" column="2">
-       <widget class="QRadioButton" name="postLatMER">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="minimumSize">
-         <size>
-          <width>75</width>
-          <height>0</height>
-         </size>
-        </property>
-        <property name="font">
-         <font>
-          <family>Arial</family>
-          <pointsize>11</pointsize>
-         </font>
-        </property>
-        <property name="mouseTracking">
-         <bool>false</bool>
-        </property>
-        <property name="focusPolicy">
-         <enum>Qt::NoFocus</enum>
-        </property>
-        <property name="styleSheet">
-         <string notr="true">padding-top:12px;padding-bottom:12px;</string>
-        </property>
-        <property name="text">
-         <string>Lateral</string>
-        </property>
-        <property name="autoExclusive">
-         <bool>false</bool>
-        </property>
-        <attribute name="buttonGroup">
-         <string notr="true">trajUsedButtonGroup</string>
-        </attribute>
-       </widget>
-      </item>
-      <item row="2" column="1">
-       <widget class="QRadioButton" name="postPosMER">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="minimumSize">
-         <size>
-          <width>70</width>
-          <height>0</height>
-         </size>
-        </property>
-        <property name="font">
-         <font>
-          <family>Arial</family>
-          <pointsize>11</pointsize>
-         </font>
-        </property>
-        <property name="mouseTracking">
-         <bool>false</bool>
-        </property>
-        <property name="focusPolicy">
-         <enum>Qt::NoFocus</enum>
-        </property>
-        <property name="styleSheet">
-         <string notr="true"/>
-        </property>
-        <property name="text">
-         <string>Posterior</string>
-        </property>
-        <property name="autoExclusive">
-         <bool>false</bool>
-        </property>
-        <attribute name="buttonGroup">
-         <string notr="true">trajUsedButtonGroup</string>
-        </attribute>
-       </widget>
-      </item>
-      <item row="0" column="1">
-       <widget class="QRadioButton" name="postAntMER">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="minimumSize">
-         <size>
-          <width>70</width>
-          <height>0</height>
-         </size>
-        </property>
-        <property name="font">
-         <font>
-          <family>Arial</family>
-          <pointsize>11</pointsize>
-         </font>
-        </property>
-        <property name="mouseTracking">
-         <bool>false</bool>
-        </property>
-        <property name="focusPolicy">
-         <enum>Qt::NoFocus</enum>
-        </property>
-        <property name="styleSheet">
-         <string notr="true"/>
-        </property>
-        <property name="text">
-         <string>Anterior</string>
-        </property>
-        <property name="autoExclusive">
-         <bool>false</bool>
-        </property>
-        <attribute name="buttonGroup">
-         <string notr="true">trajUsedButtonGroup</string>
-        </attribute>
-       </widget>
-      </item>
-      <item row="1" column="1">
+      <item row="3" column="1">
        <widget class="QRadioButton" name="postCenMER">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
@@ -357,7 +237,87 @@
         </attribute>
        </widget>
       </item>
-      <item row="1" column="0">
+      <item row="2" column="1">
+       <widget class="QRadioButton" name="postAntMER">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="minimumSize">
+         <size>
+          <width>70</width>
+          <height>0</height>
+         </size>
+        </property>
+        <property name="font">
+         <font>
+          <family>Arial</family>
+          <pointsize>11</pointsize>
+         </font>
+        </property>
+        <property name="mouseTracking">
+         <bool>false</bool>
+        </property>
+        <property name="focusPolicy">
+         <enum>Qt::NoFocus</enum>
+        </property>
+        <property name="styleSheet">
+         <string notr="true"/>
+        </property>
+        <property name="text">
+         <string>Anterior</string>
+        </property>
+        <property name="autoExclusive">
+         <bool>false</bool>
+        </property>
+        <attribute name="buttonGroup">
+         <string notr="true">trajUsedButtonGroup</string>
+        </attribute>
+       </widget>
+      </item>
+      <item row="3" column="2">
+       <widget class="QRadioButton" name="postLatMER">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="minimumSize">
+         <size>
+          <width>75</width>
+          <height>0</height>
+         </size>
+        </property>
+        <property name="font">
+         <font>
+          <family>Arial</family>
+          <pointsize>11</pointsize>
+         </font>
+        </property>
+        <property name="mouseTracking">
+         <bool>false</bool>
+        </property>
+        <property name="focusPolicy">
+         <enum>Qt::NoFocus</enum>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">padding-top:12px;padding-bottom:12px;</string>
+        </property>
+        <property name="text">
+         <string>Lateral</string>
+        </property>
+        <property name="autoExclusive">
+         <bool>false</bool>
+        </property>
+        <attribute name="buttonGroup">
+         <string notr="true">trajUsedButtonGroup</string>
+        </attribute>
+       </widget>
+      </item>
+      <item row="3" column="0">
        <widget class="QRadioButton" name="postMedMER">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
@@ -397,10 +357,60 @@
         </attribute>
        </widget>
       </item>
+      <item row="4" column="1">
+       <widget class="QRadioButton" name="postPosMER">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="minimumSize">
+         <size>
+          <width>70</width>
+          <height>0</height>
+         </size>
+        </property>
+        <property name="font">
+         <font>
+          <family>Arial</family>
+          <pointsize>11</pointsize>
+         </font>
+        </property>
+        <property name="mouseTracking">
+         <bool>false</bool>
+        </property>
+        <property name="focusPolicy">
+         <enum>Qt::NoFocus</enum>
+        </property>
+        <property name="styleSheet">
+         <string notr="true"/>
+        </property>
+        <property name="text">
+         <string>Posterior</string>
+        </property>
+        <property name="autoExclusive">
+         <bool>false</bool>
+        </property>
+        <attribute name="buttonGroup">
+         <string notr="true">trajUsedButtonGroup</string>
+        </attribute>
+       </widget>
+      </item>
+      <item row="1" column="0" colspan="3">
+       <widget class="QComboBox" name="postMicroModel">
+        <property name="minimumSize">
+         <size>
+          <width>250</width>
+          <height>0</height>
+         </size>
+        </property>
+       </widget>
+      </item>
      </layout>
     </widget>
    </item>
-   <item alignment="Qt::AlignHCenter">
+   <item row="2" column="0" alignment="Qt::AlignHCenter">
     <widget class="QGroupBox" name="postElecModelGB">
      <property name="font">
       <font>
@@ -425,151 +435,25 @@
        <number>15</number>
       </property>
       <item row="0" column="0">
-       <widget class="QGroupBox" name="leftElecModelGB">
-        <property name="font">
-         <font>
-          <family>Arial</family>
-          <pointsize>11</pointsize>
-         </font>
+       <widget class="QComboBox" name="postElecCB">
+        <property name="minimumSize">
+         <size>
+          <width>250</width>
+          <height>0</height>
+         </size>
         </property>
-        <property name="styleSheet">
-         <string notr="true">border:0;</string>
-        </property>
-        <property name="title">
+        <property name="currentText">
          <string/>
         </property>
-        <layout class="QHBoxLayout" name="horizontalLayout_4">
-         <item>
-          <widget class="QRadioButton" name="left3387">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="minimumSize">
-            <size>
-             <width>60</width>
-             <height>0</height>
-            </size>
-           </property>
-           <property name="font">
-            <font>
-             <family>Arial</family>
-             <pointsize>11</pointsize>
-            </font>
-           </property>
-           <property name="focusPolicy">
-            <enum>Qt::NoFocus</enum>
-           </property>
-           <property name="text">
-            <string>3387</string>
-           </property>
-           <attribute name="buttonGroup">
-            <string notr="true">postElecModelButtonGroup</string>
-           </attribute>
-          </widget>
-         </item>
-         <item>
-          <widget class="QRadioButton" name="left3389">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="minimumSize">
-            <size>
-             <width>60</width>
-             <height>0</height>
-            </size>
-           </property>
-           <property name="font">
-            <font>
-             <family>Arial</family>
-             <pointsize>11</pointsize>
-            </font>
-           </property>
-           <property name="focusPolicy">
-            <enum>Qt::NoFocus</enum>
-           </property>
-           <property name="text">
-            <string>3389</string>
-           </property>
-           <attribute name="buttonGroup">
-            <string notr="true">postElecModelButtonGroup</string>
-           </attribute>
-          </widget>
-         </item>
-         <item>
-          <widget class="QRadioButton" name="leftDirectioanl">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="minimumSize">
-            <size>
-             <width>90</width>
-             <height>0</height>
-            </size>
-           </property>
-           <property name="font">
-            <font>
-             <family>Arial</family>
-             <pointsize>11</pointsize>
-            </font>
-           </property>
-           <property name="focusPolicy">
-            <enum>Qt::NoFocus</enum>
-           </property>
-           <property name="text">
-            <string>Directional</string>
-           </property>
-           <attribute name="buttonGroup">
-            <string notr="true">postElecModelButtonGroup</string>
-           </attribute>
-          </widget>
-         </item>
-         <item>
-          <widget class="QRadioButton" name="leftNondirectional">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="minimumSize">
-            <size>
-             <width>120</width>
-             <height>0</height>
-            </size>
-           </property>
-           <property name="font">
-            <font>
-             <family>Arial</family>
-             <pointsize>11</pointsize>
-            </font>
-           </property>
-           <property name="focusPolicy">
-            <enum>Qt::NoFocus</enum>
-           </property>
-           <property name="text">
-            <string>Non-Directional</string>
-           </property>
-           <attribute name="buttonGroup">
-            <string notr="true">postElecModelButtonGroup</string>
-           </attribute>
-          </widget>
-         </item>
-        </layout>
+        <property name="placeholderText">
+         <string/>
+        </property>
        </widget>
       </item>
      </layout>
     </widget>
    </item>
-   <item alignment="Qt::AlignHCenter">
+   <item row="3" column="0" alignment="Qt::AlignHCenter">
     <widget class="QWidget" name="hideDataWig" native="true">
      <layout class="QGridLayout" name="gridLayout_2">
       <item row="0" column="0">
@@ -644,7 +528,7 @@
      </layout>
     </widget>
    </item>
-   <item alignment="Qt::AlignHCenter">
+   <item row="4" column="0" alignment="Qt::AlignHCenter">
     <widget class="QGroupBox" name="postElecPositionGB">
      <property name="font">
       <font>
@@ -1422,7 +1306,7 @@
      </layout>
     </widget>
    </item>
-   <item alignment="Qt::AlignHCenter">
+   <item row="5" column="0" alignment="Qt::AlignHCenter">
     <widget class="QWidget" name="widget_2" native="true">
      <layout class="QGridLayout" name="gridLayout">
       <item row="0" column="1">
@@ -1557,7 +1441,7 @@
      </layout>
     </widget>
    </item>
-   <item alignment="Qt::AlignHCenter">
+   <item row="6" column="0" alignment="Qt::AlignHCenter">
     <widget class="QWidget" name="widget_3" native="true">
      <layout class="QGridLayout" name="gridLayout_4">
       <item row="0" column="0">
@@ -1588,7 +1472,7 @@
      </layout>
     </widget>
    </item>
-   <item>
+   <item row="7" column="0">
     <spacer name="verticalSpacer">
      <property name="orientation">
       <enum>Qt::Vertical</enum>
@@ -1628,20 +1512,15 @@
  <resources/>
  <connections/>
  <buttongroups>
-  <buttongroup name="postShowActualElecButtonGroup"/>
-  <buttongroup name="postElecModelButtonGroup">
-   <property name="exclusive">
-    <bool>false</bool>
-   </property>
-  </buttongroup>
-  <buttongroup name="postShowActualMERTracksGroup"/>
   <buttongroup name="jumpToButtonGroup"/>
+  <buttongroup name="postShowActualElecButtonGroup"/>
   <buttongroup name="trajUsedButtonGroup">
    <property name="exclusive">
     <bool>false</bool>
    </property>
   </buttongroup>
-  <buttongroup name="hideDataButtonGroup"/>
   <buttongroup name="unlockButtonGroup"/>
+  <buttongroup name="hideDataButtonGroup"/>
+  <buttongroup name="postShowActualMERTracksGroup"/>
  </buttongroups>
 </ui>

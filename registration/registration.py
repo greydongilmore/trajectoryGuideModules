@@ -484,10 +484,15 @@ class registrationWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
 			if self.referenceVolume is not None:
 				if self.referenceVolume.GetParentTransformNode() is None:
-					if self.transformNodeFrameSpace.GetName() in list(transform_data):
-						if not self.referenceVolume.GetName() in list(transform_data[self.transformNodeFrameSpace.GetName()]):
-							self.referenceVolume.SetAndObserveTransformNodeID(self.transformNodeFrameSpace.GetID())
-							transform_data_current.append(self.referenceVolume.GetName())
+					if len(list(transform_data)) > 0:
+						if self.transformNodeFrameSpace.GetName() in list(transform_data):
+							if not self.referenceVolume.GetName() in list(transform_data[self.transformNodeFrameSpace.GetName()]):
+								self.referenceVolume.SetAndObserveTransformNodeID(self.transformNodeFrameSpace.GetID())
+								transform_data_current.append(self.referenceVolume.GetName())
+					else:
+						if not self.referenceVolume.GetName() in transform_data_current:
+								self.referenceVolume.SetAndObserveTransformNodeID(self.transformNodeFrameSpace.GetID())
+								transform_data_current.append(self.referenceVolume.GetName())
 			
 			#markupNodes = slicer.util.getNodesByClass('vtkMRMLMarkupsFiducialNode')
 			#for ifid in markupNodes:
@@ -608,6 +613,9 @@ class registrationWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 		Slot for ``Delete Highlighted Volumes`` button
 
 		"""
+
+		slicer.app.setOverrideCursor(qt.Qt.WaitCursor)
+
 		self.firstCompare = False
 		coreg_node_name = self.ui.floatingComboBox.currentText
 		original_node_name = coreg_node_name.replace('_coreg','')
@@ -717,9 +725,13 @@ class registrationWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 				else:
 					slicer.mrmlScene.RemoveNode(transformNode)
 
+		
+
 		if self.ui.floatingComboBox.count == 0:
 			self.cleanUpPost()
+			slicer.app.restoreOverrideCursor()
 		else:
+			slicer.app.restoreOverrideCursor()
 			self.onCompareVolumes()
 
 	def onReferenceVolCBox(self):

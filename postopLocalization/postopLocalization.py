@@ -14,8 +14,10 @@ elif __file__:
 
 sys.path.insert(1, os.path.dirname(cwd))
 
-from helpers.helpers import plotLead, rotation_matrix, warningBox, vtkModelBuilderClass, getPointCoords,adjustPrecision,getMarkupsNode, addCustomLayouts, frame_angles, plotMicroelectrode
-from helpers.variables import fontSetting, groupboxStyle, coordSys, slicerLayout
+from helpers.helpers import plotLead, rotation_matrix, warningBox, vtkModelBuilderClass,\
+getPointCoords,adjustPrecision,getMarkupsNode, addCustomLayouts, frame_angles, plotMicroelectrode
+
+from helpers.variables import fontSetting, groupboxStyle, coordSys, slicerLayout, electrodeModels, microelectrodeModels
 
 #
 # postopLocalization
@@ -99,12 +101,17 @@ class postopLocalizationWidget(ScriptedLoadableModuleWidget, VTKObservationMixin
 		fontSettings.setBold(False)
 		self.ui.planNameGB.setStyleSheet(groupboxStyle + f"color: {self.text_color}" + '}')
 		self.ui.planNameGB.setFont(fontSettings)
-		self.ui.postTrajUsedGB.setStyleSheet(groupboxStyle + f"color: {self.text_color}" + '}')
-		self.ui.postTrajUsedGB.setFont(fontSettings)
 		self.ui.postElecModelGB.setStyleSheet(groupboxStyle + f"color: {self.text_color}" + '}')
 		self.ui.postElecModelGB.setFont(fontSettings)
+		self.ui.postTrajUsedGB.setStyleSheet(groupboxStyle + f"color: {self.text_color}" + '}')
+		self.ui.postTrajUsedGB.setFont(fontSettings)
 		self.ui.postElecPositionGB.setStyleSheet(groupboxStyle + f"color: {self.text_color}" + '}')
 		self.ui.postElecPositionGB.setFont(fontSettings)
+
+		self.ui.postElecCB.addItems(['Select Electrode']+list(electrodeModels))
+		self.ui.postMicroModel.addItems(['Select Microlectrode']+list(microelectrodeModels['probes']))
+		self.ui.postMicroModel.setCurrentIndex(self.ui.postMicroModel.findText(microelectrodeModels['default']))
+
 
 	def _setupConnections(self):
 		# These connections ensure that we update parameter node when scene is closed
@@ -131,7 +138,6 @@ class postopLocalizationWidget(ScriptedLoadableModuleWidget, VTKObservationMixin
 		self.ui.jumpToButtonGroup.buttonClicked.connect(self.onButtonClick)
 		self.ui.postShowActualElecButtonGroup.connect('buttonClicked(int)', self.onPostActualElecButtonGroupClicked)
 		self.ui.postShowActualMERTracksGroup.connect('buttonClicked(int)', self.onPostActualMERTracksButtonClicked)
-		self.ui.postElecModelButtonGroup.connect('buttonClicked(int)', self.onPostElecModelButtonGroupClicked)
 		self.ui.postElecConfirmButton.connect('clicked(bool)', self.onActualElecPlotButton)
 		
 		# Make sure parameter node is initialized (needed for module reload)
@@ -321,9 +327,7 @@ class postopLocalizationWidget(ScriptedLoadableModuleWidget, VTKObservationMixin
 		self.ui.topY.value = 0.0
 		self.ui.topZ.value = 0.0
 
-		children = self.ui.postElecModelGB.findChildren('QRadioButton')
-		for i in children:
-			i.checked = False
+		self.ui.postElecCB.setCurrentIndex(self.ui.postElecCB.findText('Select Electrode'))
 
 		children = self.ui.postTrajUsedGB.findChildren('QRadioButton')
 		for i in children:
@@ -495,11 +499,11 @@ class postopLocalizationWidget(ScriptedLoadableModuleWidget, VTKObservationMixin
 					if 'pre' in list(surgical_data['trajectories'][planName]):
 						if 'elecUsed' in list(surgical_data['trajectories'][planName]['pre']):
 							if surgical_data['trajectories'][planName]['pre']['elecUsed']:
-									children = self.ui.postElecModelGB.findChildren('QRadioButton')
-									for i in children:
-										if i.text.lower() == surgical_data['trajectories'][planName]['pre']['elecUsed'].lower():
-											i.checked = True
-											self.postElecModel = i.text.lower()
+									self.ui.postElecCB.setCurrentIndex(self.ui.postElecCB.findText(surgical_data['trajectories'][planName]['pre']['elecUsed']))
+									self.postElecModel = self.ui.postElecCB.currentText
+						if 'microUsed' in list(surgical_data['trajectories'][planName]['pre']):
+							if surgical_data['trajectories'][planName]['pre']['microUsed']:
+									self.ui.postMicroModel.setCurrentIndex(self.ui.postMicroModel.findText(surgical_data['trajectories'][planName]['pre']['microUsed']))
 
 					if 'post' in list(surgical_data['trajectories'][planName]):
 						if surgical_data['trajectories'][planName]['post']['target']:
@@ -657,23 +661,6 @@ class postopLocalizationWidget(ScriptedLoadableModuleWidget, VTKObservationMixin
 			crossHairPlanningNode = slicer.mrmlScene.GetFirstNodeByClass('vtkMRMLCrosshairNode')
 			crossHairPlanningNode.SetCrosshairRAS(vtk.vtkVector3d(crossCoordsWorld[0], crossCoordsWorld[1], crossCoordsWorld[2]))
 
-	def onPostElecModelButtonGroupClicked(self, button):
-		children = self.ui.postElecModelGB.findChildren('QRadioButton')
-		for i in children:
-			i.setChecked(False)
-
-		button_idx = abs(button - -2)
-		if np.all([children[button_idx].isChecked(), button != self.postElecModelLastButton]):
-			children[button_idx].setChecked(True)
-			self.postElecModelLastButton = button
-		else:
-			if np.all([children[button_idx].isChecked() == False, button == self.postElecModelLastButton]):
-				children[button_idx].setChecked(False)
-				self.postElecModelLastButton = 0
-			elif np.all([children[button_idx].isChecked() == False, button != self.postElecModelLastButton]):
-				children[button_idx].setChecked(True)
-				self.postElecModelLastButton = button
-
 
 	def onPostActualElecButtonGroupClicked(self, button):
 		"""
@@ -745,15 +732,18 @@ class postopLocalizationWidget(ScriptedLoadableModuleWidget, VTKObservationMixin
 			warningBox('Please choose target point.')
 			return
 
+		if self.ui.postElecCB.currentText == 'Select Electrode':
+			warningBox('Please choose an electrode model.')
+			return
+
 		plan_name = self.ui.planName.currentText
 		origin_point = getPointCoords('acpc', 'mcp')
 		target_coords_world = np.array([self.ui.botX.value, self.ui.botY.value, self.ui.botZ.value])
 		entry_coords_world = np.array([self.ui.topX.value, self.ui.topY.value, self.ui.topZ.value])
 		
-		children = self.ui.postElecModelGB.findChildren('QRadioButton')
-		for i in children:
-			if i.isChecked():
-				self.postElecModel = i.text.lower()
+		self.postElecModel = self.ui.postElecCB.currentText
+
+		self.postMicroModel = self.ui.postElecCB.currentText if self.ui.postElecCB.currentText != 'Select Microelectrode' else []
 
 		children = self.ui.postTrajUsedGB.findChildren('QRadioButton')
 		for i in children:
@@ -761,7 +751,7 @@ class postopLocalizationWidget(ScriptedLoadableModuleWidget, VTKObservationMixin
 				self.implantTraj = i.text.lower()
 
 		self.logic.plotData(button, plan_name, origin_point, target_coords_world, entry_coords_world, self.postElecModel, 
-			self.implantTraj, self.postActualElecPlot, self.postActualMERTracksPlot)
+			self.postMicroModel, self.implantTraj, self.postActualElecPlot, self.postActualMERTracksPlot)
 		
 
 
@@ -864,7 +854,7 @@ class postopLocalizationLogic(ScriptedLoadableModuleLogic):
 		addCustomLayouts()
 		slicer.app.layoutManager().setLayout(slicerLayout)
 
-	def plotData(self, button, plan_name, origin_point, target_coords_world, entry_coords_world, postElecModel, implantTraj, postActualElecPlot=True, postActualMERTracksPlot=True):
+	def plotData(self, button, plan_name, origin_point, target_coords_world, entry_coords_world, postElecModel, postMicroModel, implantTraj, postActualElecPlot=True, postActualMERTracksPlot=True):
 		"""
 		Slot for ``Update Activity`` button 
 		
@@ -884,7 +874,8 @@ class postopLocalizationLogic(ScriptedLoadableModuleLogic):
 			
 		if 'pre' not in list(surgical_data['trajectories'][plan_name]):
 			surgical_data['trajectories'][plan_name]['pre']={}
-			surgical_data['trajectories'][plan_name]['pre']['elecUsed'] = postElecModel.lower()
+			surgical_data['trajectories'][plan_name]['pre']['elecUsed'] = postElecModel
+			surgical_data['trajectories'][plan_name]['pre']['microUsed'] = postMicroModel
 			surgical_data['trajectories'][plan_name]['pre']['mer_tracks']={
 				'center':{
 					'mer_top':[],
@@ -894,7 +885,8 @@ class postopLocalizationLogic(ScriptedLoadableModuleLogic):
 				}
 			}
 		else:
-			if postElecModel.lower() not in surgical_data['trajectories'][plan_name]['pre']['elecUsed']: surgical_data['trajectories'][plan_name]['pre']['elecUsed']=postElecModel.lower()
+			if postElecModel not in surgical_data['trajectories'][plan_name]['pre']['elecUsed']: surgical_data['trajectories'][plan_name]['pre']['elecUsed']=postElecModel
+			if postMicroModel not in surgical_data['trajectories'][plan_name]['pre']['microUsed']: surgical_data['trajectories'][plan_name]['pre']['microUsed']=postMicroModel
 
 		mer_depths = {}
 		lead_depth=0
@@ -923,6 +915,8 @@ class postopLocalizationLogic(ScriptedLoadableModuleLogic):
 			'entry':list(entry_coords_world)
 		}
 
+		postElecModelTag = electrodeModels[postElecModel]['filename']
+
 		mer_info={}
 		mer_info['center']=mer_depths['center'] if 'center' in list(mer_depths) else ['n/a', 'n/a']
 		mer_info['anterior']=mer_depths['anterior'] if 'anterior' in list(mer_depths) else ['n/a', 'n/a']
@@ -944,10 +938,11 @@ class postopLocalizationLogic(ScriptedLoadableModuleLogic):
 			'plan_name':plan_name,
 			'type':'post',
 			'side': surgical_data['trajectories'][plan_name]['side'],
-			'elecUsed':postElecModel.lower(), 
+			'elecUsed':postElecModel, 
+			'microUsed': postMicroModel,
 			'data_dir':parameterNode.GetParameter('derivFolder'),
-			'lead_fileN':f"{parameterNode.GetParameter('derivFolder').split(os.path.sep)[-1]}_ses-post_task-{plan_name}_type-{postElecModel.lower()}_lead.vtk", 
-			'contact_fileN':f"{parameterNode.GetParameter('derivFolder').split(os.path.sep)[-1]}_ses-post_task-{plan_name}_type-{postElecModel.lower()}_label-%s_contact.vtk", 
+			'lead_fileN':f"{parameterNode.GetParameter('derivFolder').split(os.path.sep)[-1]}_ses-post_task-{plan_name}_type-{postElecModelTag.lower()}_lead.vtk", 
+			'contact_fileN':f"{parameterNode.GetParameter('derivFolder').split(os.path.sep)[-1]}_ses-post_task-{plan_name}_type-{postElecModelTag.lower()}_label-%s_contact.vtk", 
 			'model_col':model_colors['actualLeadColor'], 
 			'model_vis':slice_vis['actualLead3DVis'], 
 			'contact_col':model_colors['actualContactColor'],
@@ -1004,7 +999,7 @@ class postopLocalizationLogic(ScriptedLoadableModuleLogic):
 		for ichan in channels_used:
 
 			activity_filename = os.path.join(parameterNode.GetParameter('derivFolder'), 
-				f"{parameterNode.GetParameter('derivFolder').split(os.path.sep)[-1]}_ses-post_task-{plan_name}_type-mer_label-{ichan}_activity")
+				f"{parameterNode.GetParameter('derivFolder').split(os.path.sep)[-1]}_ses-post_task-{plan_name}_type-mer_label-{ichan}_activity.vtk")
 			
 			track_filename = os.path.join(parameterNode.GetParameter('derivFolder'), 
 				f"{parameterNode.GetParameter('derivFolder').split(os.path.sep)[-1]}_ses-post_task-{plan_name}_type-mer_label-{ichan}_track")

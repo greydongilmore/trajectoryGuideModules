@@ -15,8 +15,10 @@ elif __file__:
 
 sys.path.insert(1, os.path.dirname(cwd))
 
-from helpers.helpers import vtkModelBuilderClass, getReverseTransform, hex2rgb, rgbToHex, createModelBox, sorted_nicely, addCustomLayouts
-from helpers.variables import coordSys, slicerLayout, groupboxStyle, ctkCollapsibleGroupBoxStyle, ctkCollapsibleGroupBoxTitle, groupboxStyleTitle, fontSettingTitle, defaultTemplateSpace
+from helpers.helpers import vtkModelBuilderClass, getReverseTransform, hex2rgb, rgbToHex,\
+createModelBox, sorted_nicely, addCustomLayouts, sortSceneData
+from helpers.variables import coordSys, slicerLayout, groupboxStyle, ctkCollapsibleGroupBoxStyle,\
+ctkCollapsibleGroupBoxTitle, groupboxStyleTitle, fontSettingTitle, defaultTemplateSpace
 
 #
 # dataView
@@ -165,6 +167,9 @@ class dataViewWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 		self.ui.templateSpaceCB.connect('currentIndexChanged(int)', self.setupModelWigets)
 		self.ui.allModelsButtonGroup.connect('buttonClicked(QAbstractButton*)', self.onAllModelsGroupButton)
 		self.ui.templateViewButtonGroup.connect('buttonClicked(QAbstractButton*)', self.onTemplateViewGroupButton)
+		
+		self.ui.sortSceneDataButton.clicked.connect(self.onSaveSceneButton)
+
 		
 		if self._parameterNode.GetParameter('derivFolder'):
 			if os.path.exists(os.path.join(self._parameterNode.GetParameter('derivFolder'),'space')):
@@ -828,148 +833,10 @@ class dataViewWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 		Slot for ``Save Slicer Scene`` button.
 		
 		"""
-		### Create Subject Hierchy
-		self.shNode = slicer.vtkMRMLSubjectHierarchyNode.GetSubjectHierarchyNode(slicer.mrmlScene)
 		
-		# Markups
-		self.MarkupsFolder = self.shNode.CreateFolderItem(self.shNode.GetSceneItemID(), "Markups")
-		self.shNode.SetItemExpanded(self.MarkupsFolder, 0)
-		
-		# Volumes
-		self.VolumesFolder = self.shNode.CreateFolderItem(self.shNode.GetSceneItemID(), "Volumes")
-		self.shNode.SetItemExpanded(self.VolumesFolder, 0)
-		
-		# Transforms
-		self.TransformsFolder = self.shNode.CreateFolderItem(self.shNode.GetSceneItemID(), "Transforms")
-		self.shNode.SetItemExpanded(self.TransformsFolder, 0)
-		
-		# Planned Leads
-		self.PlannedLeadFolder = self.shNode.CreateFolderItem(self.shNode.GetSceneItemID(), "Planned Leads")
-		self.shNode.SetItemExpanded(self.PlannedLeadFolder, 0)
-		self.PlannedLeadLeftFolder = self.shNode.CreateFolderItem(self.shNode.GetSceneItemID(), "Left")
-		self.shNode.SetItemParent(self.PlannedLeadLeftFolder, self.PlannedLeadFolder)
-		self.shNode.SetItemExpanded(self.PlannedLeadLeftFolder, 0)
-		self.PlannedLeadRightFolder = self.shNode.CreateFolderItem(self.shNode.GetSceneItemID(), "Right")
-		self.shNode.SetItemParent(self.PlannedLeadRightFolder, self.PlannedLeadFolder)
-		self.shNode.SetItemExpanded(self.PlannedLeadRightFolder, 0)
-		
-		# Planned Contacts
-		self.PlannedContactsFolder = self.shNode.CreateFolderItem(self.shNode.GetSceneItemID(), "Planned Contacts")
-		self.PlannedContactsLeftFolder = self.shNode.CreateFolderItem(self.shNode.GetSceneItemID(), "Left")
-		self.shNode.SetItemParent(self.PlannedContactsLeftFolder, self.PlannedContactsFolder)
-		self.PlannedContactsRightFolder = self.shNode.CreateFolderItem(self.shNode.GetSceneItemID(), "Right")
-		self.shNode.SetItemParent(self.PlannedContactsRightFolder, self.PlannedContactsFolder)
-		
-		# Planned Microelectrodes
-		self.PlannedMicroelectrodesFolder = self.shNode.CreateFolderItem(self.shNode.GetSceneItemID(), "Planned Microelectrodes")
-		self.PlannedMicroelectrodesLeftFolder = self.shNode.CreateFolderItem(self.shNode.GetSceneItemID(), "Left")
-		self.shNode.SetItemParent(self.PlannedMicroelectrodesLeftFolder, self.PlannedMicroelectrodesFolder)
-		self.PlannedMicroelectrodesRightFolder = self.shNode.CreateFolderItem(self.shNode.GetSceneItemID(), "Right")
-		self.shNode.SetItemParent(self.PlannedMicroelectrodesRightFolder, self.PlannedMicroelectrodesFolder)
-		
-		# Planned STN Activity
-		self.PlannedSTNFolder = self.shNode.CreateFolderItem(self.shNode.GetSceneItemID(), "Planned STN")
-		self.PlannedSTNLeftFolder = self.shNode.CreateFolderItem(self.shNode.GetSceneItemID(), "Left")
-		self.shNode.SetItemParent(self.PlannedSTNLeftFolder, self.PlannedSTNFolder)
-		self.PlannedSTNRightFolder = self.shNode.CreateFolderItem(self.shNode.GetSceneItemID(), "Right")
-		self.shNode.SetItemParent(self.PlannedSTNRightFolder, self.PlannedSTNFolder)
-		
-		# Actual Leads
-		self.ActualLeadFolder = self.shNode.CreateFolderItem(self.shNode.GetSceneItemID(), "Actual Leads")
-		self.ActualLeadLeftFolder = self.shNode.CreateFolderItem(self.shNode.GetSceneItemID(), "Left")
-		self.shNode.SetItemParent(self.ActualLeadLeftFolder, self.ActualLeadFolder)
-		self.ActualLeadRightFolder = self.shNode.CreateFolderItem(self.shNode.GetSceneItemID(), "Right")
-		self.shNode.SetItemParent(self.ActualLeadRightFolder, self.ActualLeadFolder)
-		
-		# Actual Contacts
-		self.ActualContactsFolder = self.shNode.CreateFolderItem(self.shNode.GetSceneItemID(), "Actual Contacts")
-		self.ActualContactsLeftFolder = self.shNode.CreateFolderItem(self.shNode.GetSceneItemID(), "Left")
-		self.shNode.SetItemParent(self.ActualContactsLeftFolder, self.ActualContactsFolder)
-		self.ActualContactsRightFolder = self.shNode.CreateFolderItem(self.shNode.GetSceneItemID(), "Right")
-		self.shNode.SetItemParent(self.ActualContactsRightFolder, self.ActualContactsFolder)
-		
-		# Actual Microelectrodes
-		self.ActualMicroelectrodesFolder = self.shNode.CreateFolderItem(self.shNode.GetSceneItemID(), "Actual Microelectrodes")
-		self.ActualMicroelectrodesLeftFolder = self.shNode.CreateFolderItem(self.shNode.GetSceneItemID(), "Left")
-		self.shNode.SetItemParent(self.ActualMicroelectrodesLeftFolder, self.ActualMicroelectrodesFolder)
-		self.ActualMicroelectrodesRightFolder = self.shNode.CreateFolderItem(self.shNode.GetSceneItemID(), "Right")
-		self.shNode.SetItemParent(self.ActualMicroelectrodesRightFolder, self.ActualMicroelectrodesFolder)
-		
-		# Actual STN Activity
-		self.ActualSTNFolder = self.shNode.CreateFolderItem(self.shNode.GetSceneItemID(), "Actual STN")
-		self.ActualSTNLeftFolder = self.shNode.CreateFolderItem(self.shNode.GetSceneItemID(), "Left")
-		self.shNode.SetItemParent(self.ActualSTNLeftFolder, self.ActualSTNFolder)
-		self.ActualSTNRightFolder = self.shNode.CreateFolderItem(self.shNode.GetSceneItemID(), "Right")
-		self.shNode.SetItemParent(self.ActualSTNRightFolder, self.ActualSTNFolder)
-		
-		
-		# Markups
-		for item in [x for x in slicer.util.getNodesByClass('vtkMRMLMarkupsFiducialNode')]:
-			self.shNode.SetItemParent(self.shNode.GetItemByDataNode(item), self.MarkupsFolder)
-				
-		# Volumes
-		for item in [x for x in slicer.util.getNodesByClass('vtkMRMLScalarVolumeNode')]:
-			self.shNode.SetItemParent(self.shNode.GetItemByDataNode(item), self.VolumesFolder)
-			
-		# Transforms
-		for item in [x for x in slicer.util.getNodesByClass('vtkMRMLLinearTransformNode')]:
-			self.shNode.SetItemParent(self.shNode.GetItemByDataNode(item), self.TransformsFolder)
-			
-		#
-		### Move Planned Items
-		#
-		for item in [x for x in slicer.util.getNodesByClass('vtkMRMLModelNode') if 'planned_lead' in x.GetName()]:
-			if 'left' in item.GetName():
-				self.shNode.SetItemParent(self.shNode.GetItemByDataNode(item), self.PlannedLeadLeftFolder)
-			elif 'right' in item.GetName():
-				self.shNode.SetItemParent(self.shNode.GetItemByDataNode(item), self.PlannedLeadRightFolder)
-		
-		for item in [x for x in slicer.util.getNodesByClass('vtkMRMLModelNode') if 'planned_contact' in x.GetName()]:
-			if 'left' in item.GetName():
-				self.shNode.SetItemParent(self.shNode.GetItemByDataNode(item), self.PlannedContactsLeftFolder)
-			elif 'right' in item.GetName():
-				self.shNode.SetItemParent(self.shNode.GetItemByDataNode(item), self.PlannedContactsRightFolder)
-		
-		for item in [x for x in slicer.util.getNodesByClass('vtkMRMLModelNode') if 'planned_mer_track' in x.GetName()]:
-			if 'left' in item.GetName():
-				self.shNode.SetItemParent(self.shNode.GetItemByDataNode(item), self.PlannedMicroelectrodesLeftFolder)
-			elif 'right' in item.GetName():
-				self.shNode.SetItemParent(self.shNode.GetItemByDataNode(item), self.PlannedMicroelectrodesRightFolder)
-		
-		for item in [x for x in slicer.util.getNodesByClass('vtkMRMLModelNode') if 'planned_mer_activity' in x.GetName()]:
-			if 'left' in item.GetName():
-				self.shNode.SetItemParent(self.shNode.GetItemByDataNode(item), self.PlannedSTNLeftFolder)
-			elif 'right' in item.GetName():
-				self.shNode.SetItemParent(self.shNode.GetItemByDataNode(item), self.PlannedSTNRightFolder)
-				
-		#
-		### Move Actual Items
-		#
-		for item in [x for x in slicer.util.getNodesByClass('vtkMRMLModelNode') if 'actual_lead' in x.GetName()]:
-			if 'left' in item.GetName():
-				self.shNode.SetItemParent(self.shNode.GetItemByDataNode(item), self.ActualLeadLeftFolder)
-			elif 'right' in item.GetName():
-				self.shNode.SetItemParent(self.shNode.GetItemByDataNode(item), self.ActualLeadRightFolder)
-		
-		for item in [x for x in slicer.util.getNodesByClass('vtkMRMLModelNode') if 'actual_contact' in x.GetName()]:
-			if 'left' in item.GetName():
-				self.shNode.SetItemParent(self.shNode.GetItemByDataNode(item), self.ActualContactsLeftFolder)
-			elif 'right' in item.GetName():
-				self.shNode.SetItemParent(self.shNode.GetItemByDataNode(item), self.ActualContactsRightFolder)
-		
-		for item in [x for x in slicer.util.getNodesByClass('vtkMRMLModelNode') if 'actual_mer_track' in x.GetName()]:
-			if 'left' in item.GetName():
-				self.shNode.SetItemParent(self.shNode.GetItemByDataNode(item), self.ActualMicroelectrodesLeftFolder)
-			elif 'right' in item.GetName():
-				self.shNode.SetItemParent(self.shNode.GetItemByDataNode(item), self.ActualMicroelectrodesRightFolder)
-		
-		for item in [x for x in slicer.util.getNodesByClass('vtkMRMLModelNode') if 'actual_mer_activity' in x.GetName()]:
-			if 'left' in item.GetName():
-				self.shNode.SetItemParent(self.shNode.GetItemByDataNode(item), self.ActualSTNLeftFolder)
-			elif 'right' in item.GetName():
-				self.shNode.SetItemParent(self.shNode.GetItemByDataNode(item), self.ActualSTNRightFolder)
-			
-		slicer.util.saveScene(os.path.join(os.path.split(self._parameterNode.GetParameter('derivFolder'))[0], 'Scene.mrml'))
+		sortSceneData()
+
+		#slicer.util.saveScene(os.path.join(os.path.split(self._parameterNode.GetParameter('derivFolder'))[0], 'Scene.mrml'))
 
 
 #
