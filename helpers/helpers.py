@@ -26,29 +26,34 @@ class warningBox(qt.QMessageBox):
 		self.setText(text)
 		self.exec_()
 
-library_install=[]
+pip_upgrade=False
 try:
 	import pandas
 except:
-	library_install.append('pandas')
+	if not pip_upgrade:
+		slicer.util.pip_install("pip --upgrade")
+		pip_upgrade=True
+	slicer.util.pip_install("pandas")
 
 try:
 	from skimage import morphology
 	from skimage import measure
 	from skimage.filters import threshold_otsu
 except:
-	library_install.append('scikit-image')
+	if not pip_upgrade:
+		slicer.util.pip_install("pip --upgrade")
+		pip_upgrade=True
+	slicer.util.pip_install("scikit-image")
 
 try:
 	import scipy
 	from scipy import ndimage
 	from scipy.spatial import ConvexHull, Delaunay
 except:
-	library_install.append('scipy')
-
-
-if library_install:
-	slicer.util.warningDisplay(f"Please copy the following command and run inside the python interactor first:\n\npip_install('{' '.join(library_install)}')")
+	if not pip_upgrade:
+		slicer.util.pip_install("pip --upgrade")
+		pip_upgrade=True
+	slicer.util.pip_install("scipy")
 
 class CheckableComboBox(qt.QComboBox):
 	def __init__(self):
@@ -78,8 +83,7 @@ class regComboBox(qt.QComboBox):
 	def __init__(self):
 		super(regComboBox, self).__init__()
 		self.setModel(qt.QStandardItemModel(self))
-
-		
+	
 class vtkModelBuilderClass:
 	def __init__(self, coords=0, tube_radius=0, tube_thickness=0, filename=None, nodeName = None, 
 		electrode=False, plane=0, electrodeLen=0, model_color=None, model_visibility=None):

@@ -108,7 +108,7 @@ class registrationWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 		
 		self.regFloatingCB = CheckableComboBox()
 		self.regFloatingCB.setFont(qt.QFont('Arial', 11))
-		self.regFloatingCB.setFixedWidth(380)
+		self.regFloatingCB.setFixedWidth(340)
 
 		self.floatVolLabel=qt.QLabel('Floating Volumes:')
 		self.floatVolLabel.setFixedWidth(120)
@@ -116,7 +116,6 @@ class registrationWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 		self.floatVolLabel.setAlignment(qt.Qt.AlignLeft)
 
 		self.ui.patientSpaceGB.setStyleSheet(groupboxStyle + f"color: {self.text_color}" + ';}' + groupboxStyleTitle + f"color: {self.text_color}" + ';}')
-
 		self.ui.templateSpaceGB.setStyleSheet(ctkCollapsibleGroupBoxStyle + f"color: {self.text_color}" + '}' + ctkCollapsibleGroupBoxTitle + f"color: {self.text_color}" + '}')
 		self.ui.templateSpaceGB.collapsed = 1
 
@@ -129,55 +128,58 @@ class registrationWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 		self.ui.niftyRegParametersGB.setStyleSheet(groupboxStyle + f"color: {self.text_color}" + ';}' + groupboxStyleTitle + f"color: {self.text_color}" + ';}')
 		self.ui.fslParametersGB.setStyleSheet(groupboxStyle + f"color: {self.text_color}" + ';}' + groupboxStyleTitle + f"color: {self.text_color}" + ';}')
 		self.ui.antsParametersGB.setStyleSheet(groupboxStyle + f"color: {self.text_color}" + ';}' + groupboxStyleTitle + f"color: {self.text_color}" + ';}')
-		self.ui.regaladinInterpCB.addItems(['0 - NN', '1 - LIN', '3 - CUB', '4 - SINC'])
-		self.ui.regaladinInterpCB.setCurrentIndex(self.ui.regaladinInterpCB.findText('3 - CUB'))
-		self.ui.flirtCostCB.addItems(['mutualinfo', 'corratio', 'normcorr', 'normmi', 'leastsq', 'labeldiff', 'bbr'])
-		self.ui.flirtCostCB.setCurrentIndex(self.ui.flirtCostCB.findText('mutualinfo'))
-		self.ui.flirtSearchCostCB.addItems(['mutualinfo', 'corratio', 'normcorr', 'normmi', 'leastsq', 'labeldiff', 'bbr'])
-		self.ui.flirtSearchCostCB.setCurrentIndex(self.ui.flirtSearchCostCB.findText('mutualinfo'))
-		self.ui.flirtInterpCB.addItems(['trilinear', 'nearestneighbour', 'sinc', 'spline'])
-		self.ui.flirtInterpCB.setCurrentIndex(self.ui.flirtInterpCB.findText('spline'))
 		self.ui.niftyRegAlgo.setStyleSheet(f"{fontSetting}margins: 12px;padding: 3px;")
 		self.ui.flirtRegAlgo.setStyleSheet(f"{fontSetting}margins: 12px;padding: 3px;")
 		self.ui.antsRegAlgo.setStyleSheet(f"{fontSetting}margins: 12px;padding: 3px;")
-		
-		self.ui.antsQuickInterpCB.addItems(['Linear', 'NearestNeighbor', 'BSpline', 'GenericLabel'])
-		self.ui.antsQuickInterpCB.setCurrentIndex(self.ui.antsQuickInterpCB.findText('NearestNeighbor'))
-		self.ui.antsQuickTransformTypeCB.addItems(['rigid', 'rigid+affine'])
-		self.ui.antsQuickTransformTypeCB.setCurrentIndex(self.ui.antsQuickTransformTypeCB.findText('rigid'))
 
-		self.ui.antsInterpCB.addItems(['Linear', 'NearestNeighbor', 'BSpline', 'GenericLabel'])
-		self.ui.antsInterpCB.setCurrentIndex(self.ui.antsInterpCB.findText('BSpline'))
-		self.ui.antsMetricCB.addItems(['CC', 'MI', 'GC'])
-		self.ui.antsMetricCB.setCurrentIndex(self.ui.antsMetricCB.findText('CC'))
+		#self.ui.regaladinInterpCB.addItems(['0 - NN', '1 - LIN', '3 - CUB', '4 - SINC'])
+		#self.ui.regaladinInterpCB.setCurrentIndex(self.ui.regaladinInterpCB.findText('3 - CUB'))
+		#self.ui.flirtCostCB.addItems(['mutualinfo', 'corratio', 'normcorr', 'normmi', 'leastsq', 'labeldiff', 'bbr'])
+		#self.ui.flirtCostCB.setCurrentIndex(self.ui.flirtCostCB.findText('mutualinfo'))
+		#self.ui.flirtSearchCostCB.addItems(['mutualinfo', 'corratio', 'normcorr', 'normmi', 'leastsq', 'labeldiff', 'bbr'])
+		#self.ui.flirtSearchCostCB.setCurrentIndex(self.ui.flirtSearchCostCB.findText('mutualinfo'))
+		#self.ui.flirtInterpCB.addItems(['trilinear', 'nearestneighbour', 'sinc', 'spline'])
+		#self.ui.flirtInterpCB.setCurrentIndex(self.ui.flirtInterpCB.findText('spline'))
+		
+		
+		#self.ui.antsQuickInterpCB.addItems(['Linear', 'NearestNeighbor', 'BSpline', 'GenericLabel'])
+		#self.ui.antsQuickInterpCB.setCurrentIndex(self.ui.antsQuickInterpCB.findText('NearestNeighbor'))
+		#self.ui.antsQuickTransformTypeCB.addItems(['rigid', 'rigid+affine'])
+		#self.ui.antsQuickTransformTypeCB.setCurrentIndex(self.ui.antsQuickTransformTypeCB.findText('rigid'))
+
+		#self.ui.antsInterpCB.addItems(['Linear', 'NearestNeighbor', 'BSpline', 'GenericLabel'])
+		#self.ui.antsInterpCB.setCurrentIndex(self.ui.antsInterpCB.findText('BSpline'))
+		#self.ui.antsMetricCB.addItems(['CC', 'MI', 'GC'])
+		#self.ui.antsMetricCB.setCurrentIndex(self.ui.antsMetricCB.findText('CC'))
 		
 		self.ui.fslParametersGB.collapsed = 1
 		self.ui.antsParametersGB.collapsed = 1
 		self.ui.antsQuickParametersGB.collapsed = 1
 
-		self.ui.antsQuickInterpTemplateCB.addItems(['Linear', 'NearestNeighbor', 'BSpline', 'GenericLabel'])
-		self.ui.antsQuickInterpTemplateCB.setCurrentIndex(self.ui.antsQuickInterpTemplateCB.findText('BSpline'))
 		self.ui.regAlgorithmTemplateGB.setStyleSheet(groupboxStyle + f"color: {self.text_color}" + ';}' + groupboxStyleTitle + f"color: {self.text_color}" + ';}')
 		self.ui.niftyRegParametersTemplateGB.setStyleSheet(groupboxStyle + f"color: {self.text_color}" + ';}' + groupboxStyleTitle + f"color: {self.text_color}" + ';}')
 		self.ui.fslParametersTemplateGB.setStyleSheet(groupboxStyle + f"color: {self.text_color}" + ';}' + groupboxStyleTitle + f"color: {self.text_color}" + ';}')
 		self.ui.antsParametersTemplateGB.setStyleSheet(groupboxStyle + f"color: {self.text_color}" + ';}' + groupboxStyleTitle + f"color: {self.text_color}" + ';}')
-		self.ui.regaladinInterpTemplateCB.addItems(['0 - NN', '1 - LIN', '3 - CUB', '4 - SINC'])
-		self.ui.regaladinInterpTemplateCB.setCurrentIndex(self.ui.regaladinInterpCB.findText('3 - CUB'))
-		self.ui.flirtCostTemplateCB.addItems(['mutualinfo', 'corratio', 'normcorr', 'normmi', 'leastsq', 'labeldiff', 'bbr'])
-		self.ui.flirtCostTemplateCB.setCurrentIndex(self.ui.flirtCostTemplateCB.findText('mutualinfo'))
-		self.ui.flirtSearchCostTemplateCB.addItems(['mutualinfo', 'corratio', 'normcorr', 'normmi', 'leastsq', 'labeldiff', 'bbr'])
-		self.ui.flirtSearchCostTemplateCB.setCurrentIndex(self.ui.flirtSearchCostTemplateCB.findText('mutualinfo'))
-		self.ui.flirtInterpTemplateCB.addItems(['trilinear', 'nearestneighbour', 'sinc', 'spline'])
-		self.ui.flirtInterpTemplateCB.setCurrentIndex(self.ui.flirtInterpTemplateCB.findText('spline'))
 		self.ui.niftyRegAlgoTemplate.setStyleSheet(f"{fontSetting}margins: 12px;padding: 3px;")
 		self.ui.flirtRegAlgoTemplate.setStyleSheet(f"{fontSetting}margins: 12px;padding: 3px;")
 		self.ui.antsRegAlgoTemplate.setStyleSheet(f"{fontSetting}margins: 12px;padding: 3px;")
-		self.ui.antsInterpTemplateCB.addItems(['Linear', 'NearestNeighbor', 'BSpline', 'GenericLabel'])
-		self.ui.antsInterpTemplateCB.setCurrentIndex(self.ui.antsInterpTemplateCB.findText('BSpline'))
-		self.ui.antsMetricTemplateCB.addItems(['CC', 'MI', 'GC'])
-		self.ui.antsMetricTemplateCB.setCurrentIndex(self.ui.antsMetricTemplateCB.findText('CC'))
-		self.ui.transformTypeTemplateCB.addItems(['rigid', 'rigid+affine', 'rigid+affine+syn', 'rigid+syn', 'rigid+affine+b-spl syn', 'rigid+b-spl syn'])
-		self.ui.transformTypeTemplateCB.setCurrentIndex(self.ui.transformTypeTemplateCB.findText('rigid+affine+syn'))
+
+		#self.ui.antsQuickInterpTemplateCB.addItems(['Linear', 'NearestNeighbor', 'BSpline', 'GenericLabel'])
+		#self.ui.antsQuickInterpTemplateCB.setCurrentIndex(self.ui.antsQuickInterpTemplateCB.findText('BSpline'))
+		#self.ui.regaladinInterpTemplateCB.addItems(['0 - NN', '1 - LIN', '3 - CUB', '4 - SINC'])
+		#self.ui.regaladinInterpTemplateCB.setCurrentIndex(self.ui.regaladinInterpCB.findText('3 - CUB'))
+		#self.ui.flirtCostTemplateCB.addItems(['mutualinfo', 'corratio', 'normcorr', 'normmi', 'leastsq', 'labeldiff', 'bbr'])
+		#self.ui.flirtCostTemplateCB.setCurrentIndex(self.ui.flirtCostTemplateCB.findText('mutualinfo'))
+		#self.ui.flirtSearchCostTemplateCB.addItems(['mutualinfo', 'corratio', 'normcorr', 'normmi', 'leastsq', 'labeldiff', 'bbr'])
+		#self.ui.flirtSearchCostTemplateCB.setCurrentIndex(self.ui.flirtSearchCostTemplateCB.findText('mutualinfo'))
+		#self.ui.flirtInterpTemplateCB.addItems(['trilinear', 'nearestneighbour', 'sinc', 'spline'])
+		#self.ui.flirtInterpTemplateCB.setCurrentIndex(self.ui.flirtInterpTemplateCB.findText('spline'))
+		#self.ui.antsInterpTemplateCB.addItems(['Linear', 'NearestNeighbor', 'BSpline', 'GenericLabel'])
+		#self.ui.antsInterpTemplateCB.setCurrentIndex(self.ui.antsInterpTemplateCB.findText('BSpline'))
+		#self.ui.antsMetricTemplateCB.addItems(['CC', 'MI', 'GC'])
+		#self.ui.antsMetricTemplateCB.setCurrentIndex(self.ui.antsMetricTemplateCB.findText('CC'))
+		#self.ui.transformTypeTemplateCB.addItems(['rigid', 'rigid+affine', 'rigid+affine+syn', 'rigid+syn', 'rigid+affine+b-spl syn', 'rigid+b-spl syn'])
+		#self.ui.transformTypeTemplateCB.setCurrentIndex(self.ui.transformTypeTemplateCB.findText('rigid+affine+syn'))
 
 		self.ui.fslParametersTemplateGB.collapsed = 1
 		self.ui.antsParametersTemplateGB.collapsed = 1
@@ -776,40 +778,60 @@ class registrationWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
 	def getRegParameters(self,regAlgorithm,templateParams=False):
 		if regAlgorithm.startswith('flirtRegAlgo'):
+			interp = {
+				'TriLinear':'trilinear', 
+				'NearestNeighbour': 'nearestneighbour',
+				'Sinc': 'sinc',
+				'Spline':'spline'
+			}
+			cost = {
+				'MutualInfo': 'mutualinfo',
+				'CorRatio': 'corratio',
+				'NormCorr': 'normcorr',
+				'NormMI': 'normmi',
+				'LeastSq': 'leastsq',
+				'LabelDiff': 'labeldiff',
+				'BBR': 'bbr'
+			}
 			regAlgo = {
 				'regAlgo':'flirt',
 				'parameters':{
-					'cost':self.ui.flirtCostCB.currentText if not templateParams else self.ui.flirtCostTemplateCB.currentText,
-					'searchcost':self.ui.flirtSearchCostCB.currentText if not templateParams else self.ui.flirtSearchCostTemplateCB.currentText,
-					'interp':self.ui.flirtInterpCB.currentText if not templateParams else self.ui.flirtInterpTemplateCB.currentText,
-					'coarsesearch':self.ui.flirtCoarseSearchSB.value if not templateParams else self.ui.flirtCoarseSearchTemplateSB.value,
-					'finesearch':self.ui.flirtFineSearchSB.value if not templateParams else self.ui.flirtFineSearchTemplateSB.value
+					'cost': cost[self.ui.flirtCostCB.currentText] if not templateParams else cost[self.ui.flirtCostTemplateCB.currentText],
+					'searchcost': cost[self.ui.flirtSearchCostCB.currentText] if not templateParams else cost[self.ui.flirtSearchCostTemplateCB.currentText],
+					'interp': interp[self.ui.flirtInterpCB.currentText] if not templateParams else interp[self.ui.flirtInterpTemplateCB.currentText],
+					'coarsesearch': self.ui.flirtCoarseSearchSB.value if not templateParams else self.ui.flirtCoarseSearchTemplateSB.value,
+					'finesearch': self.ui.flirtFineSearchSB.value if not templateParams else self.ui.flirtFineSearchTemplateSB.value
 				}
 			}
 		elif regAlgorithm.startswith('niftyRegAlgo'):
 			interp = {
-				'0 - NN':0, 
-				'1 - LIN':1,
-				'3 - CUB':3,
-				'4 - SINC':4
+				'NearestNeighbour': 0, 
+				'Linear': 1,
+				'Cubic': 3,
+				'Sinc': 4
+			}
+			DOF = {
+				'6': '-rigOnly', 
+				'12': ''
 			}
 			regAlgo = {
 				'regAlgo': 'reg_aladin', 
 				'parameters':{
-					'interp': interp[self.ui.regaladinInterpCB.currentText] if not templateParams else interp[self.ui.regaladinInterpTemplateCB.currentText]
+					'interp': interp[self.ui.regaladinInterpCB.currentText] if not templateParams else interp[self.ui.regaladinInterpTemplateCB.currentText],
+					'dof':  DOF[self.ui.regaladinDOFCB.currentText] if not templateParams else DOF['12'],
 				}
 			}
 		elif regAlgorithm.startswith('antsRegAlgo'):
 			interp = {
-				'Linear':'Linear', 
-				'NearestNeighbor': 'NearestNeighbor',
+				'Linear': 'Linear', 
+				'NearestNeighbour': 'NearestNeighbor',
 				'BSpline': 'BSpline[3]',
-				'GenericLabel':'GenericLabel[Linear]'
+				'GenericLabel': 'GenericLabel[Linear]'
 			}
 			metric_params = {
-				'CC': '1,32,Regular,0.25',
-				'MI': '1,4,Regular,0.25',
-				'GC': '1,15,Random,0.05'
+				'CrossCorr': '1,32,Regular,0.25',
+				'MutualInfo': '1,4,Regular,0.25',
+				'GlobalCorr': '1,15,Random,0.05'
 			}
 			regAlgo = {
 				'regAlgo':'antsRegistration',
@@ -837,17 +859,17 @@ class registrationWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 						histMatch = 0
 			interp = {
 				'Linear':'Linear', 
-				'NearestNeighbor': 'NearestNeighbor',
+				'NearestNeighbour': 'NearestNeighbor',
 				'BSpline': 'BSpline[3]',
 				'GenericLabel':'GenericLabel[Linear]'
 			}
 			transform = {
-				'rigid':'r', 
-				'rigid+affine': 'a',
-				'rigid+affine+syn': 's',
-				'rigid+syn':'sr',
-				'rigid+affine+b-spl syn':'b',
-				'rigid+b-spl syn':'br',
+				'Rig':'r', 
+				'Rig+Affine': 'a',
+				'Rig+Affine+Syn': 's',
+				'Rig+Syn': 'sr',
+				'Rig+Affine+BSpline Syn':'b',
+				'Rig+BSpline Syn':'br',
 			}
 			regAlgo = {
 				'regAlgo':'antsRegistrationQuick',
@@ -1515,7 +1537,7 @@ class registrationLogic(ScriptedLoadableModuleLogic):
 					os.path.join(self.niftyBinDir, self.niftyExe),
 					f"-ref {fixedVolume}",
 					f"-flo {movingVolume}",
-					f"-rigOnly",
+					f"{self.regAlgo['parameters']['dof']}",
 					f"-interp {self.regAlgo['parameters']['interp']}",
 					f"-aff {resultTransformPath}_coregmatrix.txt",
 					f"-res {outputVolume}.nii.gz",
@@ -1746,14 +1768,13 @@ class registrationLogic(ScriptedLoadableModuleLogic):
 				if sys.platform != 'win32':
 					reg_cmd = f"export ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS={self.regAlgo['regAlgoTemplateParams']['parameters']['num_threads']}&&" + reg_cmd
 
-				
-
 			elif self.regAlgo['regAlgoTemplateParams']['regAlgo'] == 'reg_aladin':
 				
 				reg_cmd = ' '.join([
 					os.path.join(self.niftyBinDir, self.niftyExe),
 					f"-ref {self.ref_template}",
 					f"-flo {fixedVolume}",
+					f"{self.regAlgo['regAlgoTemplateParams']['parameters']['dof']}",
 					f"-interp {self.regAlgo['regAlgoTemplateParams']['parameters']['interp']}",
 					f"-aff {resultTransformPath}_xfm.txt",
 					f"-res {outputVolume}.nii.gz",

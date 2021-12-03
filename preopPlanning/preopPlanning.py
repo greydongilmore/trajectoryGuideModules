@@ -1443,10 +1443,12 @@ class preopPlanningWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 			children = self.ui.planMERGB.findChildren('QRadioButton')
 			for i in children:
 				if i.name in set(self.crossBenGunLabels+self.plusBenGunLabels+['planAllMER']):
-					if not button.text:
+					if 'All' in i.text:
 						i.checked = False
-
-			self.planAllChecked=False
+						self.planAllChecked=False
+					else:
+						i.checked = False
+				
 			if button.name == 'plusBenGun' and button.name != self.merOrientation:
 				self.merOrientation = 'plusBenGun'
 				self.ui.planAntMedMERWig.setVisible(0)
@@ -1531,8 +1533,8 @@ class preopPlanningWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 			if self.uiWidget.findChild(qt.QRadioButton, 'planAllMER').isChecked() and not self.planAllChecked:
 				children = self.ui.planMERGB.findChildren('QRadioButton')
 				for i in children:
-					if i.text == 'All':
-						i.checked = False
+					if 'All' in i.text:
+						continue
 					elif i.name in labels:
 						i.checked = True
 
@@ -1540,7 +1542,7 @@ class preopPlanningWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 			else:
 				children = self.ui.planMERGB.findChildren('QRadioButton')
 				for i in children:
-					if i.text == 'All':
+					if 'All' in i.text:
 						i.checked = False
 					elif i.name in labels:
 						i.checked = False
@@ -1586,7 +1588,7 @@ class preopPlanningWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 		self.planChans = []
 		children = self.ui.planMERGB.findChildren('QRadioButton')
 		for i in children:
-			if i.text == 'All':
+			if 'All' in i.text:
 				continue
 			elif i.isChecked():
 				if i.name in set(self.crossBenGunLabels+self.plusBenGunLabels):

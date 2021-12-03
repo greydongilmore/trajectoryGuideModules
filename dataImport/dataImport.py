@@ -59,6 +59,7 @@ class dataImportWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 		VTKObservationMixin.__init__(self)  # needed for parameter node observation
 		self.logic = None
 		self._parameterNode = None
+		self.default_dir= None
 		self._updatingGUIFromParameterNode = False
 		self.usePreviousValues = True
 		self.RenameScans = True
@@ -181,6 +182,11 @@ class dataImportWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 		# Initial GUI update
 		self.updateGUIFromParameterNode()
 
+	def trimPathName(self, widget, text):
+		metrics = qt.QFontMetrics(widget.font)
+		elided  = metrics.elidedText(text, qt.Qt.ElideLeft, widget.width)
+		widget.setText(elided)
+
 	def updateGUIFromParameterNode(self, caller=None, event=None):
 		"""
 		This method is called whenever parameter node is changed.
@@ -192,6 +198,13 @@ class dataImportWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
 		# Make sure GUI changes do not call updateParameterNodeFromGUI (it could cause infinite loop)
 		self._updatingGUIFromParameterNode = True
+
+		with open(self._parameterNode.GetParameter('trajectoryGuide_settings'), 'r') as (settings_file):
+			trajectoryGuide_settings = json.load(settings_file)
+		
+		if os.path.exists(os.path.normpath(trajectoryGuide_settings['default_dir'])):
+			self.default_dir = os.path.normpath(trajectoryGuide_settings['default_dir'])
+			self.trimPathName(self.ui.defaultDirectoryLabel, self.default_dir)
 
 		# All the GUI updates are done
 		self._updatingGUIFromParameterNode = False
@@ -215,10 +228,13 @@ class dataImportWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 	def setExistingDirectory(self):
 		with open(self._parameterNode.GetParameter('trajectoryGuide_settings'), 'r') as (settings_file):
 			trajectoryGuide_settings = json.load(settings_file)
+		
 		if os.path.exists(os.path.normpath(trajectoryGuide_settings['default_dir'])):
-			default_dir = os.path.normpath(trajectoryGuide_settings['default_dir'])
+			self.default_dir = os.path.normpath(trajectoryGuide_settings['default_dir'])
+			self.trimPathName(self.ui.defaultDirectoryLabel, self.default_dir)
 		else:
-			default_dir = os.path.expanduser('HOME')
+			self.default_dir = os.path.expanduser('HOME')
+			self.trimPathName(self.ui.defaultDirectoryLabel, self.default_dir)
 		
 		parent = None
 		for w in slicer.app.topLevelWidgets():
@@ -226,10 +242,10 @@ class dataImportWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 				if w.objectName == 'qSlicerMainWindow':
 					parent=w
 
-		self.patient_data_directory = os.path.normpath(qt.QFileDialog().getExistingDirectory(parent, 'Open a folder', default_dir, qt.QFileDialog.ShowDirsOnly))
+		self.patient_data_directory = os.path.normpath(qt.QFileDialog().getExistingDirectory(parent, 'Open a folder', self.default_dir, qt.QFileDialog.ShowDirsOnly))
 		if self.patient_data_directory:
-			self.ui.directoryLabel.setText(self.patient_data_directory)
-
+			self.trimPathName(self.ui.directoryLabel, self.patient_data_directory)
+	
 	def onDefaultDirectoryButton(self):
 		parent = None
 		for w in slicer.app.topLevelWidgets():
@@ -237,10 +253,14 @@ class dataImportWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 				if w.objectName == 'qSlicerMainWindow':
 					parent=w
 
-		data_directory = qt.QFileDialog().getExistingDirectory(parent, 'Open a folder', os.path.expanduser('HOME'), qt.QFileDialog.ShowDirsOnly)
+		self.default_dir = os.path.normpath(qt.QFileDialog().getExistingDirectory(parent, 'Open a folder', os.path.expanduser('HOME'), qt.QFileDialog.ShowDirsOnly))
+		
 		with open(self._parameterNode.GetParameter('trajectoryGuide_settings'), 'r') as (settings_file):
 			trajectoryGuide_settings = json.load(settings_file)
-		trajectoryGuide_settings['default_dir'] = os.path.normpath(data_directory)
+		
+		trajectoryGuide_settings['default_dir'] = self.default_dir
+		self.trimPathName(self.ui.defaultDirectoryLabel, self.default_dir)
+
 		file = self._parameterNode.GetParameter('trajectoryGuide_settings')
 		json_output = json.dumps(trajectoryGuide_settings, indent=4)
 		with open(file, 'w') as (fid):

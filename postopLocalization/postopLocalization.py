@@ -109,9 +109,9 @@ class postopLocalizationWidget(ScriptedLoadableModuleWidget, VTKObservationMixin
 		self.ui.postElecPositionGB.setFont(fontSettings)
 
 		self.ui.postElecCB.addItems(['Select Electrode']+list(electrodeModels))
-		self.ui.postMicroModel.addItems(['Select Microlectrode']+list(microelectrodeModels['probes']))
-		self.ui.postMicroModel.setCurrentIndex(self.ui.postMicroModel.findText(microelectrodeModels['default']))
-
+		self.ui.postElecCB.setCurrentIndex(self.ui.postElecCB.findText('Select Electrode'))
+		self.ui.postMicroModel.addItems(['None']+list(microelectrodeModels['probes']))
+		self.ui.postMicroModel.setCurrentIndex(self.ui.postMicroModel.findText('None'))
 
 	def _setupConnections(self):
 		# These connections ensure that we update parameter node when scene is closed
@@ -743,7 +743,7 @@ class postopLocalizationWidget(ScriptedLoadableModuleWidget, VTKObservationMixin
 		
 		self.postElecModel = self.ui.postElecCB.currentText
 
-		self.postMicroModel = self.ui.postElecCB.currentText if self.ui.postElecCB.currentText != 'Select Microelectrode' else []
+		self.postMicroModel = self.ui.postElecCB.currentText if self.ui.postElecCB.currentText != 'None' else []
 
 		children = self.ui.postTrajUsedGB.findChildren('QRadioButton')
 		for i in children:
