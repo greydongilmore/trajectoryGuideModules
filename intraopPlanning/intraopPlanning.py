@@ -495,6 +495,10 @@ class intraopPlanningWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 		if not 'intra' in list(surgical_data['trajectories'][plan_name]):
 			surgical_data['trajectories'][plan_name]['intra']={}
 
+		microUsed = None
+		if 'microUsed' in list(surgical_data['trajectories'][plan_name]['pre']):
+			microUsed = surgical_data['trajectories'][plan_name]['microUsed']
+
 		mer_info={}
 		mer_info['center']=[self.ui.centerSlider.minimumValue, self.ui.centerSlider.maximumValue]
 		mer_info['anterior']=[self.ui.anteriorSlider.minimumValue, self.ui.anteriorSlider.maximumValue]
@@ -579,7 +583,8 @@ class intraopPlanningWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 			'plan_name':plan_name,
 			'type':'intra',
 			'side': surgical_data['trajectories'][plan_name]['side'],
-			'elecUsed':electrode_used, 
+			'elecUsed':electrode_used,
+			'microUsed': microUsed,
 			'data_dir':os.path.join(self._parameterNode.GetParameter('derivFolder')),
 			'lead_fileN':f"{self._parameterNode.GetParameter('derivFolder').split(os.path.sep)[-1]}_ses-intra_task-{plan_name}_type-{electrode_used}_label-{self.intraopImplantTraj.lower()}_lead.vtk",
 			'contact_fileN':f"{self._parameterNode.GetParameter('derivFolder').split(os.path.sep)[-1]}_ses-intra_task-{plan_name}_type-{electrode_used}_label-%s_contact.vtk", 
@@ -589,7 +594,7 @@ class intraopPlanningWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 			'contact_vis':slice_vis['intraContact3DVis'],
 			'plot_model':self.intraopElecPlot
 		}
-		
+
 		models = [x for x in slicer.util.getNodesByClass('vtkMRMLModelNode') if not slicer.vtkMRMLSliceLogic.IsSliceModelNode(x)]
 		for imodel in models:
 			if f"ses-intra_task-{plan_name}" in imodel.GetName():
@@ -653,7 +658,7 @@ class intraopPlanningWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 							'acpc_target':list(adjustPrecision(new_coords_shift.T[idx]))
 						}
 
-			if coords_track is not None:
+			if coords_track is not None and self.intraopMERTracksPlot and model_parameters['microUsed'] is not None:
 				ch_info[ichan] = ch_info_temp
 
 				model_parameters['mer_filename'] = track_filename
@@ -672,7 +677,7 @@ class intraopPlanningWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 				vtkModelBuilder.model_visibility = slice_vis['intraMERActivity3DVis']
 				vtkModelBuilder.build_line()
 				
-				if self.intraopMERTracksPlot:
+				if self.intraopMERActivityPlot:
 					vtkModelBuilder.add_to_scene()
 
 		surgical_data['trajectories'][plan_name]['intra']['mer_tracks']=ch_info

@@ -859,7 +859,6 @@ class frameDetection:
 			voxel_info=np.vstack([voxel_info[voxel_info[:,2]==x, :] for x in np.unique(voxel_info[:, 2]) if set(voxel_info[voxel_info[:,2]==x, 3]) == set(self.frame_settings['labels'])])
 			voxel_info=np.c_[voxel_info,np.array([int(img_data[x[0],x[1],x[2]]) for x in voxel_info])]
 			
-			print(voxel_info[0:100,:])
 			self.final_location_clusters=self.convert_ijk(voxel_info,self.node)
 			final_location=self.convert_ijk_mean(voxel_info,self.node)
 			self.final_location=self.remove_label_outliers(final_location)
@@ -3254,7 +3253,7 @@ def sortSceneData():
 				shNode.SetItemParent(shNode.GetItemByDataNode(slicer.util.getNode(item)), preLeadFolder)
 			elif 'ses-peri' in item:
 				shNode.SetItemParent(shNode.GetItemByDataNode(slicer.util.getNode(item)), periLeadFolder)
-			elif 'ses-post' in iitem:
+			elif 'ses-post' in item:
 				shNode.SetItemParent(shNode.GetItemByDataNode(slicer.util.getNode(item)), postLeadFolder)
 
 	if len([x for x in slicer.util.getNodesByClass('vtkMRMLModelNode') if x.GetName().endswith('_contact')]) > 0:

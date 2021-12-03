@@ -1051,7 +1051,7 @@ class postopLocalizationLogic(ScriptedLoadableModuleLogic):
 							'acpc_target':list(adjustPrecision(new_coords_shift_final.T[idx]))
 						}
 
-			if coords_track is not None:
+			if coords_track is not None and postActualMERTracksPlot:
 				ch_info[ichan] = ch_info_temp
 
 				model_parameters['mer_filename'] = track_filename

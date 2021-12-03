@@ -599,10 +599,16 @@ class anatomicalLandmarksWidget(ScriptedLoadableModuleWidget, VTKObservationMixi
 						for islice in ('Red','Green','Yellow'):
 							sliceNode = slicer.app.layoutManager().sliceWidget(islice).mrmlSliceNode().JumpSliceByCentering(crossCoordsWorld[0], crossCoordsWorld[1], crossCoordsWorld[2])
 
+						if len(self.crossHairLastPosition) == 0:
+							self.crossHairLastPosition.append(np.array(crossCoordsWorld))
+						else:
+							self.crossHairLastPosition[0]=np.array(crossCoordsWorld)
+
 						crossHairPlanningNode = slicer.mrmlScene.GetFirstNodeByClass('vtkMRMLCrosshairNode')
 						crossHairPlanningNode.SetCrosshairRAS(vtk.vtkVector3d(crossCoordsWorld[0], crossCoordsWorld[1], crossCoordsWorld[2]))
 
-						self.crossHairLastPosition.append(np.array(crossCoordsWorld))
+						self.onUpdateCrosshairCoords()
+
 			else:
 				warningBox(f"No fiducial defined for {fiducialPoint}, please set a point.")
 				return
@@ -655,7 +661,7 @@ class anatomicalLandmarksWidget(ScriptedLoadableModuleWidget, VTKObservationMixi
 
 	def onCursorPositionModifiedEvent(self, caller=None, event=None):
 		crosshairNode = caller
-		if all([crosshairNode.GetCrosshairMode() == 1, self.active, self._parameterNode.GetParameter('frame_system')]):
+		if all([self.active, self._parameterNode.GetParameter('frame_system')]):
 			cursorRAS = np.zeros(3)
 			self.crosshairNode.GetCursorPositionRAS(cursorRAS)
 			crossHairRAS = np.array(self.crosshairNode.GetCrosshairRAS())
@@ -724,6 +730,38 @@ class anatomicalLandmarksWidget(ScriptedLoadableModuleWidget, VTKObservationMixi
 			sliceNodes = slicer.util.getNodesByClass('vtkMRMLSliceNode')
 			for islice in sliceNodes:
 				islice.JumpSlice(coordsRAS[0], coordsRAS[1], coordsRAS[2])
+
+	def onUpdateCrosshairCoords(self):
+		"""
+		Slot for ``Update Crosshairs`` button
+		"""
+		if self._parameterNode.GetParameter('frame_system'):
+			
+			crossHairRAS = np.array(self.crosshairNode.GetCrosshairRAS())
+			fc = getFrameCenter(self._parameterNode.GetParameter('frame_system'))
+
+			if fc is not None:
+				if 'leksell' in self._parameterNode.GetParameter('frame_system'):
+					RASToFrame = np.array([
+						[ -1, 0, 0, -fc[0]],
+						[ 0, 1, 0, -fc[1]],
+						[ 0, 0, -1, -fc[2]],
+						[ 0, 0, 0,   1]
+					])
+					coordsFrame=np.dot(RASToFrame, np.append(crossHairRAS,1))[:3]
+					frameToRAS = np.array([
+						[ 1, 0, 0, 100],
+						[ 0, 1, 0, 100],
+						[ 0, 0, 1, 100],
+						[ 0, 0, 0,   1]
+					])
+					coordsFrame=np.dot(frameToRAS, np.append(coordsFrame,1))[:3]
+				else:
+					coordsFrame=crossHairRAS-fc
+				
+				self.ui.frameCoordsX.value = coordsFrame[0]
+				self.ui.frameCoordsY.value = coordsFrame[1]
+				self.ui.frameCoordsZ.value = coordsFrame[2]
 
 	def onRemoveMidlineButton(self):
 		"""
