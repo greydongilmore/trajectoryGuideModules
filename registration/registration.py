@@ -1680,17 +1680,29 @@ class registrationLogic(ScriptedLoadableModuleLogic):
 				splineDistance=26
 				collapseOutputTransforms=1
 
-				rigidConvergence="[ 1000x500x250x0,1e-6,10 ]"
-				rigidShrinkFactors="8x4x2x1"
-				rigidSmoothingSigmas="3x2x1x0vox"
+				rigidGradientStep = '0.1'
+				rigidMetric = 'MI'
+				rigidMetricParams = '1,32,Regular,0.25'
+				rigidGradientStep = '0.1'
+				rigidConvergence = "[ 1000x500x250x0,1e-6,10 ]"
+				rigidShrinkFactors = "12x8x4x2"
+				rigidSmoothingSigmas = "4x3x2x1vox"
 
-				affineConvergence="[ 1000x500x250x0,1e-6,10 ]"
-				affineShrinkFactors="8x4x2x1"
-				affineSmoothingSigmas="3x2x1x0vox"
+				affineGradientStep = '0.1'
+				affineMetric = 'MI'
+				affineMetricParams = '1,32,Regular,0.25'
+				affineGradientStep = '0.1'
+				affineConvergence = "[ 1000x500x250x0,1e-6,10 ]"
+				affineShrinkFactors = "12x8x4x2"
+				affineSmoothingSigmas = "4x3x2x1vox"
 
-				synConvergence="[ 100x70x50x0,1e-6,10 ]"
-				synShrinkFactors="8x4x2x1"
-				synSmoothingSigmas="3x2x1x0vox"
+				synGradientStep = '0.1,3,0'
+				synMetric = 'MI'
+				synMetricParams = '1,32'
+				synConvergence = "[ 100x100x70x50x0,1e-6,10 ]"
+				synShrinkFactors = "10x6x4x2x1"
+				synSmoothingSigmas = "5x3x2x1x0vox"
+
 
 				tx='Rigid'
 				if self.regAlgo['regAlgoTemplateParams']['parameters']['transform'] == "t":
@@ -1698,23 +1710,23 @@ class registrationLogic(ScriptedLoadableModuleLogic):
 
 				rigidStage=' '.join([
 					f"--initial-moving-transform [{self.ref_template},{fixedVolume},1]",
-					f"--transform {tx}[0.1]",
-					f"--metric MI[{self.ref_template},{fixedVolume},1,32,Regular,0.25]",
+					f"--transform {tx}[{rigidGradientStep}]",
+					f"--metric {rigidMetric}[{self.ref_template},{fixedVolume},{rigidMetricParams}]",
 					f"--convergence {rigidConvergence}",
 					f"--shrink-factors {rigidShrinkFactors}",
 					f"--smoothing-sigmas {rigidSmoothingSigmas}"
 				])
 
 				affineStage=' '.join([
-					f"--transform Affine[0.1]",
-					f"--metric MI[{self.ref_template},{fixedVolume},1,32,Regular,0.25]",
+					f"--transform Affine[{affineGradientStep}]",
+					f"--metric {affineMetric}[{self.ref_template},{fixedVolume},{affineMetricParams}]",
 					f"--convergence {affineConvergence}",
 					f"--shrink-factors {affineShrinkFactors}",
 					f"--smoothing-sigmas {affineSmoothingSigmas}"
 				])
 
 				synStage=' '.join([
-					f"--metric MI[{self.ref_template},{fixedVolume},1,{numOfBins}]",
+					f"--metric {synMetric}[{self.ref_template},{fixedVolume},{synMetricParams}]",
 					f"--convergence {synConvergence}",
 					f"--shrink-factors {synShrinkFactors}",
 					f"--smoothing-sigmas {synSmoothingSigmas}"
@@ -1722,36 +1734,31 @@ class registrationLogic(ScriptedLoadableModuleLogic):
 
 				if any(transform == self.regAlgo['regAlgoTemplateParams']['parameters']['transform'] for transform in ('sr','br')):
 					synStage=' '.join([
-						f"--metric MI[{self.ref_template},{fixedVolume},1,{numOfBins}]",
+						f"--metric MI[{self.ref_template},{fixedVolume},{synMetricParams}]",
 						f"--convergence [50x0,1e-6,10]",
 						f"--shrink-factors 2x1",
 						f"--smoothing-sigmas 1x0vox"
 					])
 
 				
-				if any(transform == self.regAlgo['regAlgoTemplateParams']['parameters']['transform'] for transform in ('b','br','bo')):
+				elif any(transform == self.regAlgo['regAlgoTemplateParams']['parameters']['transform'] for transform in ('b','br','bo')):
 					synStage=f"--transform BSplineSyN[0.1,{splineDistance},0,3] " + synStage
 
-				if any(transform == self.regAlgo['regAlgoTemplateParams']['parameters']['transform'] for transform in ('s','sr','so')):
-					synStage="--transform SyN[0.1,3,0] " + synStage
+				elif any(transform == self.regAlgo['regAlgoTemplateParams']['parameters']['transform'] for transform in ('s','sr','so')):
+					synStage=f"--transform SyN[{synGradientStep}] " + synStage
 
 
 				if any(transform == self.regAlgo['regAlgoTemplateParams']['parameters']['transform'] for transform in ("r","t")):
 					stages=f"{rigidStage}"
-					numRegStages=1
 				elif self.regAlgo['regAlgoTemplateParams']['parameters']['transform'] == "a":
 					stages=f"{rigidStage} {affineStage}"
-					numRegStages=2
 				elif any(transform == self.regAlgo['regAlgoTemplateParams']['parameters']['transform'] for transform in ("b","s")):
-					stages=f"{rigidStage} {affineStage} {synStage}"
-					numRegStages=3
+					stages = f"{rigidStage} {affineStage} {synStage}"
 				elif any(transform == self.regAlgo['regAlgoTemplateParams']['parameters']['transform'] for transform in ("br","sr")):
 					stages=f"{rigidStage} {synStage}"
-					numRegStages=2
 				elif any(transform == self.regAlgo['regAlgoTemplateParams']['parameters']['transform'] for transform in ("bo","so")):
 					stages=f"{affineStage}"
-					numRegStages=1
-
+				
 				reg_cmd = ' '.join([
 					os.path.join(self.antsBinDir, self.antsExe),
 					'--verbose 1',

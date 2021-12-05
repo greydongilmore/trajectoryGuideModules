@@ -247,7 +247,7 @@
          <item row="1" column="1">
           <widget class="ctkCollapsibleGroupBox" name="niftyRegParametersGB">
            <property name="sizePolicy">
-            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+            <sizepolicy hsizetype="MinimumExpanding" vsizetype="Preferred">
              <horstretch>0</horstretch>
              <verstretch>0</verstretch>
             </sizepolicy>
@@ -466,7 +466,7 @@
          <item row="3" column="1">
           <widget class="ctkCollapsibleGroupBox" name="fslParametersGB">
            <property name="sizePolicy">
-            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+            <sizepolicy hsizetype="MinimumExpanding" vsizetype="Preferred">
              <horstretch>0</horstretch>
              <verstretch>0</verstretch>
             </sizepolicy>
@@ -922,7 +922,7 @@
          <item row="5" column="1">
           <widget class="ctkCollapsibleGroupBox" name="antsQuickParametersGB">
            <property name="sizePolicy">
-            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+            <sizepolicy hsizetype="MinimumExpanding" vsizetype="Preferred">
              <horstretch>0</horstretch>
              <verstretch>0</verstretch>
             </sizepolicy>
@@ -1321,7 +1321,7 @@
          <item row="7" column="1">
           <widget class="ctkCollapsibleGroupBox" name="antsParametersGB">
            <property name="sizePolicy">
-            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+            <sizepolicy hsizetype="MinimumExpanding" vsizetype="Preferred">
              <horstretch>0</horstretch>
              <verstretch>0</verstretch>
             </sizepolicy>
@@ -2555,7 +2555,7 @@
          <item row="1" column="1">
           <widget class="ctkCollapsibleGroupBox" name="niftyRegParametersTemplateGB">
            <property name="sizePolicy">
-            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+            <sizepolicy hsizetype="MinimumExpanding" vsizetype="Preferred">
              <horstretch>0</horstretch>
              <verstretch>0</verstretch>
             </sizepolicy>
@@ -2710,7 +2710,7 @@
          <item row="3" column="1">
           <widget class="ctkCollapsibleGroupBox" name="fslParametersTemplateGB">
            <property name="sizePolicy">
-            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+            <sizepolicy hsizetype="MinimumExpanding" vsizetype="Preferred">
              <horstretch>0</horstretch>
              <verstretch>0</verstretch>
             </sizepolicy>
@@ -3169,7 +3169,7 @@
          <item row="5" column="1">
           <widget class="ctkCollapsibleGroupBox" name="antsSynParametersTemplateGB">
            <property name="sizePolicy">
-            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+            <sizepolicy hsizetype="MinimumExpanding" vsizetype="Preferred">
              <horstretch>0</horstretch>
              <verstretch>0</verstretch>
             </sizepolicy>
@@ -3699,7 +3699,7 @@
          <item row="7" column="1">
           <widget class="ctkCollapsibleGroupBox" name="antsParametersTemplateGB">
            <property name="sizePolicy">
-            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+            <sizepolicy hsizetype="MinimumExpanding" vsizetype="Preferred">
              <horstretch>0</horstretch>
              <verstretch>0</verstretch>
             </sizepolicy>
@@ -4175,8 +4175,8 @@
  <resources/>
  <connections/>
  <buttongroups>
-  <buttongroup name="regAlgoTemplateBG"/>
   <buttongroup name="regAlgoBG"/>
+  <buttongroup name="regAlgoTemplateBG"/>
   <buttongroup name="histMatchBG"/>
  </buttongroups>
 </ui>

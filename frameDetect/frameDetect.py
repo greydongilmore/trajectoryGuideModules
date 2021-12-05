@@ -466,8 +466,8 @@ class frameDetectWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 			}
 		}
 
-		for k, v in self.frame_settings['settings']['parameters'].items():
-			print(k + ' -> ' + str(v))
+		#for k, v in self.frame_settings['settings']['parameters'].items():
+		#	print(k + ' -> ' + str(v))
 
 		try:
 

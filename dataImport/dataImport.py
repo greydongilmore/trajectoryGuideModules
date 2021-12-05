@@ -558,6 +558,8 @@ class dataImportLogic(ScriptedLoadableModuleLogic):
 						filen_parts.append([x for x in os.path.basename(ifile).split('_') if 'space' in x])
 					if 'acq-' in os.path.basename(ifile):
 						filen_parts.append([x for x in os.path.basename(ifile).split('_') if 'acq' in x])
+					if 'run-' in os.path.basename(ifile):
+						filen_parts.append([x for x in os.path.basename(ifile).split('_') if 'run' in x])
 
 					filen_parts.append([x for x in os.path.basename(ifile).split('_') if 'nii' in x])
 					fnew = "_".join([item for sublist in filen_parts for item in sublist])
