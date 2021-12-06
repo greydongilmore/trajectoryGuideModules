@@ -141,6 +141,9 @@
          <property name="rightMargin">
           <number>0</number>
          </property>
+         <property name="horizontalSpacing">
+          <number>0</number>
+         </property>
         </layout>
        </widget>
       </item>
@@ -2283,7 +2286,7 @@
      </property>
      <property name="minimumSize">
       <size>
-       <width>360</width>
+       <width>370</width>
        <height>0</height>
       </size>
      </property>
@@ -4175,8 +4178,8 @@
  <resources/>
  <connections/>
  <buttongroups>
-  <buttongroup name="regAlgoBG"/>
   <buttongroup name="regAlgoTemplateBG"/>
   <buttongroup name="histMatchBG"/>
+  <buttongroup name="regAlgoBG"/>
  </buttongroups>
 </ui>

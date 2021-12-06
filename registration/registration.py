@@ -108,7 +108,7 @@ class registrationWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 		
 		self.regFloatingCB = CheckableComboBox()
 		self.regFloatingCB.setFont(qt.QFont('Arial', 11))
-		self.regFloatingCB.setFixedWidth(340)
+		self.regFloatingCB.setFixedWidth(365)
 
 		self.floatVolLabel=qt.QLabel('Floating Volumes:')
 		self.floatVolLabel.setFixedWidth(120)
