@@ -2258,7 +2258,7 @@ def plotLead(entry,target,origin,model_parameters):
 
 		midContact = bottomTop[iContact, :3] + (bottomTop[iContact, 3:] - bottomTop[iContact, :3]) / 2
 		contactFile.append([model_parameters['plan_name'], model_parameters['type'], str(iContact + 1), midContact[0] * -1, midContact[1] * -1, midContact[2]])
-		if any(x.lower() in model_parameters['elecUsed'].lower() for x in ('directional', 'bsci_directional')):
+		if any(x.lower() in model_parameters['elecUsed'].lower() for x in ('directional', 'bsci_directional','b.sci. directional')):
 			if iContact == 0:
 				vtkModelBuilder = vtkModelBuilderClass()
 				vtkModelBuilder.coords = bottomTop[iContact, :]

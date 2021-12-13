@@ -731,7 +731,7 @@
                <string notr="true">padding-left:9px;</string>
               </property>
               <property name="currentText">
-               <string>TriLinear</string>
+               <string>NearestNeighbour</string>
               </property>
               <item>
                <property name="text">
@@ -1251,7 +1251,7 @@
                <string notr="true">padding-left:9px;</string>
               </property>
               <property name="currentText">
-               <string>Linear</string>
+               <string>NearestNeighbour</string>
               </property>
               <property name="placeholderText">
                <string/>
@@ -1553,7 +1553,7 @@
                <string notr="true">padding-left:9px;</string>
               </property>
               <property name="currentText">
-               <string>CrossCorr</string>
+               <string>MutualInfo</string>
               </property>
               <item>
                <property name="text">
@@ -1604,7 +1604,7 @@
                <string notr="true">padding-left:9px;</string>
               </property>
               <property name="currentText">
-               <string>Linear</string>
+               <string>NearestNeighbour</string>
               </property>
               <item>
                <property name="text">
@@ -2978,7 +2978,7 @@
                <string notr="true">padding-left:9px;</string>
               </property>
               <property name="currentText">
-               <string>TriLinear</string>
+               <string>NearestNeighbour</string>
               </property>
               <item>
                <property name="text">
@@ -3536,7 +3536,7 @@
                <string notr="true">padding-left:9px;</string>
               </property>
               <property name="currentText">
-               <string notr="true">Linear</string>
+               <string notr="true">NearestNeighbour</string>
               </property>
               <item>
                <property name="text">
@@ -3592,7 +3592,7 @@
                <string notr="true">padding-left:9px;</string>
               </property>
               <property name="currentText">
-               <string>Rig</string>
+               <string>Rig+Affine+Syn</string>
               </property>
               <item>
                <property name="text">
@@ -3769,7 +3769,7 @@
                <string notr="true">padding-left:9px;</string>
               </property>
               <property name="currentText">
-               <string>Linear</string>
+               <string>NearestNeighbour</string>
               </property>
               <item>
                <property name="text">
@@ -3891,7 +3891,7 @@
                <string notr="true">padding-left:9px;</string>
               </property>
               <property name="currentText">
-               <string>CrossCorr</string>
+               <string>MutualInfo</string>
               </property>
               <item>
                <property name="text">
@@ -4178,8 +4178,8 @@
  <resources/>
  <connections/>
  <buttongroups>
+  <buttongroup name="regAlgoBG"/>
   <buttongroup name="regAlgoTemplateBG"/>
   <buttongroup name="histMatchBG"/>
-  <buttongroup name="regAlgoBG"/>
  </buttongroups>
 </ui>

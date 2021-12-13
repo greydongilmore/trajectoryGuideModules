@@ -497,7 +497,7 @@ class intraopPlanningWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
 		microUsed = None
 		if 'microUsed' in list(surgical_data['trajectories'][plan_name]['pre']):
-			microUsed = surgical_data['trajectories'][plan_name]['microUsed']
+			microUsed = surgical_data['trajectories'][plan_name]['pre']['microUsed']
 
 		mer_info={}
 		mer_info['center']=[self.ui.centerSlider.minimumValue, self.ui.centerSlider.maximumValue]
