@@ -17,7 +17,7 @@ elif __file__:
 sys.path.insert(1, os.path.dirname(cwd))
 
 from helpers.helpers import vtkModelBuilderClass, plotLead, rotation_matrix, warningBox, getMarkupsNode, adjustPrecision, addCustomLayouts, frame_angles, frame_angles, plotMicroelectrode
-from helpers.variables import coordSys, slicerLayout, fontSetting, groupboxStyle
+from helpers.variables import coordSys, slicerLayout, fontSetting, groupboxStyle, electrodeModels
 
 #
 # intraopPlanning
@@ -231,7 +231,13 @@ class intraopPlanningWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 				surgical_info_json = json.load(surgical_info)
 
 			plansAdd = [x for x in list(surgical_info_json['trajectories']) if x not in planNames]
-			self.ui.intraopPlanName.addItems(plansAdd)
+
+			if plansAdd:
+				self.ui.intraopPlanName.blockSignals(True)
+				self.ui.intraopPlanName.addItems(plansAdd)
+				self.ui.intraopPlanName.blockSignals(False)
+				
+				self.onIntraopPlanChange()
 
 		# All the GUI updates are done
 		self._updatingGUIFromParameterNode = False
@@ -325,7 +331,7 @@ class intraopPlanningWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 		self.ui.MERActivityPlotIntraopY.checked=True
 	
 	def onIntraopPlanChange(self):
-		if self.active:
+		if self._parameterNode.GetParameter('derivFolder'):
 			if self.ui.intraopPlanName.currentText != '':
 				planName = self.ui.intraopPlanName.currentText
 				
@@ -372,7 +378,7 @@ class intraopPlanningWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 												self.uiWidget.findChild(qt.QRadioButton, ichan + 'ActivityButton').checked=True
 											else:
 												i.minimumValue=surgical_data['trajectories'][planName]['intra']['mer_tracks'][ichan]['mer_top']
-
+						
 						models = [x for x in slicer.util.getNodesByClass('vtkMRMLModelNode') if not slicer.vtkMRMLSliceLogic.IsSliceModelNode(x)]
 						for imodel in models:
 							if planName in imodel.GetName() and 'task-intra' in imodel.GetName():
@@ -509,7 +515,7 @@ class intraopPlanningWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 		entry_pre = np.array(surgical_data['trajectories'][plan_name]['pre']['entry'])
 		target_pre = np.array(surgical_data['trajectories'][plan_name]['pre']['target'])
 		origin_point=np.array(surgical_data['trajectories'][plan_name]['pre']['origin_point'])
-		electrode_used = surgical_data['trajectories'][plan_name]['pre']['elecUsed']
+		electrode_used = electrodeModels[surgical_data['trajectories'][plan_name]['pre']['elecUsed']]['filename']
 		channels_used=surgical_data['trajectories'][plan_name]['pre']['chansUsed']
 		implant_depth=self.ui.intraopElecDepth.value
 		channel_index = self.leftChanIndex if surgical_data['trajectories'][plan_name]['side'] == 'left' else self.rightChanIndex
@@ -583,7 +589,7 @@ class intraopPlanningWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 			'plan_name':plan_name,
 			'type':'intra',
 			'side': surgical_data['trajectories'][plan_name]['side'],
-			'elecUsed':electrode_used,
+			'elecUsed':surgical_data['trajectories'][plan_name]['pre']['elecUsed'],
 			'microUsed': microUsed,
 			'data_dir':os.path.join(self._parameterNode.GetParameter('derivFolder')),
 			'lead_fileN':f"{self._parameterNode.GetParameter('derivFolder').split(os.path.sep)[-1]}_ses-intra_task-{plan_name}_type-{electrode_used}_label-{self.intraopImplantTraj.lower()}_lead.vtk",

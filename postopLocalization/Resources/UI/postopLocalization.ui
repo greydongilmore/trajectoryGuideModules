@@ -211,7 +211,7 @@
        <number>15</number>
       </property>
       <item row="1" column="0" colspan="6" alignment="Qt::AlignHCenter">
-       <widget class="QComboBox" name="postMicroModel">
+       <widget class="QComboBox" name="postMicroModelCB">
         <property name="minimumSize">
          <size>
           <width>300</width>
@@ -1623,14 +1623,14 @@
  <connections/>
  <buttongroups>
   <buttongroup name="hideDataButtonGroup"/>
-  <buttongroup name="jumpToButtonGroup"/>
-  <buttongroup name="postShowActualMERTracksGroup"/>
   <buttongroup name="trajUsedButtonGroup">
    <property name="exclusive">
     <bool>false</bool>
    </property>
   </buttongroup>
   <buttongroup name="postShowActualElecButtonGroup"/>
+  <buttongroup name="jumpToButtonGroup"/>
   <buttongroup name="unlockButtonGroup"/>
+  <buttongroup name="postShowActualMERTracksGroup"/>
  </buttongroups>
 </ui>

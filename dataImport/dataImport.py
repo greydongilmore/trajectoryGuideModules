@@ -202,9 +202,10 @@ class dataImportWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 		with open(self._parameterNode.GetParameter('trajectoryGuide_settings'), 'r') as (settings_file):
 			trajectoryGuide_settings = json.load(settings_file)
 		
-		if os.path.exists(os.path.normpath(trajectoryGuide_settings['default_dir'])):
-			self.default_dir = os.path.normpath(trajectoryGuide_settings['default_dir'])
-			self.trimPathName(self.ui.defaultDirectoryLabel, self.default_dir)
+		if trajectoryGuide_settings['default_dir'] != '':
+			if os.path.exists(os.path.normpath(trajectoryGuide_settings['default_dir'])):
+				self.default_dir = os.path.normpath(trajectoryGuide_settings['default_dir'])
+				self.trimPathName(self.ui.defaultDirectoryLabel, self.default_dir)
 
 		# All the GUI updates are done
 		self._updatingGUIFromParameterNode = False
@@ -229,12 +230,13 @@ class dataImportWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 		with open(self._parameterNode.GetParameter('trajectoryGuide_settings'), 'r') as (settings_file):
 			trajectoryGuide_settings = json.load(settings_file)
 		
-		if os.path.exists(os.path.normpath(trajectoryGuide_settings['default_dir'])):
-			self.default_dir = os.path.normpath(trajectoryGuide_settings['default_dir'])
-			self.trimPathName(self.ui.defaultDirectoryLabel, self.default_dir)
+		if trajectoryGuide_settings['default_dir'] != '':
+			if os.path.exists(os.path.normpath(trajectoryGuide_settings['default_dir'])):
+				self.default_dir = os.path.normpath(trajectoryGuide_settings['default_dir'])
+				self.trimPathName(self.ui.defaultDirectoryLabel, self.default_dir)
 		else:
-			self.default_dir = os.path.expanduser('HOME')
-			self.trimPathName(self.ui.defaultDirectoryLabel, self.default_dir)
+			self.default_dir = ''
+			#self.trimPathName(self.ui.defaultDirectoryLabel, self.default_dir)
 		
 		parent = None
 		for w in slicer.app.topLevelWidgets():
@@ -253,19 +255,21 @@ class dataImportWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 				if w.objectName == 'qSlicerMainWindow':
 					parent=w
 
-		self.default_dir = os.path.normpath(qt.QFileDialog().getExistingDirectory(parent, 'Open a folder', os.path.expanduser('HOME'), qt.QFileDialog.ShowDirsOnly))
-		
-		with open(self._parameterNode.GetParameter('trajectoryGuide_settings'), 'r') as (settings_file):
-			trajectoryGuide_settings = json.load(settings_file)
-		
-		trajectoryGuide_settings['default_dir'] = self.default_dir
-		self.trimPathName(self.ui.defaultDirectoryLabel, self.default_dir)
+		childDlg = qt.QFileDialog()
+		self.default_dir = os.path.normpath(childDlg.getExistingDirectory(parent, 'Open a folder', os.path.expanduser('HOME'), qt.QFileDialog.ShowDirsOnly))
 
-		file = self._parameterNode.GetParameter('trajectoryGuide_settings')
-		json_output = json.dumps(trajectoryGuide_settings, indent=4)
-		with open(file, 'w') as (fid):
-			fid.write(json_output)
-			fid.write('\n')
+		if self.default_dir != "":
+			with open(self._parameterNode.GetParameter('trajectoryGuide_settings'), 'r') as (settings_file):
+				trajectoryGuide_settings = json.load(settings_file)
+			
+			trajectoryGuide_settings['default_dir'] = self.default_dir
+			self.trimPathName(self.ui.defaultDirectoryLabel, self.default_dir)
+
+			file = self._parameterNode.GetParameter('trajectoryGuide_settings')
+			json_output = json.dumps(trajectoryGuide_settings, indent=4)
+			with open(file, 'w') as (fid):
+				fid.write(json_output)
+				fid.write('\n')
 
 	def onRenameScansButtonGroupClicked(self, button):
 		"""

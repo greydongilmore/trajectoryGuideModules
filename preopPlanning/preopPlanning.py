@@ -307,11 +307,13 @@ class preopPlanningWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 				surgical_info_json = json.load(surgical_info)
 
 			plansAdd = [x for x in list(surgical_info_json['trajectories']) if x not in planNames]
-			self.ui.planName.addItems(plansAdd)
-			for iplan in plansAdd:
-				self.ui.planName.setCurrentIndex(self.ui.planName.findText(iplan))
-				#self.onPlanChange()
-
+			if plansAdd:
+				self.ui.planName.blockSignals(True)
+				self.ui.planName.addItems(plansAdd)
+				self.ui.planName.blockSignals(False)
+				
+				self.onPlanChange()
+		
 		# All the GUI updates are done
 		self._updatingGUIFromParameterNode = False
 

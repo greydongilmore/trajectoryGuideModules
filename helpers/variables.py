@@ -59,7 +59,7 @@ electrodeModels['Medtronic 3389'] = medtronic_3389
 bsci_directional = {
         'num_groups': 4,
         'num_contacts': 8,
-        'encapsultation': 1.5,
+        'encapsultation': 0,
         'contact_size': 1.5,
         'contact_spacing': 0.5,
         'diameter': 1.1,
@@ -73,7 +73,7 @@ electrodeModels['B.Sci. directional'] = bsci_directional
 bsci_nondirectional = {
         'num_groups': 8,
         'num_contacts': 8,
-        'encapsultation': 1.1,
+        'encapsultation': 0,
         'contact_size': 1.5,
         'contact_spacing': 0.5,
         'diameter': 1.1,

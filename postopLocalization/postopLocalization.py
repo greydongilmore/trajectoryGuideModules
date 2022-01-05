@@ -110,8 +110,8 @@ class postopLocalizationWidget(ScriptedLoadableModuleWidget, VTKObservationMixin
 
 		self.ui.postElecCB.addItems(['Select Electrode']+list(electrodeModels))
 		self.ui.postElecCB.setCurrentIndex(self.ui.postElecCB.findText('Select Electrode'))
-		self.ui.postMicroModel.addItems(['None']+list(microelectrodeModels['probes']))
-		self.ui.postMicroModel.setCurrentIndex(self.ui.postMicroModel.findText('None'))
+		self.ui.postMicroModelCB.addItems(['None']+list(microelectrodeModels['probes']))
+		self.ui.postMicroModelCB.setCurrentIndex(self.ui.postMicroModelCB.findText('None'))
 
 	def _setupConnections(self):
 		# These connections ensure that we update parameter node when scene is closed
@@ -124,8 +124,8 @@ class postopLocalizationWidget(ScriptedLoadableModuleWidget, VTKObservationMixin
 		self.ui.planAdd.connect('clicked(bool)', self.onPlanAdd)
 		self.ui.planDelete.connect('clicked(bool)', self.onPlanDelete)
 		self.ui.planAddConfirm.connect('clicked(bool)', self.onPlanAddConfirm)
-		self.ui.planNameEdit.connect('returnPressed()', self.ui.planAddConfirm.click)
-		self.ui.planName.connect('currentIndexChanged(int)', self.onPlanChange)
+		#self.ui.planNameEdit.connect('returnPressed()', self.ui.planAddConfirm.click)
+		#self.ui.planName.connect('currentIndexChanged(int)', self.onPlanChange)
 		self.ui.planAddConfirm.setVisible(0)
 		not_resize = self.ui.planAddConfirm.sizePolicy
 		not_resize.setRetainSizeWhenHidden(True)
@@ -158,7 +158,7 @@ class postopLocalizationWidget(ScriptedLoadableModuleWidget, VTKObservationMixin
 		# Make sure parameter node exists and observed
 		self.initializeParameterNode()
 		self.active = True
-		self.resetValues()
+		#self.resetValues()
 	
 	def exit(self):
 		"""
@@ -238,7 +238,12 @@ class postopLocalizationWidget(ScriptedLoadableModuleWidget, VTKObservationMixin
 				surgical_info_json = json.load(surgical_info)
 
 			plansAdd = [x for x in list(surgical_info_json['trajectories']) if x not in planNames]
-			self.ui.planName.addItems(plansAdd)
+			if plansAdd:
+				self.ui.planName.blockSignals(True)
+				self.ui.planName.addItems(plansAdd)
+				self.ui.planName.blockSignals(False)
+				
+				self.onPlanChange()
 
 		# All the GUI updates are done
 		self._updatingGUIFromParameterNode = False
@@ -343,14 +348,14 @@ class postopLocalizationWidget(ScriptedLoadableModuleWidget, VTKObservationMixin
 
 		if self.ui.planName.currentText != '' and self.ui.planName.currentText != 'Select plan':
 
-			if len(slicer.util.getNodes('bot')) > 0:
-				slicer.mrmlScene.RemoveNode(slicer.util.getNode('bot'))
+			if len(slicer.util.getNodes('*_bot')) > 0:
+				slicer.mrmlScene.RemoveNode(list(slicer.util.getNodes('*_bot').values())[0])
 
-			if len(slicer.util.getNodes('top')) > 0:
-				slicer.mrmlScene.RemoveNode(slicer.util.getNode('top'))
+			if len(slicer.util.getNodes('*_top')) > 0:
+				slicer.mrmlScene.RemoveNode(list(slicer.util.getNodes('*_top').values())[0])
 
 			self.markupsNodeBot = slicer.mrmlScene.AddNewNodeByClass('vtkMRMLMarkupsFiducialNode')
-			self.markupsNodeBot.SetName('bot')
+			self.markupsNodeBot.SetName(f'{self.ui.planName.currentText}_bot')
 			self.markupsNodeBot.AddDefaultStorageNode()
 			self.markupsNodeBot.GetStorageNode().SetCoordinateSystem(coordSys)
 			self.ui.botPoint.setCurrentNode(self.markupsNodeBot)
@@ -359,7 +364,7 @@ class postopLocalizationWidget(ScriptedLoadableModuleWidget, VTKObservationMixin
 			self.markupsNodeBot.AddObserver(slicer.vtkMRMLMarkupsNode.PointPositionUndefinedEvent, self.onPointDelete)
 
 			self.markupsNodeTop = slicer.mrmlScene.AddNewNodeByClass('vtkMRMLMarkupsFiducialNode')
-			self.markupsNodeTop.SetName('top')
+			self.markupsNodeTop.SetName(f'{self.ui.planName.currentText}_top')
 			self.markupsNodeTop.AddDefaultStorageNode()
 			self.markupsNodeTop.GetStorageNode().SetCoordinateSystem(coordSys)
 			self.ui.topPoint.setCurrentNode(self.markupsNodeTop)
@@ -377,7 +382,6 @@ class postopLocalizationWidget(ScriptedLoadableModuleWidget, VTKObservationMixin
 						else:
 							modelVis=True
 
-			print(modelVis)
 			if modelVis is not None:
 				if modelVis:
 					self.ui.hideDataWig.findChild(qt.QRadioButton, 'hideDataN').setChecked(True)
@@ -473,7 +477,7 @@ class postopLocalizationWidget(ScriptedLoadableModuleWidget, VTKObservationMixin
 					i.text = 'Lateral'
 
 	def onPlanChange(self):
-		if self.active and self._parameterNode.GetParameter('derivFolder'):
+		if self._parameterNode.GetParameter('derivFolder'):
 			if self.ui.planName.currentText != '':
 
 				self.resetValues()
@@ -503,7 +507,7 @@ class postopLocalizationWidget(ScriptedLoadableModuleWidget, VTKObservationMixin
 									self.postElecModel = self.ui.postElecCB.currentText
 						if 'microUsed' in list(surgical_data['trajectories'][planName]['pre']):
 							if surgical_data['trajectories'][planName]['pre']['microUsed']:
-									self.ui.postMicroModel.setCurrentIndex(self.ui.postMicroModel.findText(surgical_data['trajectories'][planName]['pre']['microUsed']))
+									self.ui.postMicroModelCB.setCurrentIndex(self.ui.postMicroModelCB.findText(surgical_data['trajectories'][planName]['pre']['microUsed']))
 
 					if 'post' in list(surgical_data['trajectories'][planName]):
 						if surgical_data['trajectories'][planName]['post']['target']:
@@ -552,10 +556,10 @@ class postopLocalizationWidget(ScriptedLoadableModuleWidget, VTKObservationMixin
 
 		if 'bot' in activeLabel:
 			activeLabelName='target'
-			activeNodeName='bot'
+			activeNodeName=f'{self.ui.planName.currentText}_bot'
 		elif 'top' in activeLabel:
 			activeLabelName='entry'
-			activeNodeName='top'
+			activeNodeName=f'{self.ui.planName.currentText}_top'
 
 		if len(slicer.util.getNodes(self.ui.planName.currentText + '_line_post')) > 0:
 			activePointCoords = getPointCoords((self.ui.planName.currentText + '_line_post'), activeLabelName, node_type='vtkMRMLMarkupsLineNode')
@@ -615,7 +619,7 @@ class postopLocalizationWidget(ScriptedLoadableModuleWidget, VTKObservationMixin
 			fiducialPoint = button.name.replace('LockButton', '')
 			pointLocked = True
 			pointExists = False
-			fiducialNode = getMarkupsNode(fiducialPoint)
+			fiducialNode = getMarkupsNode(f'{self.ui.planName.currentText}_{fiducialPoint}')
 			for ifid in range(fiducialNode.GetNumberOfControlPoints()):
 				if fiducialPoint in fiducialNode.GetNthControlPointLabel(ifid):
 					pointExists = True
@@ -632,7 +636,7 @@ class postopLocalizationWidget(ScriptedLoadableModuleWidget, VTKObservationMixin
 			if pointExists and pointLocked:
 				button.setStyleSheet('')
 				button.setText('Unlock')
-				fiducialNode = getMarkupsNode(fiducialPoint)
+				fiducialNode = getMarkupsNode(f'{self.ui.planName.currentText}_{fiducialPoint}')
 				for ifid in range(fiducialNode.GetNumberOfControlPoints()):
 					if fiducialPoint in fiducialNode.GetNthControlPointLabel(ifid):
 						pointCoordsWorld = [0]*3
@@ -651,7 +655,7 @@ class postopLocalizationWidget(ScriptedLoadableModuleWidget, VTKObservationMixin
 
 		elif 'JumpButton' in button.name:
 			fiducialPoint = button.name.replace('JumpButton', '')
-			fiducialNode = getMarkupsNode(fiducialPoint)
+			fiducialNode = getMarkupsNode(f'{self.ui.planName.currentText}_{fiducialPoint}')
 			for ifid in range(fiducialNode.GetNumberOfControlPoints()):
 				if fiducialPoint in fiducialNode.GetNthControlPointLabel(ifid):
 					slicer.modules.markups.logic().JumpSlicesToNthPointInMarkup(fiducialNode.GetID(), ifid)
@@ -743,7 +747,7 @@ class postopLocalizationWidget(ScriptedLoadableModuleWidget, VTKObservationMixin
 		
 		self.postElecModel = self.ui.postElecCB.currentText
 
-		self.postMicroModel = self.ui.postElecCB.currentText if self.ui.postElecCB.currentText != 'None' else []
+		self.postMicroModel = self.ui.postMicroModelCB.currentText if self.ui.postMicroModelCB.currentText != 'None' else []
 
 		children = self.ui.postTrajUsedGB.findChildren('QRadioButton')
 		for i in children:
