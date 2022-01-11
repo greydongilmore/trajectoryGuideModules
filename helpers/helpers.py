@@ -2264,7 +2264,7 @@ def plotLead(entry,target,origin,model_parameters):
 				vtkModelBuilder.coords = bottomTop[iContact, :]
 				vtkModelBuilder.tube_radius = contact_diameter
 				vtkModelBuilder.tube_thickness = 0.3
-				vtkModelBuilder.electrodeLen = e_specs['encapsultation']
+				vtkModelBuilder.electrodeLen = e_specs['contact_size']
 				vtkModelBuilder.filename = filen
 				vtkModelBuilder.model_color = model_parameters['contact_col']
 				vtkModelBuilder.model_visibility = model_parameters['contact_vis']
@@ -3074,6 +3074,7 @@ def createElecBox(electrode_number,electrode_name):
 	fontSettings = qt.QFont("font-size: 11pt;font-family: Arial")
 	fontSettings.setBold(False)
 	modelLabel = qt.QLabel(electrode_name)
+	modelLabel.setObjectName(f'contact{str(electrode_number).zfill(2)}Text')
 	modelLabel.setFont(fontSettings)
 	modelLabel.setAlignment(qt.Qt.AlignVCenter)
 	modelLabel.setMinimumWidth(55)
