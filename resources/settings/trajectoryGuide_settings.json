@@ -1,5 +1,5 @@
 {
-    "default_dir": "/media/veracrypt6/projects/stealthMRI/imaging/clinical/derivatives/trajectoryGuide/bids",
+    "default_dir": "/home/greydon/data/data/DBS/derivatives/trajGuide/bids",
     "surgical_targets": [
         "STN",
         "GPi",
