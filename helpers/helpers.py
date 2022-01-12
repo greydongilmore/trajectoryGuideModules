@@ -329,7 +329,7 @@ class vtkModelBuilderClass:
 			node.GetModelDisplayNode().SetSelectedColor(self.model_color)
 		if self.model_visibility is not None:
 			node.GetModelDisplayNode().SetSliceIntersectionVisibility(self.model_visibility)
-			node.GetModelDisplayNode().SetSliceIntersectionOpacity(1)
+			node.GetModelDisplayNode().SetSliceIntersectionOpacity(3)
 			node.GetDisplayNode().Visibility2DOn()
 		if [x for x in {'entry_target', 'midline', 'electrode'} if x in node.GetName()]:
 			node.GetDisplayNode().SetTextScale(0)
@@ -2501,7 +2501,7 @@ class VTAModelBuilderClass:
 			if val['perc'] > 0:
 				stimulation.append(key)
 		
-		radius = np.kron(np.ones((e_specs['num_groups'], 1)), e_specs['contact_size'])
+		radius = np.kron(np.ones((e_specs['num_contacts'], 1)), e_specs['contact_size'])
 		sources = [int(x) for x in np.linspace(0, len(S) - 1, len(S))]
 		volume = np.zeros(len(radius))
 		VAT = []

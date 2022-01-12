@@ -1643,6 +1643,13 @@ class registrationLogic(ScriptedLoadableModuleLogic):
 
 			elif self.regAlgo['regAlgoTemplateParams']['regAlgo'] == 'antsRegistration':
 
+				synGradientStep = '0.1,3,0'
+				synMetric = 'MI'
+				synMetricParams = '1,32'
+				synConvergence = "[ 100x100x70x50x0,1e-6,10 ]"
+				synShrinkFactors = "10x6x4x2x1"
+				synSmoothingSigmas = "5x3x2x1x0vox"
+
 				rigidstage = ' '.join([
 					f"--initial-moving-transform [{self.ref_template},{fixedVolume},1]",
 					f"--transform Rigid[{self.regAlgo['regAlgoTemplateParams']['parameters']['gradientstep']}]",
@@ -1660,6 +1667,13 @@ class registrationLogic(ScriptedLoadableModuleLogic):
 					f"--smoothing-sigmas {self.regAlgo['regAlgoTemplateParams']['parameters']['smoothing-sigmas']}"
 				])
 
+				synStage=' '.join([
+					f"--metric {synMetric}[{self.ref_template},{fixedVolume},{synMetricParams}]",
+					f"--convergence {synConvergence}",
+					f"--shrink-factors {synShrinkFactors}",
+					f"--smoothing-sigmas {synSmoothingSigmas}"
+				])
+
 				reg_cmd = ' '.join([
 					os.path.join(self.antsBinDir, self.antsExe),
 					'--verbose 1',
@@ -1671,7 +1685,8 @@ class registrationLogic(ScriptedLoadableModuleLogic):
 					'--use-histogram-matching 1',
 					'--winsorize-image-intensities [0.005,0.995]',
 					rigidstage,
-					affinestage
+					affinestage,
+					synStage
 				])
 
 			elif self.regAlgo['regAlgoTemplateParams']['regAlgo'] == 'antsRegistrationQuick':

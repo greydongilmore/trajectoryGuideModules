@@ -261,7 +261,6 @@ class postopProgrammingWidget(ScriptedLoadableModuleWidget, VTKObservationMixin)
 		#self._parameterNode.EndModify(wasModified)
 
 	def onButtonClick(self, button):
-
 		if isinstance(button,tuple):
 			buttonName = button[0]
 			buttonText = button[1]
@@ -420,7 +419,6 @@ class postopProgrammingWidget(ScriptedLoadableModuleWidget, VTKObservationMixin)
 		self.elecChanLastButton = None
 		self.elecChanButton = 0
 
-
 	def onPlanAdd(self):
 		if not self.ui.planNameEdit.isVisible():
 			self.ui.planNameEdit.setVisible(1)
@@ -561,8 +559,6 @@ class postopProgrammingWidget(ScriptedLoadableModuleWidget, VTKObservationMixin)
 		
 		imagePopup(self.elecModelShow + ' electrode', os.path.join(self._parameterNode.GetParameter('trajectoryGuidePath'), 'resources', 'static', self.elecModelShow + '.png'),parent)
 
-		
-
 	def get_contact_coords(self, side):
 		DirVec = [side['entry'][0] - side['target'][0], side['entry'][1] - side['target'][1], side['entry'][2] - side['target'][2]]
 		MagVec = np.sqrt([np.square(DirVec[0]) + np.square(DirVec[1]) + np.square(DirVec[2])])
@@ -574,7 +570,7 @@ class postopProgrammingWidget(ScriptedLoadableModuleWidget, VTKObservationMixin)
 		conSize = e_specs['contact_size']
 		conSpace = e_specs['contact_spacing']
 		midContact = []
-		for iContact in range(0, e_specs['num_groups']):
+		for iContact in range(0, e_specs['num_contacts']):
 			bottomTop = np.append(bottomTop, (np.hstack((
 					np.array([[side['target'][0] + NormVec[0] * start],[side['target'][1] + NormVec[1] * start], [side['target'][2] + NormVec[2] * start]]).T,
 					np.array(([side['target'][0] + NormVec[0] * (start + conSize)], [side['target'][1] + NormVec[1] * (start + conSize)], [side['target'][2] + NormVec[2] * (start + conSize)])).T
@@ -583,7 +579,8 @@ class postopProgrammingWidget(ScriptedLoadableModuleWidget, VTKObservationMixin)
 				)
 
 			midContact.append(bottomTop[iContact, :3] + (bottomTop[iContact, 3:] - bottomTop[iContact, :3]) / 2)
-			if np.all([side['elecUsed'] in ('Directional', 'directional', 'bsci_directional'), 3 > iContact > 0]):
+			
+			if np.all([side['elecUsed'].lower() in ('directional', 'bsci_directional', 'b.sci. directional'), 3 > iContact > 0]):
 				midContact.append(bottomTop[iContact, :3] + (bottomTop[iContact, 3:] - bottomTop[iContact, :3]) / 2)
 				midContact.append(bottomTop[iContact, :3] + (bottomTop[iContact, 3:] - bottomTop[iContact, :3]) / 2)
 			
@@ -604,7 +601,8 @@ class postopProgrammingWidget(ScriptedLoadableModuleWidget, VTKObservationMixin)
 
 		contact_info = {}
 		for icontact in contactRange:
-			contact_info[self.ui.stimSettingsGB.findChild(qt.QLabel, f'contact{str(icontact).zfill(2)}Text').text] = {
+			contact_info[icontact-1] = {
+				'label': self.ui.stimSettingsGB.findChild(qt.QLabel, f'contact{str(icontact).zfill(2)}Text').text,
 				'perc': 100 if self.ui.stimSettingsGB.findChild(qt.QDoubleSpinBox, f'contact{str(icontact).zfill(2)}Amp').value > 0 else 0,
 				'amp': self.ui.stimSettingsGB.findChild(qt.QDoubleSpinBox, f'contact{str(icontact).zfill(2)}Amp').value,
 				'freq': self.ui.stimSettingsGB.findChild(qt.QDoubleSpinBox, f'contact{str(icontact).zfill(2)}Freq').value,
@@ -683,7 +681,6 @@ class postopProgrammingWidget(ScriptedLoadableModuleWidget, VTKObservationMixin)
 			model = slicer.util.getNode(side_data['side'] + '_actual_vta_model*')
 			model.SetAndObserveTransformNodeID(mniTransform[0].GetID())
 
-
 #
 # postopProgrammingLogic
 #
@@ -754,7 +751,6 @@ class postopProgrammingLogic(ScriptedLoadableModuleLogic):
 		elif __file__:
 			trajectoryGuidePath = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 
-		print(os.path.dirname(os.path.realpath(__file__)))
 		if not parameterNode.GetParameter("trajectoryGuidePath"):
 			parameterNode.SetParameter("trajectoryGuidePath", trajectoryGuidePath)
 		if not parameterNode.GetParameter("trajectoryGuide_settings"):
