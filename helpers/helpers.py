@@ -3,6 +3,7 @@ import qt, ctk, slicer, vtk, numpy as np, pandas as pd,os, shutil, csv, json, sy
 from .variables import electrodeModels, coordSys, slicerLayout, trajectoryGuideLayout, trajectoryGuideAxialLayout, slicerLayoutAxial,\
 microelectrodeModels
 from random import uniform
+from sklearn.decomposition import PCA
 
 cwd = os.path.dirname(os.path.realpath(__file__))
 sys.path.insert(1, os.path.dirname(cwd))
@@ -559,6 +560,91 @@ class frameDetection:
 		
 		return np.vstack(final_1)
 
+
+	
+	def sort_brw(self, components):
+		
+		points = np.stack(sorted(components, key=(lambda k: k[2])))
+		use_min=True
+		
+		# first determine the 3rd N-localizer posterior to the skull (determine if the y-axis increases or decrease as you move anterior)
+		summ=[]
+		for iclust in np.unique(points[:,3]):
+			summ.append([iclust, points[points[:,3]==iclust,1].min()])
+		
+		summ.sort(key=lambda x: x[1],reverse=False)
+		
+		origin = np.mean([x[1] for x in summ[:3]], axis=0)
+		distance = np.linalg.norm(np.array([x[1] for x in summ[:3]]) - origin, axis=0)
+		if distance > 8:
+			use_min=False
+			summ=[]
+			for iclust in np.unique(points[:,3]):
+				summ.append([iclust, points[points[:,3]==iclust,1].max()])
+			
+			summ.sort(key=lambda x: x[1],reverse=True)
+			origin = np.mean([x[1] for x in summ[:3]], axis=0)
+			distance = np.linalg.norm(np.array([x[1] for x in summ[:3]]) - origin, axis=0)
+			
+		
+		N_3_labels=[x[0] for x in summ[:3]]
+		N_3_points=points[np.argwhere(np.isin(points[:,3], N_3_labels)).ravel()]
+		points=np.delete(points,np.argwhere(np.isin(points[:,3], N_3_labels)).ravel(),0)
+		
+		summ=[]
+		for iclust in np.unique(N_3_points[:,3]):
+			summ.append([iclust, N_3_points[N_3_points[:,3]==iclust,0].min()])
+		
+		summ.sort(key=lambda x: x[1],reverse=False)
+		N_3_points[N_3_points[:,3]==summ[0][0],3]=7
+		N_3_points[N_3_points[:,3]==summ[1][0],3]=8
+		N_3_points[N_3_points[:,3]==summ[2][0],3]=9
+		
+		summ=[]
+		for iclust in np.unique(points[:,3]):
+			summ.append([iclust, points[points[:,3]==iclust,0].max()])
+		
+		summ.sort(key=lambda x: x[1],reverse=True)
+		N_2_labels=[x[0] for x in summ[:3]]
+		N_2_points=points[np.argwhere(np.isin(points[:,3], N_2_labels)).ravel()]
+		points=np.delete(points,np.argwhere(np.isin(points[:,3], N_2_labels)).ravel(),0)
+
+		if use_min:
+			summ=[]
+			for iclust in np.unique(N_2_points[:,3]):
+				summ.append([iclust, N_2_points[N_2_points[:,3]==iclust,1].max()])
+		
+			summ.sort(key=lambda x: x[1],reverse=True)
+		else:
+			summ=[]
+			for iclust in np.unique(N_2_points[:,3]):
+				summ.append([iclust, N_2_points[N_2_points[:,3]==iclust,1].min()])
+			summ.sort(key=lambda x: x[1],reverse=False)
+		
+		N_2_points[N_2_points[:,3]==summ[0][0],3]=4
+		N_2_points[N_2_points[:,3]==summ[1][0],3]=5
+		N_2_points[N_2_points[:,3]==summ[2][0],3]=6
+		
+		if use_min:
+			summ=[]
+			for iclust in np.unique(points[:,3]):
+				summ.append([iclust, points[points[:,3]==iclust,1].max()])
+			summ.sort(key=lambda x: x[1],reverse=True)
+		else:
+			summ=[]
+			for iclust in np.unique(points[:,3]):
+				summ.append([iclust, points[points[:,3]==iclust,1].min()])
+			summ.sort(key=lambda x: x[1],reverse=False)
+		
+		points[points[:,3]==summ[0][0],3]=3
+		points[points[:,3]==summ[1][0],3]=2
+		points[points[:,3]==summ[2][0],3]=1
+		
+		component=np.r_[points, N_2_points,N_3_points]
+		
+		return component
+
+
 	def crw_sort(self,component):
 		points = np.stack(sorted(component, key=(lambda k: k[2])))
 		
@@ -824,11 +910,13 @@ class frameDetection:
 				else:
 					structEle=int(np.ceil(2 / max(pix_dim)))
 					eroded_image = morphology.binary_erosion(thresh_img, np.ones((structEle,structEle,structEle)))
-					morph_image=self.flood_fill_hull(eroded_image)
-					morph_image=morphology.binary_erosion(morph_image, morphology.ball(5))
-					morph_image=morphology.binary_erosion(morph_image, morphology.ball(5))
-					morph_image=morphology.binary_erosion(morph_image, morphology.ball(5))
-					masked_image = np.invert(morph_image)*thresh_img
+					#morph_image=self.flood_fill_hull(eroded_image)
+					#morph_image=morphology.binary_erosion(morph_image, morphology.ball(5))
+					#morph_image=morphology.binary_erosion(morph_image, morphology.ball(5))
+					#morph_image=morphology.binary_erosion(morph_image, morphology.ball(5))
+					#morph_image=morphology.binary_erosion(morph_image, morphology.ball(5))
+					#masked_image = np.invert(morph_image)*thresh_img
+					masked_image = morphology.binary_dilation(eroded_image, morphology.ball(structEle))
 
 				#labels, n_labels = measure.label(segmentation, background=0, return_num=True)
 				#label_count = np.bincount(labels.ravel().astype(np.int))
@@ -838,28 +926,46 @@ class frameDetection:
 				#mask = ndimage.morphology.binary_fill_holes(mask)
 				#masked_image = np.invert(mask)*thresh_img
 
-			labels, n_labels = measure.label(masked_image, background=0, return_num=True)
+			labels, n_labels = measure.label(masked_image.astype(int), background=0, return_num=True)
 			properties = measure.regionprops(labels)
 			properties.sort(key=lambda x: x.area, reverse=True)
 			areas=np.array([prop.area for prop in properties])
 			
-			#areas[0] = 0
-			#largeComponentsIdx = [int(x) for x in np.where(areas >=self.frame_settings['min_size'])[0]]
+			if any(substring in self.frame_settings['system'] for substring in ('leksell','crw')):
+				largeComponentsIdx = [int(x) for x in np.where(np.logical_and(areas >= self.frame_settings['min_size'], areas< self.frame_settings['max_size']))[0]]
+				voxelCoords=[np.array(properties[x].coords) for x in largeComponentsIdx]
+				voxel_info=np.vstack([np.c_[voxelCoords[x],np.repeat(x+1, len(voxelCoords[x]))] for x in range(len(largeComponentsIdx))])
+				voxel_info[:,3]=np.array([self.frame_settings['labels'][x] for x in voxel_info[:,5]])
 
-			largeComponentsIdx = [int(x) for x in np.where(np.logical_and(areas >= self.frame_settings['min_size'], areas< self.frame_settings['max_size']))[0]]
+			elif any(substring in self.frame_settings['system'] for substring in ('brw')):
+				largeComponentsIdx = [int(x) for x in np.where(areas > self.frame_settings['min_size']*2)[0]]
+				
+				elecIdxs = []
+				for icomp in largeComponentsIdx:
+					component=properties[icomp]
+					pca = PCA(n_components=1)
+					pca.fit(component.coords)
+					
+					origin = np.mean(component.coords, axis=0)
+					euclidian_distance = np.linalg.norm(component.coords - origin, axis=1)
+					extent = np.max(euclidian_distance)
+					elecIdxs.append([icomp,extent])
+				
+				elecIdxs.sort(key=lambda x: x[1],reverse=True)
+				elecIdxs=[x[0] for x in elecIdxs[:self.frame_settings['n_markers']]]
 
-			voxelCoords=[np.array(properties[x].coords) for x in largeComponentsIdx]
-			voxel_info=np.vstack([np.c_[voxelCoords[x],np.repeat(x+1, len(voxelCoords[x]))] for x in range(len(largeComponentsIdx))])
-			
+				voxelCoords=[np.array(properties[x].coords) for x in elecIdxs]
+				voxel_info=np.vstack([np.c_[voxelCoords[x],np.repeat(x+1, len(voxelCoords[x]))] for x in range(len(elecIdxs))])
+				voxel_info=self.sort_brw(voxel_info)
+
 			if image_type == 'mri' and 'leksellg' in self.frame_settings['system']:
 				voxel_info=self.remove_leksell_mri_outlier(voxel_info)
-			else:
-				voxel_info=self.remove_outlier(voxel_info)
-
+			
 			if any (x==self.frame_settings['system'] for x in ('leksellg','crw')):
+				voxel_info=self.remove_outlier(voxel_info)
 				voxel_info=self.NLocalizersSort(voxel_info, self.frame_settings['n_components'], 1)
 
-			voxel_info[:,3]=np.array([self.frame_settings['labels'][x] for x in voxel_info[:,5]])
+			
 			voxel_info=np.vstack([voxel_info[voxel_info[:,2]==x, :] for x in np.unique(voxel_info[:, 2]) if set(voxel_info[voxel_info[:,2]==x, 3]) == set(self.frame_settings['labels'])])
 			voxel_info=np.c_[voxel_info,np.array([int(img_data[x[0],x[1],x[2]]) for x in voxel_info])]
 			

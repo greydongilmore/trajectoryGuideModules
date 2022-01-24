@@ -3535,6 +3535,9 @@
               <property name="styleSheet">
                <string notr="true">padding-left:9px;</string>
               </property>
+              <property name="editable">
+               <bool>false</bool>
+              </property>
               <property name="currentText">
                <string notr="true">NearestNeighbour</string>
               </property>
@@ -4178,8 +4181,8 @@
  <resources/>
  <connections/>
  <buttongroups>
-  <buttongroup name="regAlgoBG"/>
   <buttongroup name="regAlgoTemplateBG"/>
   <buttongroup name="histMatchBG"/>
+  <buttongroup name="regAlgoBG"/>
  </buttongroups>
 </ui>

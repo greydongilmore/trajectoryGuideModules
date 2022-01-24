@@ -360,7 +360,8 @@ class frameDetectWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 	
 	def onFrameFidConfirmButton(self):
 
-		slicer.app.setOverrideCursor(qt.Qt.WaitCursor)
+		qt.QApplication.setOverrideCursor(qt.Qt.WaitCursor)
+		qt.QApplication.processEvents()
 
 		# Compute output
 		progressBar = self.logic.confirmFrameDetection(self.ui.frameFidVolumeCBox.currentNode(), self.frame_settings, self.originalFrameVolSidecar, self._parameterNode.GetParameter('derivFolder'))
@@ -394,11 +395,12 @@ class frameDetectWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 		slicer.util.resetSliceViews()
 
 		progressBar.value = 100
-		slicer.app.processEvents()
+		qt.QApplication.processEvents()
 
 		progressBar.close()
-		slicer.app.restoreOverrideCursor()
-
+		qt.QApplication.setOverrideCursor(qt.QCursor(qt.Qt.ArrowCursor))
+		qt.QApplication.processEvents()
+		
 	def onFrameDetectButton(self):
 		"""
 		**Slot for** ``Fiducial Volume`` **box.**
@@ -880,7 +882,7 @@ class frameDetectLogic(ScriptedLoadableModuleLogic):
 					1:[7,8,9]
 				},
 				'localizer_axis':{
-					'AP': [[3,2,1],[6,5,4]],
+					'AP': [[1,2,3],[4,5,6]],
 					'ML':[[9,8,7]]
 				},
 				'localizer_labels':{
@@ -949,6 +951,9 @@ class frameDetectLogic(ScriptedLoadableModuleLogic):
 
 	def runFrameDetection(self, frameFidVolume, frame_settings, derivFolder):
 		
+		volumesLogic = slicer.modules.volumes.logic()
+		volumesLogic.CenterVolume(frameFidVolume)
+
 		applicationLogic = slicer.app.applicationLogic()
 		selectionNode = applicationLogic.GetSelectionNode()
 		selectionNode.SetReferenceActiveVolumeID(frameFidVolume.GetID())
@@ -981,7 +986,7 @@ class frameDetectLogic(ScriptedLoadableModuleLogic):
 		else:
 			view.cornerAnnotation().GetTextProperty().SetColor(0.4, 1, 0)
 		view.cornerAnnotation().GetTextProperty().ShadowOff()
-		view.cornerAnnotation().SetText(vtk.vtkCornerAnnotation.LeftEdge,'Mean Frame Fiducial Error: '+str(np.round(self.frameDetectInstance.meanError,3)))
+		view.cornerAnnotation().SetText(vtk.vtkCornerAnnotation.LeftEdge,'Mean FRE: '+str(np.round(self.frameDetectInstance.meanError,3)))
 		view.forceRender()
 
 		fcsvNodeName = f"{derivFolder.split(os.path.sep)[-1]}_desc-%s_fids"
@@ -1075,6 +1080,8 @@ class frameDetectLogic(ScriptedLoadableModuleLogic):
 
 	def confirmFrameDetection(self, frameFidVolume, frame_settings, originalFrameVolSidecar, derivFolder):
 
+		qt.QApplication.processEvents()
+
 		parent = None
 		for w in slicer.app.topLevelWidgets():
 			if hasattr(w,'objectName'):
@@ -1088,7 +1095,7 @@ class frameDetectLogic(ScriptedLoadableModuleLogic):
 			progressBar = slicer.util.createProgressDialog(parent=parent, value=0, maximum=100, windowTitle="Saving frame data...")
 
 		progressBar.show()
-		slicer.app.processEvents()
+		qt.QApplication.processEvents()
 
 		files = [x for x in os.listdir(os.path.join(derivFolder)) if any(x.endswith(y) for y in {'.nii.gz', '.nii'})]
 		file_sidecar = []
@@ -1132,12 +1139,15 @@ class frameDetectLogic(ScriptedLoadableModuleLogic):
 		if len(slicer.util.getNodes('*from-fiducials_to-localizer*')) > 0:
 
 			progressBar.value = 15
-			slicer.app.processEvents()
+			qt.QApplication.processEvents()
 
 			frameAlignTransform = list(slicer.util.getNodes('*from-fiducials_to-localizer*').values())[0]
 			frameAlignTransform.RemoveNodeReferenceIDs(slicer.vtkMRMLTransformNode.GetMovingNodeReferenceRole())
 			frameAlignTransform.RemoveNodeReferenceIDs(slicer.vtkMRMLTransformNode.GetFixedNodeReferenceRole())
 			slicer.util.saveNode(frameAlignTransform, os.path.join(derivFolder, 'frame', frameAlignTransform.GetName()+'.h5'))
+
+			progressBar.value = 25
+			qt.QApplication.processEvents()
 
 			transformFilename = [x for x in os.listdir(os.path.join(derivFolder,'frame')) if x.endswith('.h5')][0]
 			transformType = [x for x in transformFilename.split('_') if 'desc' in x][0]
@@ -1161,7 +1171,8 @@ class frameDetectLogic(ScriptedLoadableModuleLogic):
 			self.frameFidVolume.SetName(outputVolPrefix)
 
 			progressBar.value = 45
-			slicer.app.processEvents()
+			qt.QApplication.processEvents()
+
 
 			file_sidecar['file_name'] = outputVolPrefix + '.nii.gz'
 			file_sidecar['node_name'] = outputVolPrefix
@@ -1189,7 +1200,7 @@ class frameDetectLogic(ScriptedLoadableModuleLogic):
 			slicer.util.saveNode(frameModelTubeNode, os.path.join(derivFolder, 'frame', targetModelTubeName +' .vtk'))
 
 			progressBar.value = 60
-			slicer.app.processEvents()
+			qt.QApplication.processEvents()
 
 			#### remove the glyph version of the frame target
 			targetModelGlyphName=f"{derivFolder.split(os.path.sep)[-1]}_space-{frame_settings['system']}_acq-glyph_label-all_localizer"
@@ -1205,14 +1216,14 @@ class frameDetectLogic(ScriptedLoadableModuleLogic):
 			fiducialsNode.SetName(outputFCSVPrefix % ('fiducials'))
 			topbottomNode.SetName(outputFCSVPrefix % ('topbottom'))
 
-			writeFCSV(fiducialsNode,os.path.join(derivFolder, 'frame', outputFCSVPrefix % ('fiducials')+'.fcsv'))
-			writeFCSV(topbottomNode,os.path.join(derivFolder, 'frame', outputFCSVPrefix % ('topbottom')+'.fcsv'))
+			#writeFCSV(fiducialsNode,os.path.join(derivFolder, 'frame', outputFCSVPrefix % ('fiducials')+'.fcsv'))
+			#writeFCSV(topbottomNode,os.path.join(derivFolder, 'frame', outputFCSVPrefix % ('topbottom')+'.fcsv'))
 
 			slicer.util.getNode(outputFCSVPrefix % ('fiducials')).GetDisplayNode().SetVisibility(0)
 			slicer.util.getNode(outputFCSVPrefix % ('topbottom')).GetDisplayNode().SetVisibility(0)
 
-			progressBar.value = 70
-			slicer.app.processEvents()
+			progressBar.value = 75
+			qt.QApplication.processEvents()
 
 			if frame_settings['system'] != 'brw':
 				frameFiducialPoints={}
@@ -1230,31 +1241,33 @@ class frameDetectLogic(ScriptedLoadableModuleLogic):
 					writer.writerow(frameFiducialPoints.keys())
 					writer.writerows(zip(*frameFiducialPoints.values()))
 
-			frameFiducialPoints={}
-			frameFiducialPoints['label']=[int(x) for x in self.frameDetectInstance.final_location[:,3]]
-			frameFiducialPoints['x']=[format (x, '.3f') for x in self.frameDetectInstance.sourcePoints[:,0]]
-			frameFiducialPoints['y']=[format (x, '.3f') for x in self.frameDetectInstance.sourcePoints[:,1]]
-			frameFiducialPoints['z']=[format (x, '.3f') for x in self.frameDetectInstance.sourcePoints[:,2]]
-			frameFiducialPoints['intensity']=[format (x, '.3f') for x in self.frameDetectInstance.final_location[:,4]]
-			frameFiducialPoints['error']=[format (x, '.3f') for x in self.frameDetectInstance.pointError]
-			frameFiducialPoints['dist_x']=[format (x, '.3f') for x in self.frameDetectInstance.pointDistanceXYZ[:,0]]
-			frameFiducialPoints['dist_y']=[format (x, '.3f') for x in self.frameDetectInstance.pointDistanceXYZ[:,1]]
-			frameFiducialPoints['dist_z']=[format (x, '.3f') for x in self.frameDetectInstance.pointDistanceXYZ[:,2]]
-			frameFiducialPoints['n_cluster']=[int(x) for x in self.frameDetectInstance.final_location[:,-1]]
-			frameFiducialPoints['ideal_x']=[format (x, '.3f') for x in self.frameDetectInstance.idealPoints[:,0]]
-			frameFiducialPoints['ideal_y']=[format (x, '.3f') for x in self.frameDetectInstance.idealPoints[:,1]]
-			frameFiducialPoints['ideal_z']=[format (x, '.3f') for x in self.frameDetectInstance.idealPoints[:,2]]
+				frameFiducialPoints={}
+				frameFiducialPoints['label']=[int(x) for x in self.frameDetectInstance.final_location[:,3]]
+				frameFiducialPoints['x']=[format (x, '.3f') for x in self.frameDetectInstance.sourcePoints[:,0]]
+				frameFiducialPoints['y']=[format (x, '.3f') for x in self.frameDetectInstance.sourcePoints[:,1]]
+				frameFiducialPoints['z']=[format (x, '.3f') for x in self.frameDetectInstance.sourcePoints[:,2]]
+				frameFiducialPoints['intensity']=[format (x, '.3f') for x in self.frameDetectInstance.final_location[:,4]]
+				frameFiducialPoints['error']=[format (x, '.3f') for x in self.frameDetectInstance.pointError]
+				frameFiducialPoints['dist_x']=[format (x, '.3f') for x in self.frameDetectInstance.pointDistanceXYZ[:,0]]
+				frameFiducialPoints['dist_y']=[format (x, '.3f') for x in self.frameDetectInstance.pointDistanceXYZ[:,1]]
+				frameFiducialPoints['dist_z']=[format (x, '.3f') for x in self.frameDetectInstance.pointDistanceXYZ[:,2]]
+				frameFiducialPoints['n_cluster']=[int(x) for x in self.frameDetectInstance.final_location[:,-1]]
+				frameFiducialPoints['ideal_x']=[format (x, '.3f') for x in self.frameDetectInstance.idealPoints[:,0]]
+				frameFiducialPoints['ideal_y']=[format (x, '.3f') for x in self.frameDetectInstance.idealPoints[:,1]]
+				frameFiducialPoints['ideal_z']=[format (x, '.3f') for x in self.frameDetectInstance.idealPoints[:,2]]
 
-			outfile_name = os.path.join(derivFolder, 'frame',
-				f"{derivFolder.split(os.path.sep)[-1]}_space-{frame_settings['system']}_desc-centroids_fids.tsv")
-			
+				outfile_name = os.path.join(derivFolder, 'frame',
+					f"{derivFolder.split(os.path.sep)[-1]}_space-{frame_settings['system']}_desc-centroids_fids.tsv")
+				
+				
+
+				with open(outfile_name, 'w') as out_file:
+					writer = csv.writer(out_file, delimiter = "\t")
+					writer.writerow(frameFiducialPoints.keys())
+					writer.writerows(zip(*frameFiducialPoints.values()))
+
 			progressBar.value = 80
-			slicer.app.processEvents()
-
-			with open(outfile_name, 'w') as out_file:
-				writer = csv.writer(out_file, delimiter = "\t")
-				writer.writerow(frameFiducialPoints.keys())
-				writer.writerows(zip(*frameFiducialPoints.values()))
+			qt.QApplication.processEvents()
 
 			if len(slicer.util.getNodes('*frame_center*')) > 0:
 				frameCenterNode=list(slicer.util.getNodes('*frame_center*').values())[0]
@@ -1290,7 +1303,7 @@ class frameDetectLogic(ScriptedLoadableModuleLogic):
 				fid.write('\n')
 
 		progressBar.value = 85
-		slicer.app.processEvents()
+		qt.QApplication.processEvents()
 
 		with open(os.path.join(derivFolder, f"{derivFolder.split(os.path.sep)[-1]}_surgical_data.json")) as (surgical_file):
 			surgical_data = json.load(surgical_file)
@@ -1303,7 +1316,7 @@ class frameDetectLogic(ScriptedLoadableModuleLogic):
 			fid.write('\n')
 
 		progressBar.value = 90
-		slicer.app.processEvents()
+		qt.QApplication.processEvents()
 
 		return progressBar
 
