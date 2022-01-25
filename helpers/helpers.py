@@ -935,7 +935,7 @@ class frameDetection:
 				largeComponentsIdx = [int(x) for x in np.where(np.logical_and(areas >= self.frame_settings['min_size'], areas< self.frame_settings['max_size']))[0]]
 				voxelCoords=[np.array(properties[x].coords) for x in largeComponentsIdx]
 				voxel_info=np.vstack([np.c_[voxelCoords[x],np.repeat(x+1, len(voxelCoords[x]))] for x in range(len(largeComponentsIdx))])
-				voxel_info[:,3]=np.array([self.frame_settings['labels'][x] for x in voxel_info[:,5]])
+				voxel_info[:,3]=np.array([self.frame_settings['labels'][x] for x in voxel_info[:,-1]])
 
 			elif any(substring in self.frame_settings['system'] for substring in ('brw')):
 				largeComponentsIdx = [int(x) for x in np.where(areas > self.frame_settings['min_size']*2)[0]]

@@ -1434,10 +1434,10 @@ class registrationLogic(ScriptedLoadableModuleLogic):
 
 				reg_cmd = ' '.join([
 					os.path.join(self.fslBinDir, self.flirtExe),
-					f"-in {movingVolume}",
-					f"-ref {fixedVolume}",
-					f"-out {outputVolume}.nii.gz",
-					f"-omat {resultTransformPath}_coregmatrix.mat",
+					f'-in "{movingVolume}"',
+					f'-ref "{fixedVolume}"',
+					f'-out "{outputVolume}.nii.gz"',
+					f'-omat "{resultTransformPath}_coregmatrix.mat"',
 					"-dof 6",
 					f"-cost {self.regAlgo['parameters']['cost']}",
 					f"-searchcost {self.regAlgo['parameters']['searchcost']}",
@@ -1535,16 +1535,16 @@ class registrationLogic(ScriptedLoadableModuleLogic):
 
 				reg_cmd = ' '.join([
 					os.path.join(self.niftyBinDir, self.niftyExe),
-					f"-ref {fixedVolume}",
-					f"-flo {movingVolume}",
+					f'-ref "{fixedVolume}"',
+					f'-flo "{movingVolume}"',
 					f"{self.regAlgo['parameters']['dof']}",
 					f"-interp {self.regAlgo['parameters']['interp']}",
-					f"-aff {resultTransformPath}_coregmatrix.txt",
-					f"-res {outputVolume}.nii.gz",
+					f'-aff "{resultTransformPath}_coregmatrix.txt"',
+					f'-res "{outputVolume}.nii.gz"',
 					'-speeeeed'
 				])
 
-			
+			print(reg_cmd)
 			logText = 'Register volumes {} of {}: {} to {}'.format(str(cnt), str(len(movingVolumeNode)), ivol[0].GetName(), fixedVolumeNode[0].GetName())
 			cnt += 1
 			ep = self.startReg(reg_cmd, logText, self.regAlgo)
@@ -1794,12 +1794,12 @@ class registrationLogic(ScriptedLoadableModuleLogic):
 				
 				reg_cmd = ' '.join([
 					os.path.join(self.niftyBinDir, self.niftyExe),
-					f"-ref {self.ref_template}",
-					f"-flo {fixedVolume}",
+					f'-ref "{self.ref_template}"',
+					f'-flo "{fixedVolume}"',
 					f"{self.regAlgo['regAlgoTemplateParams']['parameters']['dof']}",
 					f"-interp {self.regAlgo['regAlgoTemplateParams']['parameters']['interp']}",
-					f"-aff {resultTransformPath}_xfm.txt",
-					f"-res {outputVolume}.nii.gz",
+					f'"-aff {resultTransformPath}_xfm.txt"',
+					f'"-res {outputVolume}.nii.gz"',
 					'-speeeeed'
 				])
 			
