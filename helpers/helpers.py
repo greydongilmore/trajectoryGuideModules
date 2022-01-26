@@ -935,8 +935,7 @@ class frameDetection:
 				largeComponentsIdx = [int(x) for x in np.where(np.logical_and(areas >= self.frame_settings['min_size'], areas< self.frame_settings['max_size']))[0]]
 				voxelCoords=[np.array(properties[x].coords) for x in largeComponentsIdx]
 				voxel_info=np.vstack([np.c_[voxelCoords[x],np.repeat(x+1, len(voxelCoords[x]))] for x in range(len(largeComponentsIdx))])
-				voxel_info[:,3]=np.array([self.frame_settings['labels'][x] for x in voxel_info[:,-1]])
-
+			
 			elif any(substring in self.frame_settings['system'] for substring in ('brw')):
 				largeComponentsIdx = [int(x) for x in np.where(areas > self.frame_settings['min_size']*2)[0]]
 				
@@ -960,11 +959,11 @@ class frameDetection:
 
 			if image_type == 'mri' and 'leksellg' in self.frame_settings['system']:
 				voxel_info=self.remove_leksell_mri_outlier(voxel_info)
-			
+
 			if any (x==self.frame_settings['system'] for x in ('leksellg','crw')):
 				voxel_info=self.remove_outlier(voxel_info)
 				voxel_info=self.NLocalizersSort(voxel_info, self.frame_settings['n_components'], 1)
-
+				voxel_info[:,3]=np.array([self.frame_settings['labels'][x] for x in voxel_info[:,-1]])
 			
 			voxel_info=np.vstack([voxel_info[voxel_info[:,2]==x, :] for x in np.unique(voxel_info[:, 2]) if set(voxel_info[voxel_info[:,2]==x, 3]) == set(self.frame_settings['labels'])])
 			voxel_info=np.c_[voxel_info,np.array([int(img_data[x[0],x[1],x[2]]) for x in voxel_info])]
