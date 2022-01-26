@@ -64,7 +64,7 @@ class dataImportWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 		self.usePreviousValues = True
 		self.RenameScans = True
 		self.previousValues = {}
-		self.patient_data_directory = []
+		self.patient_data_directory = None
 
 	def setup(self):
 		"""
@@ -224,7 +224,12 @@ class dataImportWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
 	def onLoadScansButton(self):
 
-		self.logic.importData(self.patient_data_directory, self.usePreviousValues, self.RenameScans)
+		if self.patient_data_directory is None:
+			if self.ui.directoryLabel.text != '':
+				self.patient_data_directory=self.ui.directoryLabel.text
+
+		if self.patient_data_directory is not None:
+			self.logic.importData(self.patient_data_directory, self.usePreviousValues, self.RenameScans)
 
 	def setExistingDirectory(self):
 		with open(self._parameterNode.GetParameter('trajectoryGuide_settings'), 'r') as (settings_file):
