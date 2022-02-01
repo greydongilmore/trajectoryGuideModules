@@ -735,12 +735,12 @@
               </property>
               <item>
                <property name="text">
-                <string>TriLinear</string>
+                <string>NearestNeighbour</string>
                </property>
               </item>
               <item>
                <property name="text">
-                <string>NearestNeighbour</string>
+                <string>TriLinear</string>
                </property>
               </item>
               <item>
@@ -1258,12 +1258,12 @@
               </property>
               <item>
                <property name="text">
-                <string>Linear</string>
+                <string>NearestNeighbour</string>
                </property>
               </item>
               <item>
                <property name="text">
-                <string>NearestNeighbour</string>
+                <string>Linear</string>
                </property>
               </item>
               <item>
@@ -1557,12 +1557,12 @@
               </property>
               <item>
                <property name="text">
-                <string>CrossCorr</string>
+                <string>MutualInfo</string>
                </property>
               </item>
               <item>
                <property name="text">
-                <string>MutualInfo</string>
+                <string>CrossCorr</string>
                </property>
               </item>
               <item>
@@ -1608,12 +1608,12 @@
               </property>
               <item>
                <property name="text">
-                <string>Linear</string>
+                <string>NearestNeighbour</string>
                </property>
               </item>
               <item>
                <property name="text">
-                <string>NearestNeighbour</string>
+                <string>Linear</string>
                </property>
               </item>
               <item>
@@ -2982,12 +2982,12 @@
               </property>
               <item>
                <property name="text">
-                <string>TriLinear</string>
+                <string>NearestNeighbour</string>
                </property>
               </item>
               <item>
                <property name="text">
-                <string>NearestNeighbour</string>
+                <string>TriLinear</string>
                </property>
               </item>
               <item>
@@ -3543,12 +3543,12 @@
               </property>
               <item>
                <property name="text">
-                <string>Linear</string>
+                <string>NearestNeighbour</string>
                </property>
               </item>
               <item>
                <property name="text">
-                <string>NearestNeighbour</string>
+                <string>Linear</string>
                </property>
               </item>
               <item>
@@ -3599,7 +3599,7 @@
               </property>
               <item>
                <property name="text">
-                <string>Rig</string>
+                <string>Rig+Affine+Syn</string>
                </property>
               </item>
               <item>
@@ -3609,7 +3609,7 @@
               </item>
               <item>
                <property name="text">
-                <string>Rig+Affine+Syn</string>
+                <string>Rig</string>
                </property>
               </item>
               <item>
@@ -3776,12 +3776,12 @@
               </property>
               <item>
                <property name="text">
-                <string>Linear</string>
+                <string>NearestNeighbour</string>
                </property>
               </item>
               <item>
                <property name="text">
-                <string>NearestNeighbour</string>
+                <string>Linear</string>
                </property>
               </item>
               <item>
@@ -3898,12 +3898,12 @@
               </property>
               <item>
                <property name="text">
-                <string>CrossCorr</string>
+                <string>MutualInfo</string>
                </property>
               </item>
               <item>
                <property name="text">
-                <string>MutualInfo</string>
+                <string>CrossCorr</string>
                </property>
               </item>
               <item>
@@ -4182,7 +4182,7 @@
  <connections/>
  <buttongroups>
   <buttongroup name="regAlgoTemplateBG"/>
-  <buttongroup name="histMatchBG"/>
   <buttongroup name="regAlgoBG"/>
+  <buttongroup name="histMatchBG"/>
  </buttongroups>
 </ui>

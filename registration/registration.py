@@ -10,6 +10,7 @@ import vtk, qt, slicer
 from slicer.ScriptedLoadableModule import *
 from slicer.util import VTKObservationMixin
 import sys, subprocess
+from scipy.io import loadmat
 
 if getattr(sys, 'frozen', False):
 	cwd = os.path.dirname(sys.argv[0])
@@ -173,13 +174,13 @@ class registrationWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 		#self.ui.flirtSearchCostTemplateCB.addItems(['mutualinfo', 'corratio', 'normcorr', 'normmi', 'leastsq', 'labeldiff', 'bbr'])
 		#self.ui.flirtSearchCostTemplateCB.setCurrentIndex(self.ui.flirtSearchCostTemplateCB.findText('mutualinfo'))
 		#self.ui.flirtInterpTemplateCB.addItems(['trilinear', 'nearestneighbour', 'sinc', 'spline'])
-		#self.ui.flirtInterpTemplateCB.setCurrentIndex(self.ui.flirtInterpTemplateCB.findText('spline'))
+		#self.ui.flirtInterpTemplateCB.setCurrentIndex(self.ui.flirtInterpTemplateCB.findText('NearestNeighbor'))
 		#self.ui.antsInterpTemplateCB.addItems(['Linear', 'NearestNeighbor', 'BSpline', 'GenericLabel'])
-		#self.ui.antsInterpTemplateCB.setCurrentIndex(self.ui.antsInterpTemplateCB.findText('BSpline'))
+		#self.ui.antsInterpTemplateCB.setCurrentIndex(self.ui.antsInterpTemplateCB.findText('NearestNeighbor'))
 		#self.ui.antsMetricTemplateCB.addItems(['CC', 'MI', 'GC'])
-		#self.ui.antsMetricTemplateCB.setCurrentIndex(self.ui.antsMetricTemplateCB.findText('CC'))
+		#self.ui.antsMetricTemplateCB.setCurrentIndex(self.ui.antsMetricTemplateCB.findText('MI'))
 		#self.ui.transformTypeTemplateCB.addItems(['rigid', 'rigid+affine', 'rigid+affine+syn', 'rigid+syn', 'rigid+affine+b-spl syn', 'rigid+b-spl syn'])
-		#self.ui.transformTypeTemplateCB.setCurrentIndex(self.ui.transformTypeTemplateCB.findText('rigid+affine+syn'))
+		#self.ui.transformTypeTemplateCB.setCurrentIndex(self.ui.transformTypeTemplateCB.findText('Rigid+Affine+Syn'))
 
 		self.ui.fslParametersTemplateGB.collapsed = 1
 		self.ui.antsParametersTemplateGB.collapsed = 1
@@ -1084,6 +1085,8 @@ class registrationLogic(ScriptedLoadableModuleLogic):
 			self.fslBinDir = os.path.join(self.scriptPath, 'resources', 'ext_libs', 'fsl')
 			self.flirtExe = 'flirt.exe'
 			self.fnirtExe = 'fnirt.exe'
+			self.convertXFMExe = 'convert_xfm.exe'
+			self.invwarpExe = 'invwarp.exe'
 			
 			self.antsBinDir = os.path.join(self.scriptPath, 'resources', 'ext_libs', 'ants')
 			self.antsExe = 'antsRegistration.exe'
@@ -1105,7 +1108,9 @@ class registrationLogic(ScriptedLoadableModuleLogic):
 			self.fslBinDir = os.path.join(self.scriptPath, 'resources', 'ext_libs', 'fsl')
 			self.flirtExe = 'flirt.glnxa64'
 			self.fnirtExe = 'fnirt.glnxa64'
-			
+			self.convertXFMExe = 'convert_xfm.glnxa64'
+			self.invwarpExe = 'invwarp.glnxa64'
+
 			self.antsBinDir = os.path.join(self.scriptPath, 'resources', 'ext_libs', 'ants')
 			self.antsExe = 'antsRegistration.glnxa64'
 			
@@ -1128,7 +1133,9 @@ class registrationLogic(ScriptedLoadableModuleLogic):
 			self.fslBinDir = os.path.join(self.scriptPath, 'resources', 'ext_libs', 'fsl')
 			self.flirtExe = 'flirt.maci64'
 			self.fnirtExe = 'fnirt.maci64'
-			
+			self.convertXFMExe = 'convert_xfm.maci64'
+			self.invwarpExe = 'invwarp.maci64'
+
 			self.antsBinDir = os.path.join(self.scriptPath, 'resources', 'ext_libs', 'ants')
 			self.antsExe = 'antsRegistration.maci64'
 			
@@ -1433,7 +1440,7 @@ class registrationLogic(ScriptedLoadableModuleLogic):
 			if self.regAlgo['regAlgo'] == 'flirt':
 
 				reg_cmd = ' '.join([
-					os.path.join(self.fslBinDir, self.flirtExe),
+					f'"{os.path.join(self.fslBinDir, self.flirtExe)}"',
 					f'-in "{movingVolume}"',
 					f'-ref "{fixedVolume}"',
 					f'-out "{outputVolume}.nii.gz"',
@@ -1449,22 +1456,25 @@ class registrationLogic(ScriptedLoadableModuleLogic):
 
 			elif self.regAlgo['regAlgo'] == 'antsRegistration':
 
+				rigidMetric = self.regAlgo['parameters']['metric']
+				rigidMetricParams = self.regAlgo['parameters']['metric_params']
+
 				rigidstage = ' '.join([
-					f"--initial-moving-transform [{fixedVolume},{movingVolume},1]",
+					f'--initial-moving-transform ["{fixedVolume}","{movingVolume}",1]',
 					f"--transform Rigid[{self.regAlgo['parameters']['gradientstep']}]",
-					f"--metric {self.regAlgo['parameters']['metric']}[{fixedVolume},{movingVolume},{self.regAlgo['parameters']['metric_params']}]",
+					f'--metric {rigidMetric}["{fixedVolume}","{movingVolume}",{rigidMetricParams}]',
 					f"--convergence [ {self.regAlgo['parameters']['convergence']} ]",
 					f"--shrink-factors {self.regAlgo['parameters']['shrink-factors']}",
 					f"--smoothing-sigmas {self.regAlgo['parameters']['smoothing-sigmas']}"
 				])
 
 				reg_cmd = ' '.join([
-					os.path.join(self.antsBinDir, self.antsExe),
+					f'"{os.path.join(self.antsBinDir, self.antsExe)}"',
 					'--verbose 1',
 					'--dimensionality 3',
 					'--float 1',
 					"--collapse-output-transforms 1",
-					f"--output [{resultTransformPath}_coreg,{outputVolume}.nii.gz]",
+					f'--output ["{resultTransformPath}_coreg","{outputVolume}.nii.gz"]',
 					f"--interpolation {self.regAlgo['parameters']['interpolation']}",
 					'--use-histogram-matching 1',
 					'--winsorize-image-intensities [0.005,0.995]',
@@ -1492,8 +1502,8 @@ class registrationLogic(ScriptedLoadableModuleLogic):
 				tx='Rigid'
 
 				rigidStage=' '.join([
-					f"--initial-moving-transform [{fixedVolume},{movingVolume},1]",
-					f"--metric MI[{fixedVolume},{movingVolume},1,32,Regular,0.25 ]",
+					f'--initial-moving-transform ["{fixedVolume}","{movingVolume}",1]',
+					f'--metric MI["{fixedVolume}","{movingVolume}",1,32,Regular,0.25 ]',
 					f"--transform {tx}[0.1]",
 					f"--convergence {rigidConvergence}",
 					f"--shrink-factors {rigidShrinkFactors}",
@@ -1502,7 +1512,7 @@ class registrationLogic(ScriptedLoadableModuleLogic):
 
 				affineStage=' '.join([
 					f"--transform Affine[0.1]",
-					f"--metric MI[{fixedVolume},{movingVolume},1,32,Regular,0.25 ]",
+					f'--metric MI["{fixedVolume}","{movingVolume}",1,32,Regular,0.25 ]',
 					f"--convergence {affineConvergence}",
 					f"--shrink-factors {affineShrinkFactors}",
 					f"--smoothing-sigmas {affineSmoothingSigmas}"
@@ -1516,12 +1526,12 @@ class registrationLogic(ScriptedLoadableModuleLogic):
 					numRegStages=2
 
 				reg_cmd = ' '.join([
-					os.path.join(self.antsBinDir, self.antsExe),
+					f'"{os.path.join(self.antsBinDir, self.antsExe)}"',
 					'--verbose 1',
 					'--dimensionality 3',
 					'--float 1',
 					f"--collapse-output-transforms {collapseOutputTransforms}",
-					f"--output [{resultTransformPath}_coreg,{outputVolume}.nii.gz]",
+					f'--output ["{resultTransformPath}_coreg","{outputVolume}.nii.gz"]',
 					f"--interpolation {self.regAlgo['parameters']['interpolation']}",
 					f"--use-histogram-matching {self.regAlgo['parameters']['histMatch']}",
 					'--winsorize-image-intensities [0.005,0.995]',
@@ -1534,7 +1544,7 @@ class registrationLogic(ScriptedLoadableModuleLogic):
 			elif self.regAlgo['regAlgo'] == 'reg_aladin':
 
 				reg_cmd = ' '.join([
-					os.path.join(self.niftyBinDir, self.niftyExe),
+					f'"{os.path.join(self.niftyBinDir, self.niftyExe)}"',
 					f'-ref "{fixedVolume}"',
 					f'-flo "{movingVolume}"',
 					f"{self.regAlgo['parameters']['dof']}",
@@ -1626,22 +1636,49 @@ class registrationLogic(ScriptedLoadableModuleLogic):
 
 			if self.regAlgo['regAlgoTemplateParams']['regAlgo'] == 'flirt':
 
-				reg_cmd = ' '.join([
-					os.path.join(self.fslBinDir, self.flirtExe),
-					f"-in {fixedVolume}",
-					f"-ref {self.ref_template}",
-					f"-out {outputVolume}.nii.gz",
-					f"-omat {resultTransformPath}_xfm.mat",
-					"-dof 12",
-					f"-cost {self.regAlgo['regAlgoTemplateParams']['parameters']['cost']}",
-					f"-searchcost {self.regAlgo['regAlgoTemplateParams']['parameters']['searchcost']}",
-					f"-interp {self.regAlgo['regAlgoTemplateParams']['parameters']['interp']}",
-					f"-coarsesearch {self.regAlgo['regAlgoTemplateParams']['parameters']['coarsesearch']}",
-					f"-finesearch {self.regAlgo['regAlgoTemplateParams']['parameters']['finesearch']}",
-					'-v'
+				resultRigidTransformPath = os.path.normpath(os.path.join(outputDir, f"{os.path.basename(derivFolder).replace(' ', '_')}_desc-rigid_from-subject_to-{self.regAlgo['templateSpace']}"))
+
+				reg_cmd_rigid = ' '.join([
+					f'"{os.path.join(self.fslBinDir, self.flirtExe)}"',
+					f'-in "{fixedVolume}"',
+					f'-ref "{self.ref_template}"',
+					f'-omat "{resultRigidTransformPath}_coregmatrix.mat"',
+					"-dof 12 -v &&"
+				])
+
+				convert_cmd = ' '.join([
+					f'"{os.path.join(self.fslBinDir, self.convertXFMExe)}"',
+					f'-omat "{resultRigidTransformPath}_coregmatrixInverse.mat"',
+					f'-inverse "{resultRigidTransformPath}_coregmatrix.mat"',
+					'&&'])
+
+				invwarp_cmd = ' '.join([
+					f'&&"{os.path.join(self.fslBinDir, self.invwarpExe)}"',
+					f'-w "{outputVolume}_warp.nii.gz"',
+					f'-o "{outputVolume}_warpInverse.nii.gz"',
+					f'-r "{fixedVolume}"'
 					])
 
+				reg_cmd = ' '.join([
+					reg_cmd_rigid,
+					convert_cmd,
+					f'"{os.path.join(self.fslBinDir, self.fnirtExe)}"',
+					f'--in="{fixedVolume}"',
+					f'--ref="{self.ref_template}"',
+					f'--aff="{resultRigidTransformPath}_coregmatrix.mat"',
+					f'--iout="{outputVolume}.nii.gz"',
+					f'--cout="{outputVolume}_warp.nii.gz"',
+					f'--fout="{outputVolume}_warpfield.nii.gz"',
+					'-v',
+					invwarp_cmd])
+
 			elif self.regAlgo['regAlgoTemplateParams']['regAlgo'] == 'antsRegistration':
+
+				rigidMetric = self.regAlgo['regAlgoTemplateParams']['parameters']['metric']
+				rigidMetricParams = self.regAlgo['regAlgoTemplateParams']['parameters']['metric_params']
+
+				affineMetric = self.regAlgo['regAlgoTemplateParams']['parameters']['metric']
+				affineMetricParams = self.regAlgo['regAlgoTemplateParams']['parameters']['metric_params']
 
 				synGradientStep = '0.1,3,0'
 				synMetric = 'MI'
@@ -1651,9 +1688,9 @@ class registrationLogic(ScriptedLoadableModuleLogic):
 				synSmoothingSigmas = "5x3x2x1x0vox"
 
 				rigidstage = ' '.join([
-					f"--initial-moving-transform [{self.ref_template},{fixedVolume},1]",
+					f'--initial-moving-transform ["{self.ref_template}","{fixedVolume}",1]',
 					f"--transform Rigid[{self.regAlgo['regAlgoTemplateParams']['parameters']['gradientstep']}]",
-					f"--metric {self.regAlgo['regAlgoTemplateParams']['parameters']['metric']}[{self.ref_template},{fixedVolume},{self.regAlgo['regAlgoTemplateParams']['parameters']['metric_params']}]",
+					f'--metric {rigidMetric}["{self.ref_template}","{fixedVolume}",{rigidMetricParams}]',
 					f"--convergence [ {self.regAlgo['regAlgoTemplateParams']['parameters']['convergence']} ]",
 					f"--shrink-factors {self.regAlgo['regAlgoTemplateParams']['parameters']['shrink-factors']}",
 					f"--smoothing-sigmas {self.regAlgo['regAlgoTemplateParams']['parameters']['smoothing-sigmas']}"
@@ -1661,26 +1698,26 @@ class registrationLogic(ScriptedLoadableModuleLogic):
 
 				affinestage = ' '.join([
 					f"--transform Affine[{self.regAlgo['regAlgoTemplateParams']['parameters']['gradientstep']}]",
-					f"--metric {self.regAlgo['regAlgoTemplateParams']['parameters']['metric']}[{self.ref_template},{fixedVolume},{self.regAlgo['regAlgoTemplateParams']['parameters']['metric_params']}]",
+					f'--metric {affineMetric}["{self.ref_template}","{fixedVolume}",{affineMetricParams}]',
 					f"--convergence [ {self.regAlgo['regAlgoTemplateParams']['parameters']['convergence']} ]",
 					f"--shrink-factors {self.regAlgo['regAlgoTemplateParams']['parameters']['shrink-factors']}",
 					f"--smoothing-sigmas {self.regAlgo['regAlgoTemplateParams']['parameters']['smoothing-sigmas']}"
 				])
 
 				synStage=' '.join([
-					f"--metric {synMetric}[{self.ref_template},{fixedVolume},{synMetricParams}]",
+					f'--metric {synMetric}["{self.ref_template}","{fixedVolume}",{synMetricParams}]',
 					f"--convergence {synConvergence}",
 					f"--shrink-factors {synShrinkFactors}",
 					f"--smoothing-sigmas {synSmoothingSigmas}"
 				])
 
 				reg_cmd = ' '.join([
-					os.path.join(self.antsBinDir, self.antsExe),
+					f'"{os.path.join(self.antsBinDir, self.antsExe)}"',
 					'--verbose 1',
 					'--dimensionality 3',
 					'--float 1',
 					"--collapse-output-transforms 1",
-					f"--output [{resultTransformPath}_xfm,{outputVolume}.nii.gz",
+					f'--output ["{resultTransformPath}_xfm","{outputVolume}.nii.gz"',
 					f"--interpolation {self.regAlgo['regAlgoTemplateParams']['parameters']['interpolation']}",
 					'--use-histogram-matching 1',
 					'--winsorize-image-intensities [0.005,0.995]',
@@ -1724,9 +1761,9 @@ class registrationLogic(ScriptedLoadableModuleLogic):
 					tx='Translation'
 
 				rigidStage=' '.join([
-					f"--initial-moving-transform [{self.ref_template},{fixedVolume},1]",
+					f'--initial-moving-transform ["{self.ref_template}","{fixedVolume}",1]',
 					f"--transform {tx}[{rigidGradientStep}]",
-					f"--metric {rigidMetric}[{self.ref_template},{fixedVolume},{rigidMetricParams}]",
+					f'--metric {rigidMetric}["{self.ref_template}","{fixedVolume}",{rigidMetricParams}]',
 					f"--convergence {rigidConvergence}",
 					f"--shrink-factors {rigidShrinkFactors}",
 					f"--smoothing-sigmas {rigidSmoothingSigmas}"
@@ -1734,14 +1771,14 @@ class registrationLogic(ScriptedLoadableModuleLogic):
 
 				affineStage=' '.join([
 					f"--transform Affine[{affineGradientStep}]",
-					f"--metric {affineMetric}[{self.ref_template},{fixedVolume},{affineMetricParams}]",
+					f'--metric {affineMetric}["{self.ref_template}","{fixedVolume}",{affineMetricParams}]',
 					f"--convergence {affineConvergence}",
 					f"--shrink-factors {affineShrinkFactors}",
 					f"--smoothing-sigmas {affineSmoothingSigmas}"
 				])
 
 				synStage=' '.join([
-					f"--metric {synMetric}[{self.ref_template},{fixedVolume},{synMetricParams}]",
+					f'--metric {synMetric}["{self.ref_template}","{fixedVolume}",{synMetricParams}]',
 					f"--convergence {synConvergence}",
 					f"--shrink-factors {synShrinkFactors}",
 					f"--smoothing-sigmas {synSmoothingSigmas}"
@@ -1749,7 +1786,7 @@ class registrationLogic(ScriptedLoadableModuleLogic):
 
 				if any(transform == self.regAlgo['regAlgoTemplateParams']['parameters']['transform'] for transform in ('sr','br')):
 					synStage=' '.join([
-						f"--metric MI[{self.ref_template},{fixedVolume},{synMetricParams}]",
+						f'--metric MI["{self.ref_template}","{fixedVolume}",{synMetricParams}]',
 						f"--convergence [50x0,1e-6,10]",
 						f"--shrink-factors 2x1",
 						f"--smoothing-sigmas 1x0vox"
@@ -1775,12 +1812,12 @@ class registrationLogic(ScriptedLoadableModuleLogic):
 					stages=f"{affineStage}"
 				
 				reg_cmd = ' '.join([
-					os.path.join(self.antsBinDir, self.antsExe),
+					f'"{os.path.join(self.antsBinDir, self.antsExe)}"',
 					'--verbose 1',
 					'--dimensionality 3',
 					'--float 1',
 					f"--collapse-output-transforms {collapseOutputTransforms}",
-					f"--output [{resultTransformPath}_coreg,{outputVolume}.nii.gz]",
+					f'--output ["{resultTransformPath}_coreg","{outputVolume}.nii.gz"]',
 					f"--interpolation {self.regAlgo['regAlgoTemplateParams']['parameters']['interpolation']}",
 					f"--use-histogram-matching {self.regAlgo['regAlgoTemplateParams']['parameters']['histMatch']}",
 					'--winsorize-image-intensities [0.005,0.995]',
@@ -1793,16 +1830,17 @@ class registrationLogic(ScriptedLoadableModuleLogic):
 			elif self.regAlgo['regAlgoTemplateParams']['regAlgo'] == 'reg_aladin':
 				
 				reg_cmd = ' '.join([
-					os.path.join(self.niftyBinDir, self.niftyExe),
+					f'"{os.path.join(self.niftyBinDir, self.niftyExe)}"',
 					f'-ref "{self.ref_template}"',
 					f'-flo "{fixedVolume}"',
 					f"{self.regAlgo['regAlgoTemplateParams']['parameters']['dof']}",
 					f"-interp {self.regAlgo['regAlgoTemplateParams']['parameters']['interp']}",
-					f'"-aff {resultTransformPath}_xfm.txt"',
-					f'"-res {outputVolume}.nii.gz"',
+					f'-aff "{resultTransformPath}_xfm.txt"',
+					f'-res "{outputVolume}.nii.gz"',
 					'-speeeeed'
 				])
-			
+
+			print(reg_cmd)
 			logText = f"Registering {fixedVolumeNode[0].GetName()} to {self.regAlgo['templateSpace']} space"
 			ep = self.startReg(reg_cmd, logText, self.regAlgo['regAlgoTemplateParams'])
 			self.logProcessOutput(ep)
@@ -1817,9 +1855,24 @@ class registrationLogic(ScriptedLoadableModuleLogic):
 				slicer.util.saveNode(resultTransformNode, transformNodeFilename, {'useCompression': False})
 			
 			elif self.regAlgo['regAlgoTemplateParams']['regAlgo'] == 'flirt':
+				
 				transformNodeFilename = os.path.join(derivFolderTemp, f"{os.path.basename(derivFolder).replace(' ', '_')}_desc-affine_from-subject_to-{self.regAlgo['templateSpace']}_xfm.tfm")
-
+				resultRigidTransformPath = os.path.normpath(os.path.join(outputDir, f"{os.path.basename(derivFolder).replace(' ', '_')}_desc-rigid_from-subject_to-{self.regAlgo['templateSpace']}"))
+				
 				import subprocess
+
+				convert_cmd=[os.path.join(self.fslBinDir,self.convertWarpExe),resultTransformPath+'_xfm.mat','-ref', self.ref_template,'-src',fixedVolume,'-fsl2ras','-oitk',transformNodeFilename]
+
+				convert_cmd=' '.join([
+					f'"{os.path.join(self.fslBinDir, self.convertWarpExe)}"',
+					f'--ref="{self.ref_template}"',
+					f'--premat="{resultRigidTransformPath}"',
+					f'--warp1="{outputVolume}_warp.nii.gz"',
+					f'--out="{outputVolume}_warpcombined"'
+				])
+
+				command_result = subprocess.run(convert_cmd, env=slicer.util.startupEnvironment())
+
 				c3d_cmd=[os.path.join(self.c3dBinDir,self.c3dExe),resultTransformPath+'_xfm.mat','-ref', self.ref_template,'-src',fixedVolume,'-fsl2ras','-oitk',transformNodeFilename]
 				command_result = subprocess.run(c3d_cmd, env=slicer.util.startupEnvironment())
 
@@ -1840,11 +1893,13 @@ class registrationLogic(ScriptedLoadableModuleLogic):
 
 				transformNodeFilename = os.path.join(derivFolderTemp, f"{os.path.basename(derivFolder).replace(' ', '_')}_desc-affine_from-subject_to-{self.regAlgo['templateSpace']}_xfm.txt")
 
-				import subprocess
-				convertTransform_cmd=[os.path.join(self.convTransBinDir,self.convTransExe),'3',resultTransformPath + '_coreg0GenericAffine.mat',transformNodeFilename,'--hm','--ras']
-				command_result = subprocess.run(convertTransform_cmd, env=slicer.util.startupEnvironment())
+				#import subprocess
+				#convertTransform_cmd=[os.path.join(self.convTransBinDir,self.convTransExe),'3',resultTransformPath + '_coreg0GenericAffine.mat',transformNodeFilename,'--hm','--ras']
+				#command_result = subprocess.run(convertTransform_cmd, env=slicer.util.startupEnvironment())
 
-				transformMatrix = self.readRegMatrix(transformNodeFilename)
+
+				transformMatrix=self.readMatTransform(resultTransformPath + '_coreg0GenericAffine.mat')
+				#transformMatrix = self.readRegMatrix(transformNodeFilename)
 				vtkTransformMatrix = self.getVTKMatrixFromNumpyMatrix(transformMatrix)
 				resultTransformNode = slicer.mrmlScene.AddNewNodeByClass('vtkMRMLTransformNode')
 				resultTransformNode.SetMatrixTransformFromParent(vtkTransformMatrix)
@@ -1852,7 +1907,7 @@ class registrationLogic(ScriptedLoadableModuleLogic):
 				transformNodeFilenameNew = os.path.join(derivFolderTemp, f"{os.path.basename(derivFolder).replace(' ', '_')}_desc-affine_from-subject_to-{self.regAlgo['templateSpace']}_xfm.h5")
 				slicer.util.saveNode(resultTransformNode, transformNodeFilenameNew, {'useCompression': False})
 
-				os.remove(transformNodeFilename)
+				#os.remove(transformNodeFilename)
 
 				#shutil.copy2(os.path.join(outputDir, ivol[1].split('.nii')[0] + '_xfmWarped.nii.gz'), outputVolume+'.nii.gz')
 
@@ -1920,6 +1975,21 @@ class registrationLogic(ScriptedLoadableModuleLogic):
 	def readRegMatrix(self, trsfPath):
 		with open(trsfPath) as (f):
 			return np.loadtxt(f.readlines())
+
+	def readMatTransform(self, trsfPath):
+		transfo_dict = loadmat(trsfPath)
+		lps2ras = np.diag([-1, -1, 1])
+
+		rot = transfo_dict['AffineTransform_float_3_3'][0:9].reshape((3, 3))
+		trans = transfo_dict['AffineTransform_float_3_3'][9:12]
+		offset = transfo_dict['fixed']
+		r_trans = (np.dot(rot, offset) - offset - trans).T * [1, 1, -1]
+
+		data = np.eye(4)
+		data[0:3, 3] = r_trans
+		data[:3, :3] = np.dot(np.dot(lps2ras, rot), lps2ras)
+
+		return data
 
 #
 # registrationTest
