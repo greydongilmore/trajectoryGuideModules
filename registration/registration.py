@@ -812,8 +812,8 @@ class registrationWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 				'Sinc': 4
 			}
 			DOF = {
-				'6': '-rigOnly', 
-				'12': ''
+				'6': '6', 
+				'12': '12'
 			}
 			regAlgo = {
 				'regAlgo': 'reg_aladin', 
@@ -1543,11 +1543,15 @@ class registrationLogic(ScriptedLoadableModuleLogic):
 
 			elif self.regAlgo['regAlgo'] == 'reg_aladin':
 
+				DOF=''
+				if self.regAlgo['parameters']['dof'] == '6':
+					DOF='-rigOnly'
+
 				reg_cmd = ' '.join([
 					f'"{os.path.join(self.niftyBinDir, self.niftyExe)}"',
 					f'-ref "{fixedVolume}"',
 					f'-flo "{movingVolume}"',
-					f"{self.regAlgo['parameters']['dof']}",
+					f"{DOF}",
 					f"-interp {self.regAlgo['parameters']['interp']}",
 					f'-aff "{resultTransformPath}_coregmatrix.txt"',
 					f'-res "{outputVolume}.nii.gz"',
@@ -1829,11 +1833,15 @@ class registrationLogic(ScriptedLoadableModuleLogic):
 
 			elif self.regAlgo['regAlgoTemplateParams']['regAlgo'] == 'reg_aladin':
 				
+				DOF=''
+				if self.regAlgo['regAlgoTemplateParams']['parameters']['dof'] == '6':
+					DOF='-rigOnly'
+				
 				reg_cmd = ' '.join([
 					f'"{os.path.join(self.niftyBinDir, self.niftyExe)}"',
 					f'-ref "{self.ref_template}"',
 					f'-flo "{fixedVolume}"',
-					f"{self.regAlgo['regAlgoTemplateParams']['parameters']['dof']}",
+					f"{DOF}",
 					f"-interp {self.regAlgo['regAlgoTemplateParams']['parameters']['interp']}",
 					f'-aff "{resultTransformPath}_xfm.txt"',
 					f'-res "{outputVolume}.nii.gz"',

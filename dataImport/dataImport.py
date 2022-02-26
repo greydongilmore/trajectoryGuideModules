@@ -72,6 +72,14 @@ class dataImportWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 		"""
 		ScriptedLoadableModuleWidget.setup(self)
 		
+
+		depends = self.areDependenciesSatisfied()
+		if len(depends)>0:
+			error_msg = f"Please install the following module(s) from the extension manager:\n{' '.join(depends)}."
+			self.layout.addWidget(qt.QLabel(error_msg))
+			self.layout.addStretch()
+			return
+
 		self._loadUI()
 		
 		# Set scene in MRML widgets. Make sure that in Qt designer the top-level qMRMLWidget's
@@ -110,7 +118,28 @@ class dataImportWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 		self.initializeParameterNode()
 		
 		self.logic.addCustomLayouts()
-		
+	
+	@staticmethod
+	def areDependenciesSatisfied():
+		depends=[]
+		if "VolumeResliceDriver" not in slicer.util.moduleNames():
+			depends.append("SlicerIGT")
+
+		return depends
+
+	@staticmethod
+	def downloadDependenciesAndRestart(depends):
+		slicer.util.pip_install("pip --upgrade")
+
+		# Install Slicer extensions
+		for idepend in depends:
+			meta_data = slicer.app.extensionsManagerModel().retrieveExtensionMetadataByName(idepend)
+			if meta_data:
+				slicer.app.extensionsManagerModel().downloadAndInstallExtension(meta_data["extension_id"])
+
+		# Restart
+		slicer.app.restart()
+	
 	def cleanup(self):
 		"""
 		Called when the application closes and the module widget is destroyed.
@@ -153,7 +182,8 @@ class dataImportWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 		# Parameter node stores all user choices in parameter values, node selections, etc.
 		# so that when the scene is saved and reloaded, these settings are restored.
 
-		self.setParameterNode(self.logic.getParameterNode())
+		if self.logic is not None:
+			self.setParameterNode(self.logic.getParameterNode())
 
 		# Select default input nodes if nothing is selected yet to save a few clicks for the user
 		#if not self._parameterNode.GetNodeReference("InputVolume"):
@@ -452,6 +482,7 @@ class dataImportLogic(ScriptedLoadableModuleLogic):
 					full_filename = os.path.join(root, filename)
 					if 'acpc_transform' in filename:
 						self.acpcTransform = slicer.util.loadTransform(full_filename)
+						self.acpcTransform.SetAttribute('acpc', '1')
 					if 'Frame_to-' in filename and 'desc-rigid' in filename:
 						frameTransform = slicer.util.loadTransform(full_filename)
 
@@ -822,7 +853,7 @@ class dataImportLogic(ScriptedLoadableModuleLogic):
 
 		slicer.app.restoreOverrideCursor()
 
-		sortSceneData()
+		#sortSceneData()
 
 	def fcsvLPStoRAS(self, fcsv_fname):
 		coord_sys=[]

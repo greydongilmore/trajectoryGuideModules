@@ -2,6 +2,8 @@ import os
 import sys
 import shutil
 import numpy as np
+import pandas as pd
+import glob
 import csv
 import json
 import vtk, qt, slicer
@@ -65,6 +67,7 @@ class frameDetectWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 		self.frameSystem = None
 		self.framePreviousWindow = None
 		self.framePreviousLevel = None
+		self.previousLoaded=False
 
 	def setup(self):
 		"""
@@ -155,6 +158,10 @@ class frameDetectWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 		"""
 		# Do not react to parameter node changes (GUI wlil be updated when the user enters into the module)
 		self.removeObserver(self._parameterNode, vtk.vtkCommand.ModifiedEvent, self.updateGUIFromParameterNode)
+		if self.previousLoaded:
+			self.resetViews()
+		self.previousLoaded=False
+
 
 	def onSceneStartClose(self, caller, event):
 		"""
@@ -213,6 +220,28 @@ class frameDetectWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 		# Make sure GUI changes do not call updateParameterNodeFromGUI (it could cause infinite loop)
 		self._updatingGUIFromParameterNode = True
 
+		if self._parameterNode.GetParameter('derivFolder'):
+			with open(os.path.join(self._parameterNode.GetParameter('derivFolder'), f"{self._parameterNode.GetParameter('derivFolder').split(os.path.sep)[-1]}_surgical_data.json")) as surgical_info:
+				surgical_info_json = json.load(surgical_info)
+
+			if "frame_system" in list(surgical_info_json):
+				if len(surgical_info_json["frame_system"])>0:
+					children = self.ui.frameSystemGB.findChildren('QRadioButton')
+					for i in children:
+						if i.name == surgical_info_json["frame_system"]:
+							#i.blockSignals(True)
+							i.setChecked(True)
+							#i.blockSignals(False)
+
+					for ifile in glob.glob(os.path.join(self._parameterNode.GetParameter('derivFolder'),'frame','*.json')):
+						with open(ifile) as (file):
+							json_sidecar = json.load(file)
+
+					if slicer.util.getNodes(f"*{json_sidecar['node_name']}*") and not self.previousLoaded:
+						volNode=slicer.util.getNode(list(slicer.util.getNodes(f"*{json_sidecar['node_name']}*"))[0])
+						self.onShowPreviousSaved(volNode)
+						self.previousLoaded=True
+
 		# All the GUI updates are done
 		self._updatingGUIFromParameterNode = False
 
@@ -241,6 +270,151 @@ class frameDetectWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 			self._parameterNode.SetParameter("frame_system", frame_sys)
 
 		self._parameterNode.EndModify(wasModified)
+
+	def onShowPreviousSaved(self, frameFidVolume):
+
+		self.resetViews()
+		
+
+		if glob.glob(os.path.join(self._parameterNode.GetParameter('derivFolder'),'frame','*desc-centroids_fids.tsv')):
+			points = pd.read_csv(glob.glob(os.path.join(self._parameterNode.GetParameter('derivFolder'),'frame','*desc-centroids_fids.tsv'))[0], header=0, delimiter='\t')
+
+			fcsvNodeName = f"{self._parameterNode.GetParameter('derivFolder').split(os.path.sep)[-1]}_desc-%s_fids"
+
+			models = slicer.util.getNodesByClass('vtkMRMLMarkupsFiducialNode')
+			for i in models:
+				if any(i.GetName() == x for x in  (fcsvNodeName % ('N1'),fcsvNodeName % ('N2'),fcsvNodeName % ('N3'))):
+					slicer.mrmlScene.RemoveNode(slicer.util.getNode(i.GetName()))
+
+			N1=slicer.mrmlScene.AddNewNodeByClass('vtkMRMLMarkupsFiducialNode')
+			N1.SetName(fcsvNodeName % ('N1'))
+			N1.AddDefaultStorageNode()
+			N1.GetStorageNode().SetCoordinateSystem(0)
+			N1.GetDisplayNode().SetGlyphScale(0.8)
+			N1.GetDisplayNode().SetTextScale(6.5)
+			N1.GetDisplayNode().SetColor(0.333, 1, 0.490)
+			N1.GetDisplayNode().SetSelectedColor(1, 0, 0)
+			if self._parameterNode.GetParameter('frame_system') =='brw':
+				N1_label_fmt='{val:.03f}   '
+				N1.GetDisplayNode().GetTextProperty().SetJustificationToRight()
+			else:
+				N1_label_fmt='   {val:.03f}'
+				N1.GetDisplayNode().GetTextProperty().SetJustificationToLeft()
+			N1.GetDisplayNode().GetTextProperty().SetVerticalJustificationToCentered()
+
+			N2=slicer.mrmlScene.AddNewNodeByClass('vtkMRMLMarkupsFiducialNode')
+			N2.SetName(fcsvNodeName % ('N2'))
+			N2.AddDefaultStorageNode()
+			N2.GetStorageNode().SetCoordinateSystem(0)
+			N2.GetDisplayNode().SetGlyphScale(0.8)
+			N2.GetDisplayNode().SetTextScale(6.5)
+			N2.GetDisplayNode().SetColor(0.333, 1, 0.490)
+			N2.GetDisplayNode().SetSelectedColor(1, 0, 0)
+			if self._parameterNode.GetParameter('frame_system') =='brw':
+				N2_label_fmt='   {val:.03f}'
+				N2.GetDisplayNode().GetTextProperty().SetJustificationToLeft()
+				N2.GetDisplayNode().GetTextProperty().SetVerticalJustificationToCentered()
+			else:
+				N2_label_fmt='{val:.03f}\n'
+				N2.GetDisplayNode().GetTextProperty().SetJustificationToCentered()
+				N2.GetDisplayNode().GetTextProperty().SetOrientation(45.0)
+
+			N3=slicer.mrmlScene.AddNewNodeByClass('vtkMRMLMarkupsFiducialNode')
+			N3.SetName(fcsvNodeName % ('N3'))
+			N3.AddDefaultStorageNode()
+			N3.GetStorageNode().SetCoordinateSystem(0)
+			N3.GetDisplayNode().SetGlyphScale(0.8)
+			N3.GetDisplayNode().SetTextScale(6.5)
+			N3.GetDisplayNode().SetColor(0.333, 1, 0.490)
+			N3.GetDisplayNode().SetSelectedColor(1, 0, 0)
+			if self._parameterNode.GetParameter('frame_system') =='brw':
+				N3_label_fmt='{val:.03f}   '
+				N3.GetDisplayNode().GetTextProperty().SetJustificationToRight()
+				N3.GetDisplayNode().GetTextProperty().SetVerticalJustificationToCentered()
+				N3.GetDisplayNode().GetTextProperty().SetOrientation(45.0)
+			else:
+				N3_label_fmt='{val:.03f}   '
+				N3.GetDisplayNode().GetTextProperty().SetJustificationToRight()
+				N3.GetDisplayNode().GetTextProperty().SetVerticalJustificationToCentered()
+
+			N3Modify=N3.StartModify()
+			N2Modify=N2.StartModify()
+			N1Modify=N1.StartModify()
+
+			affine_rasToIJK = vtk.vtkMatrix4x4()
+			frameFidVolume.GetRASToIJKMatrix(affine_rasToIJK)
+
+			for _,row in points.iterrows():
+				node=None
+				if any(x==int(row['label']) for x in (1,2,3)):
+					node=N1
+					new_label = N1_label_fmt.format(val=np.round(row['error'], 3))
+				elif any(x==int(row['label']) for x in (4,5,6)):
+					node=N2
+					new_label = N2_label_fmt.format(val=np.round(row['error'], 3))
+				elif any(x==int(row['label']) for x in (7,8,9)):
+					node=N3
+					new_label = N3_label_fmt.format(val=np.round(row['error'], 3))
+
+				if node is not None:
+					position_ijk = np.append([row['x'],row['y'],row['z']],[1])
+					new_points=affine_rasToIJK.MultiplyPoint(position_ijk)
+					n = node.AddControlPoint(vtk.vtkVector3d(position_ijk[0], position_ijk[1], position_ijk[2]))
+					node.SetNthControlPointLabel(n, new_label)
+					node.SetNthControlPointSelected(n, 0)
+					if row['error'] > 0.8:
+						node.SetNthControlPointSelected(n, 1)
+
+			N3.EndModify(N3Modify)
+			N2.EndModify(N2Modify)
+			N1.EndModify(N1Modify)
+
+			applicationLogic = slicer.app.applicationLogic()
+			selectionNode = applicationLogic.GetSelectionNode()
+			selectionNode.SetReferenceActiveVolumeID(frameFidVolume.GetID())
+			applicationLogic.PropagateVolumeSelection(0)
+			applicationLogic.FitSliceToAll()
+			slicer.util.resetSliceViews()
+			interactionNode = applicationLogic.GetInteractionNode()
+			interactionNode.Reset(None)
+			layoutManager = slicer.app.layoutManager()
+			layoutManager.setLayout(1001)
+
+	def resetViews(self):
+
+		fcsvNodeName = f"{self._parameterNode.GetParameter('derivFolder').split(os.path.sep)[-1]}_desc-%s_fids"
+		models = slicer.util.getNodesByClass('vtkMRMLMarkupsFiducialNode')
+		for i in models:
+			if any(i.GetName() == x for x in  (fcsvNodeName % ('N1'),fcsvNodeName % ('N2'),fcsvNodeName % ('N3'))):
+				slicer.mrmlScene.RemoveNode(slicer.util.getNode(i.GetName()))
+
+		layoutManager = slicer.app.layoutManager()
+		threeDWidget = layoutManager.threeDWidget(0)
+		threeDView = threeDWidget.threeDView()
+		threeDView.resetFocalPoint()
+		renderer = threeDView.renderWindow().GetRenderers().GetFirstRenderer()
+		renderer.SetBackground(0, 0, 0)
+		renderer.SetBackground2(0, 0, 0)
+		threeDView.renderWindow().Render()
+
+		layoutManager = slicer.app.layoutManager()
+		layoutManager.setLayout(slicerLayout)
+		interactorStyle = slicer.app.layoutManager().sliceWidget('Red').sliceView().sliceViewInteractorStyle()
+		interactorStyle.SetActionEnabled(interactorStyle.AllActionsMask, True)
+
+		orientations = {
+			'Red':'Axial', 
+			'Yellow':'Sagittal', 
+			'Green':'Coronal'
+		}
+
+		layoutManager = slicer.app.layoutManager()
+		for sliceViewName in layoutManager.sliceViewNames():
+			layoutManager.sliceWidget(sliceViewName).mrmlSliceNode().SetOrientation(orientations[sliceViewName])
+
+		slicer.util.resetSliceViews()
+
+		
 
 	def resetValues(self):
 
@@ -363,9 +537,14 @@ class frameDetectWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 		qt.QApplication.setOverrideCursor(qt.Qt.WaitCursor)
 		qt.QApplication.processEvents()
 
-		# Compute output
-		progressBar = self.logic.confirmFrameDetection(self.ui.frameFidVolumeCBox.currentNode(), self.frame_settings, self.originalFrameVolSidecar, self._parameterNode.GetParameter('derivFolder'))
-		
+		if not self.previousLoaded:
+			# Compute output
+			progressBar = self.logic.confirmFrameDetection(self.ui.frameFidVolumeCBox.currentNode(), self.frame_settings, self.originalFrameVolSidecar, self._parameterNode.GetParameter('derivFolder'))
+			progressBar.value = 100
+			qt.QApplication.processEvents()
+
+			progressBar.close()
+
 		self.ui.frameFidVolumeCBox.setCurrentNode(None)
 
 		layoutManager = slicer.app.layoutManager()
@@ -394,10 +573,7 @@ class frameDetectWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
 		slicer.util.resetSliceViews()
 
-		progressBar.value = 100
-		qt.QApplication.processEvents()
-
-		progressBar.close()
+		
 		qt.QApplication.setOverrideCursor(qt.QCursor(qt.Qt.ArrowCursor))
 		qt.QApplication.processEvents()
 		
@@ -472,7 +648,7 @@ class frameDetectWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 		#	print(k + ' -> ' + str(v))
 
 		try:
-
+			self.previousLoaded=False
 			self.framePreviousWindow = None
 			self.framePreviousLevel = None
 			if self.frame_settings['image_type'] == 'ct':
@@ -669,7 +845,7 @@ class frameDetectWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
 		imagePopup(title, os.path.join(self._parameterNode.GetParameter('trajectoryGuidePath'), 'resources', 'static', pic_fname),parent,aspectRatio)
 
-
+	
 	def onApplyButton(self):
 		"""
 		Run processing when user clicks "Apply" button.
@@ -974,6 +1150,15 @@ class frameDetectLogic(ScriptedLoadableModuleLogic):
 		
 		slicer.util.getNode('vtkMRMLSliceNodeRed').JumpSliceByCentering(self.frameDetectInstance.frame_center[0], self.frameDetectInstance.frame_center[1], self.frameDetectInstance.frame_center[2])
 		self.FrameAutoDetect = True
+
+		orientations = {
+			'Red':'Axial',
+		}
+
+		layoutManager = slicer.app.layoutManager()
+		for sliceViewName in list(orientations):
+			layoutManager.sliceWidget(sliceViewName).mrmlSliceNode().SetOrientation(orientations[sliceViewName])
+
 
 		sliceAnnotations = slicer.modules.DataProbeInstance.infoWidget.sliceAnnotations
 		sliceAnnotations.sliceViewAnnotationsEnabled = False

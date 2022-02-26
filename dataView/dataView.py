@@ -471,18 +471,20 @@ class dataViewWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 				frameTransform=list(slicer.util.getNodes('*frame_rotation*').values())[0]
 				frameTransform=getReverseTransform(frameTransform)
 
-			acpcTransformPresent = None
 			acpcTransformPresent = slicer.mrmlScene.GetFirstNodeByName('acpc_transform')
 			transformNodeCT = None
 			if len(slicer.util.getNodes('*from-ctFrame_to*')) > 0:
 				transformNodeCT = list(slicer.util.getNodes('*from-ctFrame_to*').values())[0]
+			
 			if templateTransform:
 				if isinstance(templateTransform, list):
 					templateTransform = templateTransform[0]
 
 				templateTransform=getReverseTransform(templateTransform)
 
-				if transformNodeCT is not None:
+				if acpcTransformPresent is not None and transformNodeCT is None:
+					templateTransform.SetAndObserveTransformNodeID(acpcTransformPresent.GetID())
+				elif transformNodeCT is not None:
 					if frameTransform is not None:
 						frameTransform.SetAndObserveTransformNodeID(transformNodeCT.GetID())
 						templateTransform.SetAndObserveTransformNodeID(frameTransform.GetID())

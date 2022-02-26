@@ -124,8 +124,7 @@ class postopLocalizationWidget(ScriptedLoadableModuleWidget, VTKObservationMixin
 		self.ui.planAdd.connect('clicked(bool)', self.onPlanAdd)
 		self.ui.planDelete.connect('clicked(bool)', self.onPlanDelete)
 		self.ui.planAddConfirm.connect('clicked(bool)', self.onPlanAddConfirm)
-		#self.ui.planNameEdit.connect('returnPressed()', self.ui.planAddConfirm.click)
-		#self.ui.planName.connect('currentIndexChanged(int)', self.onPlanChange)
+		self.ui.planNameEdit.connect('returnPressed()', self.ui.planAddConfirm.click)
 		self.ui.planAddConfirm.setVisible(0)
 		not_resize = self.ui.planAddConfirm.sizePolicy
 		not_resize.setRetainSizeWhenHidden(True)

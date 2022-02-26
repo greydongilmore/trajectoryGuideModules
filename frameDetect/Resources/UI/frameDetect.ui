@@ -3641,13 +3641,13 @@
  <resources/>
  <connections/>
  <buttongroups>
-  <buttongroup name="matchCentroidsButtonGroup"/>
   <buttongroup name="frameFidButtonGroup"/>
+  <buttongroup name="distanceMetricButtonGroup"/>
   <buttongroup name="frameSystemBG">
    <property name="exclusive">
-    <bool>false</bool>
+    <bool>true</bool>
    </property>
   </buttongroup>
-  <buttongroup name="distanceMetricButtonGroup"/>
+  <buttongroup name="matchCentroidsButtonGroup"/>
  </buttongroups>
 </ui>

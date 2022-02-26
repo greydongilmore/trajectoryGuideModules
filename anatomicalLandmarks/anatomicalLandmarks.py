@@ -90,8 +90,9 @@ class anatomicalLandmarksWidget(ScriptedLoadableModuleWidget, VTKObservationMixi
 		self.ui = slicer.util.childWidgetVariables(self.uiWidget)
 		self.uiWidget.setMRMLScene(slicer.mrmlScene)
 
-		self.ui.acpcTransformCBox.setMRMLScene(slicer.mrmlScene)
+		
 		self.ui.acpcTransformCBox.addAttribute('vtkMRMLLinearTransformNode', 'acpc', '1')
+		self.ui.acpcTransformCBox.setMRMLScene(slicer.mrmlScene)
 
 		self.text_color = slicer.util.findChild(slicer.util.mainWindow(), 'DialogToolBar').children()[3].palette.buttonText().color().name()
 		fontSettings = qt.QFont(fontSetting)
@@ -128,8 +129,6 @@ class anatomicalLandmarksWidget(ScriptedLoadableModuleWidget, VTKObservationMixi
 		self.ui.acpcTransformDelete.connect('clicked(bool)', self.onAcpcTransformDeleteButton)
 		self.ui.acpcTransformCBox.connect('currentNodeChanged(bool)', self.onACPCTransformCBox)
 		
-		
-
 		self.logic.addCustomLayouts()
 
 	def cleanup(self):
@@ -176,10 +175,10 @@ class anatomicalLandmarksWidget(ScriptedLoadableModuleWidget, VTKObservationMixi
 								self.ui.mcpWig.setVisible(1)
 					
 					if ifidNode.GetName() == 'acpc':
-						acpcPresent=True 
+						acpcPresent=True
 					elif ifidNode.GetName() == 'midline':
-						midlinePresent=True 
-								
+						midlinePresent=True
+
 			if not acpcPresent:
 				if len(slicer.util.getNodes('ac')) == 0:
 					self.markupsNodeAC = slicer.mrmlScene.GetNodeByID(self.markupsLogic.AddNewFiducialNode())
@@ -231,6 +230,10 @@ class anatomicalLandmarksWidget(ScriptedLoadableModuleWidget, VTKObservationMixi
 
 					self.markupsNodeMid2.AddObserver(slicer.vtkMRMLMarkupsNode.PointPositionDefinedEvent, self.onPointAdd)
 					#self.markupsNodeMid2.AddObserver(slicer.vtkMRMLMarkupsNode.PointPositionUndefinedEvent, self.onPointDelete)
+
+			if len(slicer.util.getNodes('acpc_transform')) >1:
+				with open(ifile) as (file):
+					json_sidecar = json.load(file)
 
 	def exit(self):
 		"""
@@ -306,6 +309,7 @@ class anatomicalLandmarksWidget(ScriptedLoadableModuleWidget, VTKObservationMixi
 		# Make sure GUI changes do not call updateParameterNodeFromGUI (it could cause infinite loop)
 		self._updatingGUIFromParameterNode = True
 
+
 		# All the GUI updates are done
 		self._updatingGUIFromParameterNode = False
 
@@ -379,6 +383,7 @@ class anatomicalLandmarksWidget(ScriptedLoadableModuleWidget, VTKObservationMixi
 		return out
 
 	def onPointAdd(self, caller, event):
+		print(caller.GetName())
 		activeLabel = caller.GetName().split('-')[0]
 		fidPresent = False
 		movingMarkupIndex = caller.GetDisplayNode().GetActiveControlPoint()
@@ -535,15 +540,17 @@ class anatomicalLandmarksWidget(ScriptedLoadableModuleWidget, VTKObservationMixi
 		
 		elif 'DelButton' in button.name:
 			fiducialNode = getMarkupsNode(fiducialPoint)
-			fidPresent=False
-			for ifid in range(fiducialNode.GetNumberOfControlPoints()):
-				if fiducialPoint in fiducialNode.GetNthControlPointLabel(ifid):
-					fidPresent=True
+			if fiducialNode is not None:
+				fidPresent=False
+				for ifid in range(fiducialNode.GetNumberOfControlPoints()):
+					if fiducialPoint in fiducialNode.GetNthControlPointLabel(ifid):
+						fidPresent=True
 
-			if fidPresent:
-				fiducialNode.RemoveAllControlPoints()
+				if fidPresent:
+					fiducialNode.RemoveAllControlPoints()
 
-			fiducialNode.GetDisplayNode().SetVisibility(1)
+				fiducialNode.GetDisplayNode().SetVisibility(1)
+			
 			if any(x in fiducialPoint for x in {'ac', 'mcp', 'pc'}):
 				fidName = 'acpc'
 			else:
@@ -571,10 +578,28 @@ class anatomicalLandmarksWidget(ScriptedLoadableModuleWidget, VTKObservationMixi
 				self.ui.mid1X.value = 0
 				self.ui.mid1Y.value = 0
 				self.ui.mid1Z.value = 0
+
+				self.markupsNodeMid1 = slicer.mrmlScene.GetNodeByID(self.markupsLogic.AddNewFiducialNode())
+				self.markupsNodeMid1.SetName('mid1')
+				self.markupsNodeMid1.AddDefaultStorageNode()
+				self.markupsNodeMid1.GetStorageNode().SetCoordinateSystem(coordSys)
+				self.ui.mid1Point.setCurrentNode(self.markupsNodeMid1)
+
+				self.markupsNodeMid1.AddObserver(slicer.vtkMRMLMarkupsNode.PointPositionDefinedEvent, self.onPointAdd)
+
 			elif 'mid2' in fiducialPoint:
 				self.ui.mid2X.value = 0
 				self.ui.mid2Y.value = 0
 				self.ui.mid2Z.value = 0
+
+				self.markupsNodeMid2 = slicer.mrmlScene.GetNodeByID(self.markupsLogic.AddNewFiducialNode())
+				self.markupsNodeMid2.SetName('mid2')
+				self.markupsNodeMid2.AddDefaultStorageNode()
+				self.markupsNodeMid2.GetStorageNode().SetCoordinateSystem(coordSys)
+				self.ui.mid2Point.setCurrentNode(self.markupsNodeMid2)
+
+				self.markupsNodeMid2.AddObserver(slicer.vtkMRMLMarkupsNode.PointPositionDefinedEvent, self.onPointAdd)
+
 			elif 'mid3' in fiducialPoint:
 				self.ui.mid3X.value = 0
 				self.ui.mid3Y.value = 0
@@ -938,10 +963,20 @@ class anatomicalLandmarksWidget(ScriptedLoadableModuleWidget, VTKObservationMixi
 
 	def onAcpcTransformDeleteButton(self):
 		if self.ui.acpcTransformCBox.currentNode() is not None:
-			qm = qt.QMessageBox()
-			ret = qm.question(self, '', 'Are you sure you want to delete the ACPC transform?', qm.Yes | qm.No)
+			parent = None
+			for w in slicer.app.topLevelWidgets():
+				if hasattr(w,'objectName'):
+					if w.objectName == 'qSlicerMainWindow':
+						parent=w
 
-			if ret == qm.Yes:
+			windowTitle = "Delete ACPC transform"
+			windowText = "Are you sure you want to delete the ACPC transform?"
+			if parent is None:
+				ret = qt.QMessageBox.question(self, windowTitle, windowText, qt.QMessageBox.Yes | qt.QMessageBox.No)
+			else:
+				ret = qt.QMessageBox.question(parent, windowTitle, windowText, qt.QMessageBox.Yes | qt.QMessageBox.No)
+			
+			if ret == qt.QMessageBox.Yes:
 				slicer.mrmlScene.RemoveNode(self.ui.acpcTransformCBox.currentNode())
 				os.remove(os.path.join(self._parameterNode.GetParameter('derivFolder'), 'acpc_transform.h5'))
 				inputTransform = slicer.mrmlScene.GetFirstNodeByName('from-acpcTransform_to-localizer_transform')
@@ -1079,30 +1114,64 @@ class anatomicalLandmarksWidget(ScriptedLoadableModuleWidget, VTKObservationMixi
 			self.ACPCTransform = slicer.mrmlScene.GetFirstNodeByName('acpc_transform')
 			inputTransform = slicer.mrmlScene.GetFirstNodeByName('from-fiducials_to-localizer_transform')
 
-			transformNodeCT = None
-			if len(slicer.util.getNodes('*from-ctFrame_to*')) > 0:
-				transformNodeCT = list(slicer.util.getNodes('*from-ctFrame_to*').values())[0]
-			
-			if transformNodeCT:
-				transformNodeCT.SetAndObserveTransformNodeID(self.ACPCTransform.GetID())
-				if inputTransform is not None:
-					self.ACPCTransform.SetAndObserveTransformNodeID(inputTransform.GetID())
+			markupNodes = slicer.util.getNodesByClass('vtkMRMLMarkupsFiducialNode')
+			for ifid in markupNodes:
+				ifid.SetAndObserveTransformNodeID(self.ACPCTransform.GetID())
 
-					markupNodes = slicer.util.getNodesByClass('vtkMRMLMarkupsFiducialNode')
-					for ifid in markupNodes:
-						ifid.SetAndObserveTransformNodeID(self.ACPCTransform.GetID())
-				else:
-					markupNodes = slicer.util.getNodesByClass('vtkMRMLMarkupsFiducialNode')
-					for ifid in markupNodes:
-						ifid.SetAndObserveTransformNodeID(self.ACPCTransform.GetID())
+			transform_data={}
+			if os.path.exists(os.path.join(self._parameterNode.GetParameter('derivFolder'), f"{self._parameterNode.GetParameter('derivFolder').split(os.path.sep)[-1]}_transform_items.json")):
+				with open(os.path.join(self._parameterNode.GetParameter('derivFolder'), f"{self._parameterNode.GetParameter('derivFolder').split(os.path.sep)[-1]}_transform_items.json")) as (transform_file):
+					transform_data = json.load(transform_file)
+
+			transform_data_current=[]
+			if transform_data:
+				for itransform,inodes in transform_data.items():
+					for inode in inodes:
+						if len(slicer.util.getNodes(f'*{inode}*')) > 0:
+							node=slicer.util.getNode(inode)
+							node.SetAndObserveTransformNodeID(slicer.util.getNode(itransform).GetID())
+					slicer.util.getNode(itransform).SetAndObserveTransformNodeID(self.ACPCTransform.GetID())
 			else:
-				markupNodes = slicer.util.getNodesByClass('vtkMRMLMarkupsFiducialNode')
-				for ifid in markupNodes:
-					ifid.SetAndObserveTransformNodeID(self.ACPCTransform.GetID())
 				volumes = slicer.util.getNodesByClass('vtkMRMLScalarVolumeNode')
 				for ivol in volumes:
 					ivol.SetAndObserveTransformNodeID(self.ACPCTransform.GetID())
+					transform_data_current.append(ivol.GetName())
 
+			if transform_data_current:
+				if self.ACPCTransform.GetName() in list(transform_data):
+					transform_data[self.ACPCTransform.GetName()] = transform_data[self.ACPCTransform.GetName()] + transform_data_current
+				else:
+					transform_data[self.ACPCTransform.GetName()]=transform_data_current
+				
+				json_output = json.dumps(transform_data, indent=4)
+				with open(os.path.join(self._parameterNode.GetParameter('derivFolder'), f"{self._parameterNode.GetParameter('derivFolder').split(os.path.sep)[-1]}_transform_items.json"), 'w') as (fid):
+					fid.write(json_output)
+					fid.write('\n')
+					
+			#transformNodeCT = None
+			#if len(slicer.util.getNodes('*from-ctFrame_to*')) > 0:
+			#	transformNodeCT = list(slicer.util.getNodes('*from-ctFrame_to*').values())[0]
+			#
+			#if transformNodeCT:
+			#	transformNodeCT.SetAndObserveTransformNodeID(self.ACPCTransform.GetID())
+			#	if inputTransform is not None:
+			#		self.ACPCTransform.SetAndObserveTransformNodeID(inputTransform.GetID())
+#
+#			#		markupNodes = slicer.util.getNodesByClass('vtkMRMLMarkupsFiducialNode')
+#			#		for ifid in markupNodes:
+#			#			ifid.SetAndObserveTransformNodeID(self.ACPCTransform.GetID())
+#			#	else:
+#			#		markupNodes = slicer.util.getNodesByClass('vtkMRMLMarkupsFiducialNode')
+#			#		for ifid in markupNodes:
+#			#			ifid.SetAndObserveTransformNodeID(self.ACPCTransform.GetID())
+#			#else:
+#			#	markupNodes = slicer.util.getNodesByClass('vtkMRMLMarkupsFiducialNode')
+#			#	for ifid in markupNodes:
+#			#		ifid.SetAndObserveTransformNodeID(self.ACPCTransform.GetID())
+#			#	volumes = slicer.util.getNodesByClass('vtkMRMLScalarVolumeNode')
+#			#	for ivol in volumes:
+#			#		ivol.SetAndObserveTransformNodeID(self.ACPCTransform.GetID())
+#
 			fids = slicer.util.getNode('midline')
 			for ifid in range(fids.GetNumberOfControlPoints()):
 				rasCoord = np.zeros(3)

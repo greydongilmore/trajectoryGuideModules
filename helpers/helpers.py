@@ -56,6 +56,14 @@ except:
 		pip_upgrade=True
 	slicer.util.pip_install("scipy")
 
+try:
+	import sklearn
+except:
+	if not pip_upgrade:
+		slicer.util.pip_install("pip --upgrade")
+		pip_upgrade=True
+	slicer.util.pip_install("scikit-learn")
+
 class CheckableComboBox(qt.QComboBox):
 	def __init__(self):
 		super(CheckableComboBox, self).__init__()
