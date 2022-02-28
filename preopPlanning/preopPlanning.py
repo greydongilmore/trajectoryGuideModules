@@ -1635,6 +1635,11 @@ class preopPlanningWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 		
 		trajectory_dist = np.linalg.norm(entry_coords_world.copy() - target_coords_world.copy())
 
+		arcAngle = []
+		ringAngle = []
+		frame_entry = []
+		frame_target = []
+
 		if self._parameterNode.GetParameter('frame_system'):
 			
 			if len(slicer.util.getNodes('*from-*Frame_to*')) > 0:
@@ -1671,11 +1676,11 @@ class preopPlanningWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 				'chanIndex':channel_index,
 				'elecUsed':self.ui.planElecCB.currentText, 
 				'microUsed': self.ui.planMicroModel.currentText if self.ui.planMicroModel.currentText != 'Select Microelectrode' else None,
-				'traj_len':float(adjustPrecision(trajectory_dist)) if self.ct_frame_present else [],
-				'axial_ang':float(adjustPrecision(ringAngle)) if self.ct_frame_present else [],
-				'sag_ang': float(adjustPrecision(arcAngle)) if self.ct_frame_present else [], 
-				'frame_entry':list(adjustPrecision(frame_entry)) if self.ct_frame_present else [], 
-				'frame_target':list(adjustPrecision(frame_target)) if self.ct_frame_present else [], 
+				'traj_len':float(adjustPrecision(trajectory_dist)),
+				'axial_ang':float(adjustPrecision(ringAngle)) if ringAngle else ringAngle,
+				'sag_ang': float(adjustPrecision(arcAngle)) if arcAngle else arcAngle, 
+				'frame_entry':list(adjustPrecision(frame_entry)) if frame_entry else frame_entry, 
+				'frame_target':list(adjustPrecision(frame_target)) if frame_target else frame_target, 
 				'mer_tracks':{}
 			}
 
