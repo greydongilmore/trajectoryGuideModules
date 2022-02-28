@@ -26,147 +26,172 @@ slicerLayoutAxial = 1001
 #
 #------------------------ Electrode Model Information -------------------------
 #
-        
+		
 electrodeModels = {}
 medtronic_3387 = {
-        'num_groups': 4,
-        'num_contacts': 4,
-        'encapsultation': 1.5,
-        'contact_size': 1.5,
-        'contact_spacing': 1.5,
-        'diameter': 1.1,
-        'electrode_1': [0,1,2,3],
-        'electrode_2': [8,9,10,11],
-        'contact_label':['','','',''],
-        'filename': '3387'
-     }
+		'num_groups': 4,
+		'num_contacts': 4,
+		'encapsultation': 1.5,
+		'lead_shift':0,
+		'contact_size': 1.5,
+		'contact_spacing': 1.5,
+		'diameter': 1.1,
+		'electrode_1': [0,1,2,3],
+		'electrode_2': [8,9,10,11],
+		'contact_label':['','','',''],
+		'filename': '3387'
+	 }
 electrodeModels['Medtronic 3387'] = medtronic_3387
 
 medtronic_3389 = {
-        'num_groups': 4,
-        'num_contacts': 4,
-        'encapsultation': 1.5,
-        'contact_size': 1.5,
-        'contact_spacing': 0.5,
-        'diameter': 1.1,
-        'electrode_1': [0,1,2,3],
-        'electrode_2': [8,9,10,11],
-        'contact_label':['','','',''],
-        'filename': '3389'
-     }
+		'num_groups': 4,
+		'num_contacts': 4,
+		'encapsultation': 1.5,
+		'lead_shift':0,
+		'contact_size': 1.5,
+		'contact_spacing': 0.5,
+		'diameter': 1.1,
+		'electrode_1': [0,1,2,3],
+		'electrode_2': [8,9,10,11],
+		'contact_label':['','','',''],
+		'filename': '3389'
+	 }
 electrodeModels['Medtronic 3389'] = medtronic_3389
 
 bsci_directional = {
-        'num_groups': 4,
-        'num_contacts': 8,
-        'encapsultation': 0,
-        'contact_size': 1.5,
-        'contact_spacing': 0.5,
-        'diameter': 1.1,
-        'electrode_1': [1,2,3,4,5,6,7,8],
-        'electrode_2': [9,10,11,12,13,14,15,16],
-        'contact_label':['','seg ','seg ','seg ','seg ','seg ','seg ', ''],
-        'filename': 'directional'
-     }
+		'num_groups': 4,
+		'num_contacts': 8,
+		'encapsultation': 0,
+		'lead_shift':0,
+		'contact_size': 1.5,
+		'contact_spacing': 0.5,
+		'diameter': 1.1,
+		'electrode_1': [1,2,3,4,5,6,7,8],
+		'electrode_2': [9,10,11,12,13,14,15,16],
+		'contact_label':['','seg ','seg ','seg ','seg ','seg ','seg ', ''],
+		'filename': 'directional'
+	 }
 electrodeModels['B.Sci. directional'] = bsci_directional
 
 bsci_nondirectional = {
-        'num_groups': 8,
-        'num_contacts': 8,
-        'encapsultation': 0,
-        'contact_size': 1.5,
-        'contact_spacing': 0.5,
-        'diameter': 1.1,
-        'electrode_1': [1,2,3,4,5,6,7,8],
-        'electrode_2': [9,10,11,12,13,14,15,16],
-        'contact_label':['','','','','','','', ''],
-        'filename': 'nondirectional'
-     }
+		'num_groups': 8,
+		'num_contacts': 8,
+		'encapsultation': 0,
+		'lead_shift':0,
+		'contact_size': 1.5,
+		'contact_spacing': 0.5,
+		'diameter': 1.1,
+		'electrode_1': [1,2,3,4,5,6,7,8],
+		'electrode_2': [9,10,11,12,13,14,15,16],
+		'contact_label':['','','','','','','', ''],
+		'filename': 'nondirectional'
+	 }
 
 electrodeModels['B.Sci. non-directional'] = bsci_nondirectional
 
 
 RD10RSP03 = {
-        'num_groups': 10,
-        'num_contacts': 10,
-        'encapsultation': 0.71,
-        'contact_size': 2.29,
-        'contact_spacing': 0.71,
-        'diameter': 0.86,
-        'electrode_1': [1,2,3,4,5,6,7,8,9,10],
-        'electrode_2': [1,2,3,4,5,6,7,8,9,10],
-        'contact_label':['','','','','','','', ''],
-        'filename': 'rd10rsp03'
-     }
-     
+		'num_groups': 10,
+		'num_contacts': 10,
+		'encapsultation': 0,
+		'lead_shift':1.5,
+		'contact_size': 2.29,
+		'contact_spacing': 0.71,
+		'diameter': 0.86,
+		'electrode_1': [1,2,3,4,5,6,7,8,9,10],
+		'electrode_2': [1,2,3,4,5,6,7,8,9,10],
+		'contact_label':['','','','','','','', ''],
+		'filename': 'rd10rsp03'
+	 }
+	 
 electrodeModels['RD10R-SP03X'] = RD10RSP03
 
 RD10RSP04 = {
-        'num_groups': 10,
-        'num_contacts': 10,
-        'encapsultation': 1.71,
-        'contact_size': 2.29,
-        'contact_spacing': 1.71,
-        'diameter': 0.86,
-        'electrode_1': [1,2,3,4,5,6,7,8,9,10],
-        'electrode_2': [1,2,3,4,5,6,7,8,9,10],
-        'contact_label':['','','','','','','', ''],
-        'filename': 'rd10rsp04'
-     }
-     
+		'num_groups': 10,
+		'num_contacts': 10,
+		'encapsultation': 0,
+		'lead_shift':1.5,
+		'contact_size': 2.29,
+		'contact_spacing': 1.71,
+		'diameter': 0.86,
+		'electrode_1': [1,2,3,4,5,6,7,8,9,10],
+		'electrode_2': [1,2,3,4,5,6,7,8,9,10],
+		'contact_label':['','','','','','','', ''],
+		'filename': 'rd10rsp04'
+	 }
+	 
 electrodeModels['RD10R-SP04X'] = RD10RSP04
 
 RD10RSP05 = {
-        'num_groups': 10,
-        'num_contacts': 10,
-        'encapsultation': 2.71,
-        'contact_size': 2.29,
-        'contact_spacing': 2.71,
-        'diameter': 0.86,
-        'electrode_1': [1,2,3,4,5,6,7,8,9,10],
-        'electrode_2': [1,2,3,4,5,6,7,8,9,10],
-        'contact_label':['','','','','','','', ''],
-        'filename': 'rd10rsp05'
-     }
-     
+		'num_groups': 10,
+		'num_contacts': 10,
+		'encapsultation': 0,
+		'lead_shift':1.5,
+		'contact_size': 2.29,
+		'contact_spacing': 2.71,
+		'diameter': 0.86,
+		'electrode_1': [1,2,3,4,5,6,7,8,9,10],
+		'electrode_2': [1,2,3,4,5,6,7,8,9,10],
+		'contact_label':['','','','','','','', ''],
+		'filename': 'rd10rsp05'
+	 }
+	 
 electrodeModels['RD10R-SP05X'] = RD10RSP05
 
 RD10RSP06 = {
-        'num_groups': 10,
-        'num_contacts': 10,
-        'encapsultation': 3.71,
-        'contact_size': 2.29,
-        'contact_spacing': 3.71,
-        'diameter': 0.86,
-        'electrode_1': [1,2,3,4,5,6,7,8,9,10],
-        'electrode_2': [1,2,3,4,5,6,7,8,9,10],
-        'contact_label':['','','','','','','', ''],
-        'filename': 'rd10rsp06'
-     }
-     
+		'num_groups': 10,
+		'num_contacts': 10,
+		'encapsultation': 0,
+		'lead_shift':1.5,
+		'contact_size': 2.29,
+		'contact_spacing': 3.71,
+		'diameter': 0.86,
+		'electrode_1': [1,2,3,4,5,6,7,8,9,10],
+		'electrode_2': [1,2,3,4,5,6,7,8,9,10],
+		'contact_label':['','','','','','','', ''],
+		'filename': 'rd10rsp06'
+	 }
+	 
 electrodeModels['RD10R-SP06X'] = RD10RSP06
 
 RD10RSP07 = {
-        'num_groups': 10,
-        'num_contacts': 10,
-        'encapsultation': 4.71,
-        'contact_size': 2.29,
-        'contact_spacing': 4.71,
-        'diameter': 0.86,
-        'electrode_1': [1,2,3,4,5,6,7,8,9,10],
-        'electrode_2': [1,2,3,4,5,6,7,8,9,10],
-        'contact_label':['','','','','','','', ''],
-        'filename': 'rd10rsp07'
-     }
-     
+		'num_groups': 10,
+		'num_contacts': 10,
+		'encapsultation': 0,
+		'lead_shift':1.5,
+		'contact_size': 2.29,
+		'contact_spacing': 4.71,
+		'diameter': 0.86,
+		'electrode_1': [1,2,3,4,5,6,7,8,9,10],
+		'electrode_2': [1,2,3,4,5,6,7,8,9,10],
+		'contact_label':['','','','','','','', ''],
+		'filename': 'rd10rsp07'
+	 }
+	 
 electrodeModels['RD10R-SP07X'] = RD10RSP07
 
+MM16DSP05 = {
+		'num_groups': 8,
+		'num_contacts': 8,
+		'encapsultation': 0,
+		'lead_shift':1.5,
+		'contact_size': 2.29,
+		'contact_spacing': 2.71,
+		'diameter': 1.3,
+		'electrode_1': [1,2,3,4,5,6,7,8],
+		'electrode_2': [1,2,3,4,5,6,7,8],
+		'contact_label':['','','','','','','', ''],
+		'filename': 'mm16dsp05'
+	 }
+	 
+electrodeModels['MM16D-SP05X'] = MM16DSP05
+
 microelectrodeModels = {
-        'probes':{
-                'AO 3mm MicroMacro 25 above':'alphaomega-neuroprobe_micromacro-3mm_above-25mm.stl',
-                'AO 10mm MicroMacro 25 above':'alphaomega-neuroprobe_micromacro-10mm_above-25mm.stl'
-        },
-        'default':'AO 10mm MicroMacro 25 above'
+		'probes':{
+				'AO 3mm MicroMacro 25 above':'alphaomega-neuroprobe_micromacro-3mm_above-25mm.stl',
+				'AO 10mm MicroMacro 25 above':'alphaomega-neuroprobe_micromacro-10mm_above-25mm.stl'
+		},
+		'default':'AO 10mm MicroMacro 25 above'
 }
 
 #
@@ -174,91 +199,134 @@ microelectrodeModels = {
 #
 
 def surgical_info_dict(dictionary):
-    dict_out=dict()
-    dict_out['subject']=dictionary['subject']
-    dict_out['target']=dictionary['target']
-    dict_out['surgeon']=dictionary['surgeon']
-    dict_out['surgery_date']=dictionary['surgery_date']
-    dict_out['frame_system']=dictionary['frame_system']
-    dict_out['trajectories']=dictionary['trajectories']
-    return dict_out
+	dict_out=dict()
+	dict_out['subject']=dictionary['subject'] if 'subject' in list(dictionary) else []
+	dict_out['target']=dictionary['target'] if 'target' in list(dictionary) else []
+	dict_out['surgeon']=dictionary['surgeon'] if 'surgeon' in list(dictionary) else []
+	dict_out['surgery_date']=dictionary['surgery_date'] if 'surgery_date' in list(dictionary) else []
+	dict_out['frame_system']=dictionary['frame_system'] if 'frame_system' in list(dictionary) else []
+	dict_out['trajectories']=dictionary['trajectories'] if 'trajectories' in list(dictionary) else []
+	return dict_out
+
+def plan_info_dict(dictionary):
+	dict_out=dict()
+	dict_out['side']=dictionary['side'] if 'side' in list(dictionary) else []
+	dict_out['pre']=pre_info_dict({})
+	dict_out['intra']=intra_info_dict({})
+	dict_out['post']=post_info_dict({})
+	return dict_out
+
+def pre_info_dict(dictionary):
+	dict_out=dict()
+	dict_out['entry']=dictionary['entry'] if 'entry' in list(dictionary) else []
+	dict_out['target']=dictionary['target'] if 'target' in list(dictionary) else []
+	dict_out['origin_point']=dictionary['origin_point'] if 'origin_point' in list(dictionary) else []
+	dict_out['chansUsed']=dictionary['chansUsed'] if 'chansUsed' in list(dictionary) else []
+	dict_out['chanIndex']=dictionary['chanIndex'] if 'chanIndex' in list(dictionary) else []
+	dict_out['elecUsed']=dictionary['elecUsed'] if 'elecUsed' in list(dictionary) else []
+	dict_out['microUsed']=dictionary['microUsed'] if 'microUsed' in list(dictionary) else []
+	dict_out['traj_len']=dictionary['traj_len'] if 'traj_len' in list(dictionary) else []
+	dict_out['axial_ang']=dictionary['axial_ang'] if 'axial_ang' in list(dictionary) else []
+	dict_out['sag_ang']=dictionary['sag_ang'] if 'sag_ang' in list(dictionary) else []
+	dict_out['frame_entry']=dictionary['frame_entry'] if 'frame_entry' in list(dictionary) else []
+	dict_out['frame_target']=dictionary['frame_target'] if 'frame_target' in list(dictionary) else []
+	dict_out['mer_tracks']=dictionary['mer_tracks'] if 'mer_tracks' in list(dictionary) else {}
+	return dict_out
+
+def intra_info_dict(dictionary):
+	dict_out=dict()
+	dict_out['entry']=dictionary['entry'] if 'entry' in list(dictionary) else []
+	dict_out['target']=dictionary['target'] if 'target' in list(dictionary) else []
+	dict_out['lead_traj_chosen']=dictionary['lead_traj_chosen'] if 'lead_traj_chosen' in list(dictionary) else []
+	dict_out['lead_depth']=dictionary['lead_depth'] if 'lead_depth' in list(dictionary) else []
+	dict_out['mer_tracks']=dictionary['mer_tracks'] if 'mer_tracks' in list(dictionary) else {}
+	return dict_out
+
+def post_info_dict(dictionary):
+	dict_out=dict()
+	dict_out['entry']=dictionary['entry'] if 'entry' in list(dictionary) else []
+	dict_out['target']=dictionary['target'] if 'target' in list(dictionary) else []
+	dict_out['lead_traj_chosen']=dictionary['lead_traj_chosen'] if 'lead_traj_chosen' in list(dictionary) else []
+	dict_out['lead_depth']=dictionary['lead_depth'] if 'lead_depth' in list(dictionary) else []
+	dict_out['mer_tracks']=dictionary['mer_tracks'] if 'mer_tracks' in list(dictionary) else {}
+	return dict_out
 
 #
 #------------------------------ Data Visibiltiy -------------------------------
 #
 
 dataVisibility= {
-        'plannedLeadSliceVis': True,
-        'actualLeadSliceVis': True,
-        'plannedContactSliceVis': True,
-        'actualContactSliceVis': True,
-        'plannedMERTrackSliceVis': True,
-        'actualMERTrackSliceVis': True,
-        'plannedSTNMERSliceVis': True,
-        'actualSTNMERSliceVis': True
-     }
+		'plannedLeadSliceVis': True,
+		'actualLeadSliceVis': True,
+		'plannedContactSliceVis': True,
+		'actualContactSliceVis': True,
+		'plannedMERTrackSliceVis': True,
+		'actualMERTrackSliceVis': True,
+		'plannedSTNMERSliceVis': True,
+		'actualSTNMERSliceVis': True
+	 }
 
 #
 #-------------------------------- Layout ---------------------------------
 #
 
 trajectoryGuideLayout = (
-            "<layout type=\"horizontal\">"
-            " <item>"
-            "  <settingsSidePanel></settingsSidePanel>"
-            " </item>"
-            " <item>"
-            "  <layout type=\"vertical\">"
-            "   <item>"
-            "    <layout type=\"horizontal\">"
-            "     <item>"
-            "      <view class=\"vtkMRMLSliceNode\" singletontag=\"Red\">"
-            "       <property name=\"orientation\" action=\"default\">Axial</property>"
-            "       <property name=\"viewlabel\" action=\"default\">R</property>"
-            "       <property name=\"viewcolor\" action=\"default\">#F34A33</property>"
-            "      </view>"
-            "     </item>"
-            "     <item>"
-            "      <view class=\"vtkMRMLViewNode\" singletontag=\"1\">"
-            "       <property name=\"viewlabel\" action=\"default\">1</property>"
-            "      </view>"
-            "     </item>"
-            "    </layout>"
-            "   </item>"
-            "   <item>"
-            "    <layout type=\"horizontal\">"
-            "     <item>"
-            "      <view class=\"vtkMRMLSliceNode\" singletontag=\"Yellow\">"
-            "       <property name=\"orientation\" action=\"default\">Sagittal</property>"
-            "       <property name=\"viewlabel\" action=\"default\">Y</property>"
-            "       <property name=\"viewcolor\" action=\"default\">#EDD54C</property>"
-            "      </view>"
-            "     </item>"
-            "     <item>"
-            "      <view class=\"vtkMRMLSliceNode\" singletontag=\"Green\">"
-            "       <property name=\"orientation\" action=\"default\">Coronal</property>"
-            "       <property name=\"viewlabel\" action=\"default\">G</property>"
-            "       <property name=\"viewcolor\" action=\"default\">#6EB04B</property>"
-            "      </view>"
-            "     </item>"
-            "    </layout>"
-            "   </item>"
-            "  </layout>"
-            " </item>"
-            "</layout>"
-        )
+			"<layout type=\"horizontal\">"
+			" <item>"
+			"  <settingsSidePanel></settingsSidePanel>"
+			" </item>"
+			" <item>"
+			"  <layout type=\"vertical\">"
+			"   <item>"
+			"    <layout type=\"horizontal\">"
+			"     <item>"
+			"      <view class=\"vtkMRMLSliceNode\" singletontag=\"Red\">"
+			"       <property name=\"orientation\" action=\"default\">Axial</property>"
+			"       <property name=\"viewlabel\" action=\"default\">R</property>"
+			"       <property name=\"viewcolor\" action=\"default\">#F34A33</property>"
+			"      </view>"
+			"     </item>"
+			"     <item>"
+			"      <view class=\"vtkMRMLViewNode\" singletontag=\"1\">"
+			"       <property name=\"viewlabel\" action=\"default\">1</property>"
+			"      </view>"
+			"     </item>"
+			"    </layout>"
+			"   </item>"
+			"   <item>"
+			"    <layout type=\"horizontal\">"
+			"     <item>"
+			"      <view class=\"vtkMRMLSliceNode\" singletontag=\"Yellow\">"
+			"       <property name=\"orientation\" action=\"default\">Sagittal</property>"
+			"       <property name=\"viewlabel\" action=\"default\">Y</property>"
+			"       <property name=\"viewcolor\" action=\"default\">#EDD54C</property>"
+			"      </view>"
+			"     </item>"
+			"     <item>"
+			"      <view class=\"vtkMRMLSliceNode\" singletontag=\"Green\">"
+			"       <property name=\"orientation\" action=\"default\">Coronal</property>"
+			"       <property name=\"viewlabel\" action=\"default\">G</property>"
+			"       <property name=\"viewcolor\" action=\"default\">#6EB04B</property>"
+			"      </view>"
+			"     </item>"
+			"    </layout>"
+			"   </item>"
+			"  </layout>"
+			" </item>"
+			"</layout>"
+		)
 
 trajectoryGuideAxialLayout = (
-            "<layout type=\"horizontal\">"
-            " <item>"
-            "  <settingsSidePanel></settingsSidePanel>"
-            " </item>"
-            " <item>"
-            "      <view class=\"vtkMRMLSliceNode\" singletontag=\"Red\">"
-            "       <property name=\"orientation\" action=\"default\">Axial</property>"
-            "       <property name=\"viewlabel\" action=\"default\">R</property>"
-            "       <property name=\"viewcolor\" action=\"default\">#F34A33</property>"
-            "      </view>"
-            "     </item>"
-            "</layout>"
-        )
+			"<layout type=\"horizontal\">"
+			" <item>"
+			"  <settingsSidePanel></settingsSidePanel>"
+			" </item>"
+			" <item>"
+			"      <view class=\"vtkMRMLSliceNode\" singletontag=\"Red\">"
+			"       <property name=\"orientation\" action=\"default\">Axial</property>"
+			"       <property name=\"viewlabel\" action=\"default\">R</property>"
+			"       <property name=\"viewcolor\" action=\"default\">#F34A33</property>"
+			"      </view>"
+			"     </item>"
+			"</layout>"
+		)

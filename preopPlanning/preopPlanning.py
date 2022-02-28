@@ -15,7 +15,8 @@ from helpers.helpers import norm_vec, mag_vec, plotLead, warningBox, \
 rotation_matrix, vtkModelBuilderClass,getMarkupsNode,getPointCoords,adjustPrecision,getFrameCenter,applyTransformToPoints,frame_angles,\
 getFrameRotation,dotdict,addCustomLayouts, plotMicroelectrode
 
-from helpers.variables import coordSys, groupboxStyle, slicerLayout, electrodeModels, microelectrodeModels
+from helpers.variables import coordSys, groupboxStyle, slicerLayout, electrodeModels, microelectrodeModels, \
+plan_info_dict, pre_info_dict, intra_info_dict, post_info_dict
 
 #
 # preopPlanning
@@ -164,7 +165,8 @@ class preopPlanningWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
 		self.ui.planElecCB.addItems(['Select Electrode']+list(electrodeModels))
 		self.ui.planMicroModel.addItems(['Select Microlectrode']+list(microelectrodeModels['probes']))
-		self.ui.planMicroModel.setCurrentIndex(self.ui.planMicroModel.findText(microelectrodeModels['default']))
+		#self.ui.planMicroModel.setCurrentIndex(self.ui.planMicroModel.findText(microelectrodeModels['default']))
+		self.ui.planMicroModel.setCurrentIndex(self.ui.planMicroModel.findText('Select Microlectrode'))
 
 
 	def _setupConnections(self):
@@ -829,7 +831,6 @@ class preopPlanningWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 				surgical_data = json.load(surg_file)
 
 			if self.lastPlanName in list(surgical_data['trajectories']):
-				surgical_data['trajectories'][self.lastPlanName]['plan_name']=newPlan
 				surgical_data['trajectories'][newPlan] = surgical_data['trajectories'].pop(self.lastPlanName)
 
 				json_output = json.dumps(surgical_data, indent=4)
@@ -982,7 +983,7 @@ class preopPlanningWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 								self.planElecModel = electrodeModels[self.ui.planElecCB.currentText]['filename']
 
 						if 'microUsed' in list(surgical_data['trajectories'][planName]['pre']):
-							if surgical_data['trajectories'][planName]['pre']['microUsed']:
+							if surgical_data['trajectories'][planName]['pre']['microUsed'] is not None:
 								self.ui.planMicroModel.setCurrentIndex(self.ui.planMicroModel.findText(surgical_data['trajectories'][planName]['pre']['microUsed']))
 
 						lineNode = getMarkupsNode((self.ui.planName.currentText + '_line'), node_type='vtkMRMLMarkupsLineNode')
@@ -1133,7 +1134,7 @@ class preopPlanningWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 				if self.previousProbeEye != currentPlanName:
 					layoutManager.sliceWidget(settings['color']).sliceLogic().FitSliceToAll()
 					fov=layoutManager.sliceWidget(settings['color']).sliceLogic().GetSliceNode().GetFieldOfView()
-					layoutManager.sliceWidget(settings['color']).sliceLogic().GetSliceNode().SetFieldOfView(fov[0]/3,fov[1]/3,fov[2])
+					layoutManager.sliceWidget(settings['color']).sliceLogic().GetSliceNode().SetFieldOfView(fov[0]/2,fov[1]/2,fov[2])
 
 			#mouseTrack = SteeredPolyAffineRegistrationLogic(self.ui.MRMLSliderWidget)
 			#mouseTrack.run()
@@ -1596,10 +1597,6 @@ class preopPlanningWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 				if i.name in set(self.crossBenGunLabels+self.plusBenGunLabels):
 					self.planChans.append(self.uiWidget.findChild(qt.QLabel, i.name + 'Label').text.lower())
 
-		if self.plannedMERTracksPlot and self.ui.planMicroModel.currentText == 'Select Microelectrode':
-			warningBox('Please choose an microelectrode model.')
-			return
-
 		if self.ui.planElecCB.currentText == 'Select Electrode':
 			warningBox('Please choose an electrode model.')
 			return
@@ -1656,22 +1653,24 @@ class preopPlanningWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 		with open(os.path.join(self._parameterNode.GetParameter('derivFolder'), f"{self._parameterNode.GetParameter('derivFolder').split(os.path.sep)[-1]}_surgical_data.json")) as (surgical_file):
 			surgical_data = json.load(surgical_file)
 
+
 		
 		if self.ui.planElecCB.currentText == 'Select Electrode':
 			warningBox('You need to choose an electrode model.')
 			return
 
+		if plan_name not in list (surgical_data['trajectories']):
+			surgical_data['trajectories'][plan_name] = plan_info_dict({})
 		
-		surgical_data['trajectories'][plan_name] = {
-			'side':'left' if target_coords_world[0] < origin_point[0] else 'right', 
-			'pre':{
-				'entry':list(adjustPrecision(entry_coords_world)), 
-				'target':list(adjustPrecision(target_coords_world)), 
+		surgical_data['trajectories'][plan_name]['side'] = 'left' if target_coords_world[0] < origin_point[0] else 'right', 
+		preop_info = {
+				'entry': list(adjustPrecision(entry_coords_world)), 
+				'target': list(adjustPrecision(target_coords_world)), 
 				'origin_point':list(adjustPrecision(origin_point)), 
 				'chansUsed':self.planChans, 
 				'chanIndex':channel_index,
 				'elecUsed':self.ui.planElecCB.currentText, 
-				'microUsed': self.ui.planMicroModel.currentText if self.ui.planMicroModel.currentText != 'Select Microelectrode' else [],
+				'microUsed': self.ui.planMicroModel.currentText if self.ui.planMicroModel.currentText != 'Select Microelectrode' else None,
 				'traj_len':float(adjustPrecision(trajectory_dist)) if self.ct_frame_present else [],
 				'axial_ang':float(adjustPrecision(ringAngle)) if self.ct_frame_present else [],
 				'sag_ang': float(adjustPrecision(arcAngle)) if self.ct_frame_present else [], 
@@ -1679,7 +1678,8 @@ class preopPlanningWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 				'frame_target':list(adjustPrecision(frame_target)) if self.ct_frame_present else [], 
 				'mer_tracks':{}
 			}
-		}
+
+		surgical_data['trajectories'][plan_name]['pre']=pre_info_dict(preop_info)
 
 		with open(os.path.join(self._parameterNode.GetParameter('derivFolder'), 'settings', 'model_visibility.json')) as (settings_file):
 			slice_vis = json.load(settings_file)

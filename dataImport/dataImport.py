@@ -18,7 +18,8 @@ sys.path.insert(1, os.path.dirname(cwd))
 
 from helpers.helpers import vtkModelBuilderClass,getFrameCenter, getReverseTransform,\
 addCustomLayouts, hex2rgb, sorted_nicely, sortSceneData
-from helpers.variables import coordSys, slicerLayout, surgical_info_dict
+from helpers.variables import coordSys, slicerLayout, surgical_info_dict, \
+pre_info_dict, intra_info_dict, post_info_dict
 
 #
 # dataImport
@@ -451,7 +452,7 @@ class dataImportLogic(ScriptedLoadableModuleLogic):
 			modelColors = json.load(settings_file)
 
 		if not os.path.exists(os.path.join(self._parameterNode.GetParameter('derivFolder'), f"{self._parameterNode.GetParameter('derivFolder').split(os.path.sep)[-1]}_surgical_data.json")):
-			surgical_info_json = {}
+			surgical_info_json = surgical_info_dict({})
 			surgical_info_json['subject'] = os.path.basename(self._parameterNode.GetParameter('derivFolder'))
 			surgical_info_json['surgery_date'] = []
 			surgical_info_json['surgeon'] = []
@@ -459,7 +460,7 @@ class dataImportLogic(ScriptedLoadableModuleLogic):
 			surgical_info_json['frame_system'] = []
 			surgical_info_json['trajectories'] = {}
 			
-			json_output = json.dumps(surgical_info_dict(surgical_info_json), indent=4)
+			json_output = json.dumps(surgical_info_json, indent=4)
 			with open(os.path.join(self._parameterNode.GetParameter('derivFolder'), f"{self._parameterNode.GetParameter('derivFolder').split(os.path.sep)[-1]}_surgical_data.json"),'w') as fid:
 				fid.write(json_output)
 				fid.write('\n')

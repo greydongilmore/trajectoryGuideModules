@@ -2330,8 +2330,14 @@ def plotLead(entry,target,origin,model_parameters):
 	e_specs = electrodeModels[list(electrodeModels)[electrode_index]]
 
 
+	lead_start = np.array([
+		target[0] - (NormVec[0] * e_specs['lead_shift']), 
+		target[1] - (NormVec[1] * e_specs['lead_shift']), 
+		target[2] - (NormVec[2] * e_specs['lead_shift'])
+	])
+
 	vtkModelBuilder = vtkModelBuilderClass()
-	vtkModelBuilder.coords = np.hstack((np.array(target), np.array(entry)))
+	vtkModelBuilder.coords = np.hstack((np.array(lead_start), np.array(entry)))
 	vtkModelBuilder.tube_radius = e_specs['diameter']
 	vtkModelBuilder.tube_thickness = 0.2
 	vtkModelBuilder.filename = os.path.join(model_parameters['data_dir'], model_parameters['lead_fileN'])
@@ -2349,6 +2355,7 @@ def plotLead(entry,target,origin,model_parameters):
 	#### build each contact in the electrode
 	bottomTop = np.empty([0, 6])
 	contactFile = []
+	midContactList=[]
 	for iContact in range(0, e_specs['num_groups']):
 		bottomTop = np.append(bottomTop, (np.hstack((
 			np.array([[target[0] + NormVec[0] * start], 
@@ -2370,6 +2377,8 @@ def plotLead(entry,target,origin,model_parameters):
 				os.remove(filepath)
 
 		midContact = bottomTop[iContact, :3] + (bottomTop[iContact, 3:] - bottomTop[iContact, :3]) / 2
+		midContactList.append(midContact)
+
 		contactFile.append([model_parameters['plan_name'], model_parameters['type'], str(iContact + 1), midContact[0] * -1, midContact[1] * -1, midContact[2]])
 		if any(x.lower() in model_parameters['elecUsed'].lower() for x in ('directional', 'bsci_directional','b.sci. directional')):
 			if iContact == 0:
@@ -2506,6 +2515,21 @@ def plotLead(entry,target,origin,model_parameters):
 	with open(csvfile, 'a') as (output):
 		writer = csv.writer(output, lineterminator='\n')
 		writer.writerows(contactFile)
+
+	contacts=slicer.mrmlScene.AddNewNodeByClass('vtkMRMLMarkupsFiducialNode')
+	contacts.SetName(f"{model_parameters['plan_name']}_contacts")
+	contacts.AddDefaultStorageNode()
+	contacts.GetStorageNode().SetCoordinateSystem(0)
+	contacts.GetDisplayNode().SetGlyphScale(0)
+	contacts.GetDisplayNode().SetTextScale(5)
+
+	for icontact in range(e_specs['num_groups']):
+		new_label=f"    {model_parameters['plan_name']}-{icontact+1}"
+		n = contacts.AddControlPoint(vtk.vtkVector3d(midContactList[icontact][0], midContactList[icontact][1], midContactList[icontact][2]))
+		contacts.SetNthControlPointLabel(n, new_label)
+
+	contacts.GetDisplayNode().SetSelectedColor(0.666, 1, 0.498)
+	contacts.GetDisplayNode().GetTextProperty().SetVerticalJustificationToCentered()
 
 
 def plotMicroelectrode(coords, alpha, beta, model_parameters):

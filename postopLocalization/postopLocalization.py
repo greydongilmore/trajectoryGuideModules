@@ -17,7 +17,8 @@ sys.path.insert(1, os.path.dirname(cwd))
 from helpers.helpers import plotLead, rotation_matrix, warningBox, vtkModelBuilderClass,\
 getPointCoords,adjustPrecision,getMarkupsNode, addCustomLayouts, frame_angles, plotMicroelectrode
 
-from helpers.variables import fontSetting, groupboxStyle, coordSys, slicerLayout, electrodeModels, microelectrodeModels
+from helpers.variables import fontSetting, groupboxStyle, coordSys, slicerLayout, electrodeModels, microelectrodeModels, \
+pre_info_dict, intra_info_dict, post_info_dict
 
 #
 # postopLocalization
@@ -64,7 +65,7 @@ class postopLocalizationWidget(ScriptedLoadableModuleWidget, VTKObservationMixin
 		
 		self.postActualElecPlot = True
 		self.postActualMERTracksPlot = True
-		self.postImplantTraj = []
+		self.postImplantTraj = None
 		self.postElecModelLastButton = None
 
 	def setup(self):
@@ -304,6 +305,9 @@ class postopLocalizationWidget(ScriptedLoadableModuleWidget, VTKObservationMixin
 		Slot for selection of ``Trajectory used`` under ``Left Plan``
 		
 		"""
+		
+		self.postImplantTraj = None
+
 		children = self.ui.postTrajUsedGB.findChildren('QRadioButton')
 		for i in children:
 			if i.isChecked():
@@ -312,15 +316,15 @@ class postopLocalizationWidget(ScriptedLoadableModuleWidget, VTKObservationMixin
 
 		button_idx = abs(button - -2)
 		if children[button_idx].text.lower() != self.postImplantTraj:
-			if self.postImplantTraj:
+			if self.postImplantTraj is not None:
 				children[button_idx].setChecked(True)
-				self.postImplantTraj = []
+				self.postImplantTraj = None
 			else:
 				children[button_idx].setChecked(False)
 				self.postImplantTraj = children[button_idx].text.lower()
 		elif children[button_idx].text.lower() == self.postImplantTraj:
 			children[button_idx].setChecked(True)
-			self.postImplantTraj = []
+			self.postImplantTraj = None
 
 	def resetValues(self):
 
@@ -505,7 +509,7 @@ class postopLocalizationWidget(ScriptedLoadableModuleWidget, VTKObservationMixin
 									self.ui.postElecCB.setCurrentIndex(self.ui.postElecCB.findText(surgical_data['trajectories'][planName]['pre']['elecUsed']))
 									self.postElecModel = self.ui.postElecCB.currentText
 						if 'microUsed' in list(surgical_data['trajectories'][planName]['pre']):
-							if surgical_data['trajectories'][planName]['pre']['microUsed']:
+							if surgical_data['trajectories'][planName]['pre']['microUsed'] is not None:
 									self.ui.postMicroModelCB.setCurrentIndex(self.ui.postMicroModelCB.findText(surgical_data['trajectories'][planName]['pre']['microUsed']))
 
 					if 'post' in list(surgical_data['trajectories'][planName]):
@@ -746,15 +750,20 @@ class postopLocalizationWidget(ScriptedLoadableModuleWidget, VTKObservationMixin
 		
 		self.postElecModel = self.ui.postElecCB.currentText
 
-		self.postMicroModel = self.ui.postMicroModelCB.currentText if self.ui.postMicroModelCB.currentText != 'None' else []
+		self.postMicroModel = self.ui.postMicroModelCB.currentText if self.ui.postMicroModelCB.currentText != 'None' else None
+
+		self.postImplantTraj = None
 
 		children = self.ui.postTrajUsedGB.findChildren('QRadioButton')
 		for i in children:
 			if i.isChecked():
-				self.implantTraj = i.text.lower()
+				self.postImplantTraj = i.text.lower()
+
+		if self.postImplantTraj is None:
+			self.postImplantTraj = 'center'
 
 		self.logic.plotData(button, plan_name, origin_point, target_coords_world, entry_coords_world, self.postElecModel, 
-			self.postMicroModel, self.implantTraj, self.postActualElecPlot, self.postActualMERTracksPlot)
+			self.postMicroModel, self.postImplantTraj, self.postActualElecPlot, self.postActualMERTracksPlot)
 		
 
 
@@ -871,12 +880,11 @@ class postopLocalizationLogic(ScriptedLoadableModuleLogic):
 			surgical_data = json.load(side_file)
 		
 		if plan_name not in list(surgical_data['trajectories']):
-			surgical_data['trajectories'][plan_name] = {}
-			surgical_data['trajectories'][plan_name]['plan_name'] = plan_name
+			surgical_data['trajectories'][plan_name] = plan_info_dict({})
 			surgical_data['trajectories'][plan_name]['side'] = 'left' if target_coords_world[0] < origin_point[0] else 'right'
 			
 		if 'pre' not in list(surgical_data['trajectories'][plan_name]):
-			surgical_data['trajectories'][plan_name]['pre']={}
+			surgical_data['trajectories'][plan_name]['pre']=pre_info_dict({})
 			surgical_data['trajectories'][plan_name]['pre']['elecUsed'] = postElecModel
 			surgical_data['trajectories'][plan_name]['pre']['microUsed'] = postMicroModel
 			surgical_data['trajectories'][plan_name]['pre']['mer_tracks']={
@@ -894,7 +902,7 @@ class postopLocalizationLogic(ScriptedLoadableModuleLogic):
 		mer_depths = {}
 		lead_depth=0
 		if 'intra' not in list(surgical_data['trajectories'][plan_name]):
-			surgical_data['trajectories'][plan_name]['intra']={}
+			surgical_data['trajectories'][plan_name]['intra']=intra_info_dict({})
 			surgical_data['trajectories'][plan_name]['intra']['lead_traj_chosen'] = implantTraj.lower()
 			surgical_data['trajectories'][plan_name]['intra']['mer_tracks'] = {}
 		else:
@@ -1054,7 +1062,7 @@ class postopLocalizationLogic(ScriptedLoadableModuleLogic):
 							'acpc_target':list(adjustPrecision(new_coords_shift_final.T[idx]))
 						}
 
-			if coords_track is not None and postActualMERTracksPlot:
+			if postMicroModel is not None and coords_track is not None and postActualMERTracksPlot:
 				ch_info[ichan] = ch_info_temp
 
 				model_parameters['mer_filename'] = track_filename

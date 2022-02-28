@@ -17,7 +17,8 @@ elif __file__:
 sys.path.insert(1, os.path.dirname(cwd))
 
 from helpers.helpers import vtkModelBuilderClass, plotLead, rotation_matrix, warningBox, getMarkupsNode, adjustPrecision, addCustomLayouts, frame_angles, frame_angles, plotMicroelectrode
-from helpers.variables import coordSys, slicerLayout, fontSetting, groupboxStyle, electrodeModels
+from helpers.variables import coordSys, slicerLayout, fontSetting, groupboxStyle, electrodeModels, \
+pre_info_dict, intra_info_dict, post_info_dict
 
 #
 # intraopPlanning
@@ -425,6 +426,9 @@ class intraopPlanningWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 		Slot for selection of ``Trajectory used`` under ``Left Plan``
 		
 		"""
+
+		self.intraopImplantTraj = None
+
 		children = self.ui.intraopTrajUsedGB.findChildren('QRadioButton')
 		for i in children:
 			if i.isChecked():
@@ -433,15 +437,15 @@ class intraopPlanningWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
 		button_idx = abs(button - -2)
 		if children[button_idx].text.lower() != self.intraopImplantTraj:
-			if self.intraopImplantTraj:
+			if self.intraopImplantTraj is not None:
 				children[button_idx].setChecked(True)
-				self.intraopImplantTraj = []
+				self.intraopImplantTraj = None
 			else:
 				children[button_idx].setChecked(False)
 				self.intraopImplantTraj = children[button_idx].text.lower()
 		elif children[button_idx].text.lower() == self.intraopImplantTraj:
 			children[button_idx].setChecked(True)
-			self.intraopImplantTraj = []
+			self.intraopImplantTraj = None
 
 	def onShowLeadButtonGroup(self, button):
 		"""
@@ -476,14 +480,15 @@ class intraopPlanningWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 		"""
 		plan_name = self.ui.intraopPlanName.currentText
 
+		self.intraopImplantTraj = None
+
 		children = self.ui.intraopTrajUsedGB.findChildren('QRadioButton')
 		for i in children:
 			if i.isChecked():
 				self.intraopImplantTraj = i.text.lower()
 
 		if self.intraopImplantTraj is None:
-			warningBox('Please choose trajectory used.')
-			return
+			self.intraopImplantTraj = 'center'
 
 		for item in [x for x in slicer.util.getNodesByClass('vtkMRMLModelNode') if f"{plan_name}_planned_lead" in x.GetName().lower()]:
 			item.GetDisplayNode().VisibilityOff()
@@ -554,12 +559,14 @@ class intraopPlanningWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 								coords[1] - NormVec[1] * implant_depth,
 								coords[2] - NormVec[2] * implant_depth]))
 
-		surgical_data['trajectories'][plan_name]['intra']={
+		intra_info = {
 			'entry':entry_intraop,
 			'target':target_intraop,
 			'lead_traj_chosen':self.intraopImplantTraj.lower(),
 			'lead_depth':implant_depth
 		}
+
+		surgical_data['trajectories'][plan_name]['intra']=intra_info_dict(intra_info)
 
 		lineNode = getMarkupsNode(plan_name + '_line_intra', 'vtkMRMLMarkupsLineNode', False)
 		if lineNode is not None:
