@@ -17,7 +17,7 @@ elif __file__:
 sys.path.insert(1, os.path.dirname(cwd))
 
 from helpers.helpers import vtkModelBuilderClass,getFrameCenter, getReverseTransform,\
-addCustomLayouts, hex2rgb, sorted_nicely, sortSceneData
+addCustomLayouts, hex2rgb, sorted_nicely, sortSceneData, getMarkupsNode, plotLead
 from helpers.variables import coordSys, slicerLayout, surgical_info_dict, \
 pre_info_dict, intra_info_dict, post_info_dict
 
@@ -586,6 +586,15 @@ class dataImportLogic(ScriptedLoadableModuleLogic):
 					shutil.copy2(inifti, os.path.join(self._parameterNode.GetParameter('derivFolder'), 'source', os.path.basename(inifti)))
 					shutil.copy2(inifti, os.path.join(self._parameterNode.GetParameter('derivFolder'), os.path.basename(inifti)))
 
+		with open(os.path.join(self._parameterNode.GetParameter('derivFolder'), f"{self._parameterNode.GetParameter('derivFolder').split(os.path.sep)[-1]}_surgical_data.json")) as (surgical_file):
+			surgical_data = json.load(surgical_file)
+
+		with open(os.path.join(self._parameterNode.GetParameter('derivFolder'), 'settings', 'model_visibility.json')) as (settings_file):
+				slice_vis = json.load(settings_file)
+		
+		with open(os.path.join(self._parameterNode.GetParameter('derivFolder'), 'settings', 'model_color.json')) as (settings_file):
+			model_colors = json.load(settings_file)
+
 		#### Load all files within subject root derivative directory
 		for ifile in sorted_nicely([x for x in glob.glob(os.path.join(self._parameterNode.GetParameter('derivFolder'), '*')) if not os.path.isdir(x)]):
 			if any(ifile.endswith(x) for x in {'.nii','.nii.gz'}):
@@ -737,12 +746,50 @@ class dataImportLogic(ScriptedLoadableModuleLogic):
 					objectType='VTA'
 
 				if planType is not None and objectType is not None:
-					if os.path.basename(ifile).endswith('.vtk'):
-						vtkModelBuilder=vtkModelBuilderClass()
-						vtkModelBuilder.filename=ifile
-						vtkModelBuilder.model_color = modelColors[f'{planType}{objectType}Color']
-						vtkModelBuilder.model_visibility = slice_vis[f'{planType}{objectType}3DVis']
-						vtkModelBuilder.add_to_scene()
+					if os.path.basename(ifile).endswith('_lead.vtk'):
+						task_name = [x for x in os.path.basename(ifile).split('_') if 'task' in x]
+						if task_name:
+							plan_name = task_name[0].split('-')[1]
+
+							model_parameters = {
+								'plan_name': plan_name,
+								'type':'pre',
+								'side': surgical_data['trajectories'][plan_name]['side'],
+								'elecUsed': surgical_data['trajectories'][plan_name]['pre']['elecUsed'], 
+								'microUsed': surgical_data['trajectories'][plan_name]['pre']['microUsed'],
+								'data_dir': None,
+								'lead_fileN': os.path.basename(ifile),
+								'contact_fileN': os.path.basename(ifile).replace('_lead.vtk', f"_label-%s_contact.vtk"), 
+								'model_col':model_colors['plannedLeadColor'], 
+								'model_vis':slice_vis['plannedLead3DVis'], 
+								'contact_col':model_colors['plannedContactColor'], 
+								'contact_vis':slice_vis['plannedContact3DVis'],
+								'plot_model': True
+							}
+							
+							plotLead(
+								surgical_data['trajectories'][plan_name]['pre']['entry'],
+								surgical_data['trajectories'][plan_name]['pre']['target'],
+								None, 
+								model_parameters
+							)
+
+							lineNode = getMarkupsNode(plan_name +'_line', node_type='vtkMRMLMarkupsLineNode', create=True)
+
+							entry = surgical_data['trajectories'][plan_name]['pre']['entry']
+							target = surgical_data['trajectories'][plan_name]['pre']['target']
+
+							n = lineNode.AddControlPointWorld(vtk.vtkVector3d(entry[0], entry[1], entry[2]))
+							lineNode.SetNthControlPointLabel(n, '_'.join([plan_name,'entry']))
+							lineNode.SetNthControlPointLocked(n, True)
+
+							n = lineNode.AddControlPointWorld(vtk.vtkVector3d(target[0], target[1], target[2]))
+							lineNode.SetNthControlPointLabel(n, '_'.join([plan_name,'target']))
+							lineNode.SetNthControlPointLocked(n, True)
+
+							lineNode.GetDisplayNode().PointLabelsVisibilityOff()
+							lineNode.SetAttribute('ProbeEye', '1')
+
 					elif os.path.basename(ifile).endswith('.stl'):
 						node = slicer.util.loadModel(ifile)
 						if isinstance(modelColors[f'{planType}{objectType}Color'],str):
@@ -855,7 +902,8 @@ class dataImportLogic(ScriptedLoadableModuleLogic):
 		slicer.app.restoreOverrideCursor()
 
 		#sortSceneData()
-
+		
+					
 	def fcsvLPStoRAS(self, fcsv_fname):
 		coord_sys=[]
 		with open(fcsv_fname, 'r+') as fid:

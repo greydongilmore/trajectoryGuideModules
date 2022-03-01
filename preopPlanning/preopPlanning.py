@@ -384,7 +384,7 @@ class preopPlanningWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 				if self.ui.planEntryY.value != pointCoordsACPC[1]: self.ui.planTargetY.value =pointCoordsACPC[1]
 				if self.ui.planEntryZ.value != pointCoordsACPC[2]: self.ui.planTargetZ.value =pointCoordsACPC[2]
 
-			oppositePointCoords = getPointCoords((self.ui.planName.currentText + '_line'), oppositePoint, node_type='vtkMRMLMarkupsLineNode')
+			oppositePointCoords = getPointCoords((self.ui.planName.currentText + '_line'), '_'.join([self.ui.planName.currentText,oppositePoint]), node_type='vtkMRMLMarkupsLineNode')
 			if np.array_equal(adjustPrecision(oppositePointCoords), adjustPrecision(np.array([0.0] * 3))):
 				oppositePointCoords = getPointCoords(oppositePoint, oppositePoint)
 
@@ -398,7 +398,7 @@ class preopPlanningWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 			if activeLabel in fiducialNode.GetNthControlPointLabel(ifid):
 				fiducialNode.RemoveNthControlPoint(ifid)
 
-		planPointOrigin = getPointCoords((self.ui.planName.currentText + '_line'), activeLabel, node_type='vtkMRMLMarkupsLineNode')
+		planPointOrigin = getPointCoords((self.ui.planName.currentText + '_line'), '_'.join([self.ui.planName.currentText,activeLabel]), node_type='vtkMRMLMarkupsLineNode')
 		if np.array_equal(adjustPrecision(planPointOrigin), adjustPrecision(np.array([0.0] * 3))):
 			if fiducialNode is not None:
 				if 'entry' in activeLabel:
@@ -422,7 +422,7 @@ class preopPlanningWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 			pointLocked = True
 			lineNode = getMarkupsNode((self.ui.planName.currentText + '_line'), node_type='vtkMRMLMarkupsLineNode')
 			fiducialNode = getMarkupsNode(fiducialPoint)
-			planPointOrigin = getPointCoords((self.ui.planName.currentText + '_line'), fiducialPoint, node_type='vtkMRMLMarkupsLineNode')
+			planPointOrigin = getPointCoords((self.ui.planName.currentText + '_line'), '_'.join([self.ui.planName.currentText,fiducialPoint]), node_type='vtkMRMLMarkupsLineNode')
 			if not np.array_equal(adjustPrecision(planPointOrigin), adjustPrecision(np.array([0.0] * 3))):
 				for ifid in range(lineNode.GetNumberOfControlPoints()):
 					if fiducialPoint in lineNode.GetNthControlPointLabel(ifid) and lineNode.GetNthControlPointLocked(ifid) == 1:
@@ -522,7 +522,7 @@ class preopPlanningWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 			
 			originPointWorld = getPointCoords('acpc', self.originPoint)
 			crosshairSpinboxACPC = list([self.ui.CrosshairCoordsPlanningX.value, self.ui.CrosshairCoordsPlanningY.value, self.ui.CrosshairCoordsPlanningZ.value])
-			fiducialMarkupsWorld = getPointCoords((self.ui.planName.currentText + '_line'), fiducialPoint, node_type='vtkMRMLMarkupsLineNode')
+			fiducialMarkupsWorld = getPointCoords((self.ui.planName.currentText + '_line'), '_'.join([self.ui.planName.currentText,fiducialPoint]), node_type='vtkMRMLMarkupsLineNode')
 			
 			self.frameRotationNode = getFrameRotation()
 
@@ -910,8 +910,8 @@ class preopPlanningWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 				fiducialMarkupsWorld = getMarkupsNode((self.ui.planName.currentText + '_line'), node_type='vtkMRMLMarkupsLineNode')
 				if fiducialMarkupsWorld is not None:
 					origin_point = getPointCoords('acpc', self.originPoint)
-					target_coords_world = getPointCoords(self.ui.planName.currentText + '_line', 'target',node_type='vtkMRMLMarkupsLineNode')
-					entry_coords_world = getPointCoords(self.ui.planName.currentText + '_line', 'entry',node_type='vtkMRMLMarkupsLineNode')
+					target_coords_world = getPointCoords(self.ui.planName.currentText + '_line', '_'.join([self.ui.planName.currentText,'target']),node_type='vtkMRMLMarkupsLineNode')
+					entry_coords_world = getPointCoords(self.ui.planName.currentText + '_line', '_'.join([self.ui.planName.currentText,'entry']),node_type='vtkMRMLMarkupsLineNode')
 
 					self.ui.planEntryX.value = entry_coords_world[0] - origin_point[0]
 					self.ui.planEntryY.value = entry_coords_world[1] - origin_point[1]
@@ -1006,8 +1006,8 @@ class preopPlanningWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 						for imodel in models:
 							if planName in imodel.GetName():
 								imodel.GetDisplayNode().SetVisibility(1)
-								if '_lead' in imodel.GetName() and lineNode is not None:
-									lineNode.GetDisplayNode().SetVisibility(0)
+								#if '_lead' in imodel.GetName() and lineNode is not None:
+								#	lineNode.GetDisplayNode().SetVisibility(0)
 
 	def convertFiducialNodesToLine(self, node1_name, node2_name, new_name, visibility=True):
 		lineNode = getMarkupsNode(new_name, node_type='vtkMRMLMarkupsLineNode', create=True)
@@ -1074,13 +1074,19 @@ class preopPlanningWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
 			models = [x for x in slicer.util.getNodesByClass('vtkMRMLModelNode') if not slicer.vtkMRMLSliceLogic.IsSliceModelNode(x)]
 			for imodel in models:
-				if planName in imodel.GetName():
-					imodel.GetModelDisplayNode().SetSliceIntersectionVisibility(0)
+				imodel.GetModelDisplayNode().SetSliceIntersectionVisibility(0)
 
 			for iLine in slicer.util.getNodesByClass('vtkMRMLMarkupsLineNode'):
 				if planName in iLine.GetName():
 					iLine.GetDisplayNode().SetVisibility(1)
 					iLine.GetDisplayNode().SetSliceIntersectionVisibility(1)
+				else:
+					iLine.GetDisplayNode().SetVisibility(0)
+					iLine.GetDisplayNode().SetSliceIntersectionVisibility(0)
+
+			for iMarkups in slicer.util.getNodesByClass('vtkMRMLMarkupsFiducialNode'):
+				if '_contacts' in iMarkups.GetName():
+					iMarkups.GetDisplayNode().SetVisibility(0)
 		else:
 			planName = [x for x in self.probeEyeModel.GetName().split('_') if 'task' in x][0].replace('task-','')
 
@@ -1088,11 +1094,18 @@ class preopPlanningWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 			for imodel in models:
 				if planName in imodel.GetName():
 					imodel.GetModelDisplayNode().SetSliceIntersectionVisibility(1)
+				else:
+					imodel.GetModelDisplayNode().SetSliceIntersectionVisibility(0)
 
 			for iLine in slicer.util.getNodesByClass('vtkMRMLMarkupsLineNode'):
-				if planName in iLine.GetName():
-					iLine.GetDisplayNode().SetVisibility(0)
-					iLine.GetDisplayNode().SetSliceIntersectionVisibility(0)
+				iLine.GetDisplayNode().SetVisibility(0)
+				iLine.GetDisplayNode().SetSliceIntersectionVisibility(0)
+
+			for iMarkups in slicer.util.getNodesByClass('vtkMRMLMarkupsFiducialNode'):
+				if (planName + '_contacts') in iMarkups.GetName():
+					iMarkups.GetDisplayNode().SetVisibility(1)
+				else:
+					iMarkups.GetDisplayNode().SetVisibility(0)
 
 		if self.previousProbeEye!=currentPlanName:
 			if len(slicer.util.getNodes('*probe_eye_tip*'))>0:
@@ -1134,7 +1147,7 @@ class preopPlanningWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 				if self.previousProbeEye != currentPlanName:
 					layoutManager.sliceWidget(settings['color']).sliceLogic().FitSliceToAll()
 					fov=layoutManager.sliceWidget(settings['color']).sliceLogic().GetSliceNode().GetFieldOfView()
-					layoutManager.sliceWidget(settings['color']).sliceLogic().GetSliceNode().SetFieldOfView(fov[0]/2,fov[1]/2,fov[2])
+					layoutManager.sliceWidget(settings['color']).sliceLogic().GetSliceNode().SetFieldOfView(fov[0]/1.5,fov[1]/1.5,fov[2])
 
 			#mouseTrack = SteeredPolyAffineRegistrationLogic(self.ui.MRMLSliderWidget)
 			#mouseTrack.run()
@@ -1154,8 +1167,8 @@ class preopPlanningWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 		else:
 			planName = [x for x in self.probeEyeModel.GetName().split('_') if 'task' in x][0].replace('task-','')
 		
-		self.ProbeEntryPoint = getPointCoords((planName + '_line'), 'entry', node_type='vtkMRMLMarkupsLineNode')
-		self.ProbeTargetPoint = getPointCoords((planName + '_line'), 'target', node_type='vtkMRMLMarkupsLineNode')
+		self.ProbeEntryPoint = getPointCoords((planName + '_line'), planName + '_entry', node_type='vtkMRMLMarkupsLineNode')
+		self.ProbeTargetPoint = getPointCoords((planName + '_line'), planName + '_target', node_type='vtkMRMLMarkupsLineNode')
 		
 		arcAngle, ringAngle = frame_angles(self.ProbeTargetPoint,self.ProbeEntryPoint)
 
@@ -1198,6 +1211,7 @@ class preopPlanningWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 			probeEyeMarkups.SetAndObserveDisplayNodeID(nodeDisplayNode.GetID())
 			nodeDisplayNode.SetGlyphType(3)
 			nodeDisplayNode.SetTextScale(0)
+			nodeDisplayNode.SetVisibility(0)
 			nodeDisplayNode.SetGlyphScale(4)
 			nodeDisplayNode.SetUseGlyphScale(0)
 			nodeDisplayNode.SetSelectedColor(1,0,0)
@@ -1231,30 +1245,20 @@ class preopPlanningWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
 			self.previousProbeEye=False
 
-			if currentProbeEyeModel.GetNodeTagName() =='MarkupsLine':
-				planName = currentProbeEyeModel.GetName().split('_')[0]
+			
+			models = [x for x in slicer.util.getNodesByClass('vtkMRMLModelNode') if not slicer.vtkMRMLSliceLogic.IsSliceModelNode(x)]
+			for imodel in models:
+				imodel.GetModelDisplayNode().SetSliceIntersectionVisibility(1)
 
-				models = [x for x in slicer.util.getNodesByClass('vtkMRMLModelNode') if not slicer.vtkMRMLSliceLogic.IsSliceModelNode(x)]
-				for imodel in models:
-					if planName in imodel.GetName():
-						imodel.GetModelDisplayNode().SetSliceIntersectionVisibility(1)
+			for iLine in slicer.util.getNodesByClass('vtkMRMLMarkupsLineNode'):
+				if '_line' in iLine.GetName():
+					iLine.GetDisplayNode().SetVisibility(1)
+					iLine.GetDisplayNode().SetSliceIntersectionVisibility(1)
 
-				for iLine in slicer.util.getNodesByClass('vtkMRMLMarkupsLineNode'):
-					if planName in iLine.GetName():
-						iLine.GetDisplayNode().SetVisibility(0)
-						iLine.GetDisplayNode().SetSliceIntersectionVisibility(0)
+			for iMarkups in slicer.util.getNodesByClass('vtkMRMLMarkupsFiducialNode'):
+				if '_contacts' in iMarkups.GetName():
+					iMarkups.GetDisplayNode().SetVisibility(0)
 
-			else:
-				planName = [x for x in currentProbeEyeModel.GetName().split('_') if 'task' in x][0].replace('task-','')
-
-				models = [x for x in slicer.util.getNodesByClass('vtkMRMLModelNode') if not slicer.vtkMRMLSliceLogic.IsSliceModelNode(x)]
-				for imodel in models:
-					if planName in imodel.GetName():
-						imodel.GetModelDisplayNode().SetSliceIntersectionVisibility(1)
-
-				for iLine in slicer.util.getNodesByClass('vtkMRMLMarkupsLineNode'):
-					if planName in iLine.GetName():
-						iLine.GetDisplayNode().SetSliceIntersectionVisibility(1)
 
 			if len(slicer.util.getNodes('*probe_eye_tip*'))>0:
 					slicer.mrmlScene.RemoveNode(list(slicer.util.getNodes('*probe_eye_tip*').values())[0])
@@ -1625,8 +1629,8 @@ class preopPlanningWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 				os.remove(imodel.GetStorageNode().GetFileName())
 				slicer.mrmlScene.RemoveNode(slicer.util.getNode(imodel.GetName()))
 
-		entry_coords_world = getPointCoords((plan_name + '_line'), 'entry', node_type='vtkMRMLMarkupsLineNode')
-		target_coords_world = getPointCoords((plan_name + '_line'), 'target', node_type='vtkMRMLMarkupsLineNode')
+		entry_coords_world = getPointCoords((plan_name + '_line'), plan_name + '_entry', node_type='vtkMRMLMarkupsLineNode')
+		target_coords_world = getPointCoords((plan_name + '_line'), plan_name + '_target', node_type='vtkMRMLMarkupsLineNode')
 		
 		if self.merOrientation=='plusBenGun':
 			channel_index = self.leftChanIndexPlus if target_coords_world[0] < origin_point[0] else self.rightChanIndexPlus

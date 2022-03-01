@@ -329,7 +329,8 @@ class vtkModelBuilderClass:
 			node.SetAndObserveDisplayNodeID(nodeDisplayNode.GetID())
 		else:
 			node = slicer.util.loadModel(self.filename)
-			node.SetName(os.path.splitext(os.path.splitext(os.path.basename(self.filename))[0])[0])
+			self.nodeName = os.path.splitext(os.path.splitext(os.path.basename(self.filename))[0])[0]
+			node.SetName(self.nodeName)
 
 		if self.model_color is not None:
 			if isinstance(self.model_color,str):
@@ -2297,25 +2298,26 @@ def plotLead(entry,target,origin,model_parameters):
 	if isinstance(model_parameters['model_col'],str):
 		model_parameters['model_col'] = hex2rgb(model_parameters['model_col'])
 
-	entry_origin = entry - origin.copy()
-	target_origin = target - origin.copy()
-	
 	NormVec = norm_vec(target,entry)
-	
-	coordsFile = []
-	coordsFile.append([model_parameters['plan_name'], model_parameters['type'], 'entry', entry_origin[0], entry_origin[1], entry_origin[2]])
-	coordsFile.append([model_parameters['plan_name'], model_parameters['type'], 'target', target_origin[0], target_origin[1], target_origin[2]])
 
-	csvfile = os.path.join(model_parameters['data_dir'], 'summaries', 'lead_coordinates.csv')
-	if not os.path.exists(csvfile):
-		header=['plan_name', 'type', 'point', 'X', 'Y', 'Z']
-		with open(csvfile, 'w') as (output):
+	if origin is not None:
+		entry_origin = entry - origin.copy()
+		target_origin = target - origin.copy()
+
+		coordsFile = []
+		coordsFile.append([model_parameters['plan_name'], model_parameters['type'], 'entry', entry_origin[0], entry_origin[1], entry_origin[2]])
+		coordsFile.append([model_parameters['plan_name'], model_parameters['type'], 'target', target_origin[0], target_origin[1], target_origin[2]])
+
+		csvfile = os.path.join(model_parameters['data_dir'], 'summaries', 'lead_coordinates.csv')
+		if not os.path.exists(csvfile):
+			header=['plan_name', 'type', 'point', 'X', 'Y', 'Z']
+			with open(csvfile, 'w') as (output):
+				writer = csv.writer(output, lineterminator='\n')
+				writer.writerows(header)
+
+		with open(csvfile, 'a') as (output):
 			writer = csv.writer(output, lineterminator='\n')
-			writer.writerows(header)
-
-	with open(csvfile, 'a') as (output):
-		writer = csv.writer(output, lineterminator='\n')
-		writer.writerows(coordsFile)
+			writer.writerows(coordsFile)
 
 	#### remove any pre-existing vtk models of the same name
 	nodes = [x for x in slicer.util.getNodesByClass('vtkMRMLModelNode') if not slicer.vtkMRMLSliceLogic.IsSliceModelNode(x)]
@@ -2323,12 +2325,12 @@ def plotLead(entry,target,origin,model_parameters):
 		if os.path.split(model_parameters['lead_fileN'])[(-1)].split('type-')[0] in inodes.GetName() and '_lead' in inodes.GetName():
 			filepath = slicer.util.getNode(inodes.GetID()).GetStorageNode().GetFileName()
 			slicer.mrmlScene.RemoveNode(slicer.util.getNode(inodes.GetID()))
-			os.remove(filepath)
+			if model_parameters['data_dir'] is not None:
+				os.remove(filepath)
 
 
 	electrode_index = [i for i, x in enumerate(electrodeModels.keys()) if model_parameters['elecUsed'].lower() == x.lower()][0]
 	e_specs = electrodeModels[list(electrodeModels)[electrode_index]]
-
 
 	lead_start = np.array([
 		target[0] - (NormVec[0] * e_specs['lead_shift']), 
@@ -2340,7 +2342,11 @@ def plotLead(entry,target,origin,model_parameters):
 	vtkModelBuilder.coords = np.hstack((np.array(lead_start), np.array(entry)))
 	vtkModelBuilder.tube_radius = e_specs['diameter']
 	vtkModelBuilder.tube_thickness = 0.2
-	vtkModelBuilder.filename = os.path.join(model_parameters['data_dir'], model_parameters['lead_fileN'])
+	if model_parameters['data_dir'] is not None:
+		vtkModelBuilder.filename = os.path.join(model_parameters['data_dir'], model_parameters['lead_fileN'])
+	else:
+		vtkModelBuilder.filename = None
+	vtkModelBuilder.nodeName = os.path.splitext(model_parameters['lead_fileN'])[0]
 	vtkModelBuilder.model_color = model_parameters['model_col']
 	vtkModelBuilder.model_visibility = model_parameters['model_vis']
 	vtkModelBuilder.build_electrode()
@@ -2350,7 +2356,7 @@ def plotLead(entry,target,origin,model_parameters):
 	
 	#### this will be updated within the loop so need to assign to variable.
 	start = e_specs['encapsultation']
-	contact_diameter = e_specs['diameter']+.01
+	contact_diameter = e_specs['diameter']+.05
 
 	#### build each contact in the electrode
 	bottomTop = np.empty([0, 6])
@@ -2367,7 +2373,12 @@ def plotLead(entry,target,origin,model_parameters):
 				[target[2] + NormVec[2] * (start + e_specs['contact_size'])]]
 			).T))), axis=0)
 		
-		filen = os.path.join(model_parameters['data_dir'], model_parameters['contact_fileN'] % (str(iContact + 1).zfill(2)))
+		base_name = model_parameters['contact_fileN'] % (str(iContact + 1).zfill(2))
+
+		if model_parameters['data_dir'] is not None:
+			filen = os.path.join(model_parameters['data_dir'], base_name)
+		else:
+			filen = None
 
 		nodes = [x for x in slicer.util.getNodesByClass('vtkMRMLModelNode') if not slicer.vtkMRMLSliceLogic.IsSliceModelNode(x)]
 		for inodes in nodes:
@@ -2388,6 +2399,7 @@ def plotLead(entry,target,origin,model_parameters):
 				vtkModelBuilder.tube_thickness = 0.3
 				vtkModelBuilder.electrodeLen = e_specs['contact_size']
 				vtkModelBuilder.filename = filen
+				vtkModelBuilder.nodeName = base_name
 				vtkModelBuilder.model_color = model_parameters['contact_col']
 				vtkModelBuilder.model_visibility = model_parameters['contact_vis']
 				vtkModelBuilder.build_dir_bottomContact()
@@ -2395,10 +2407,19 @@ def plotLead(entry,target,origin,model_parameters):
 					vtkModelBuilder.add_to_scene()
 			
 			elif iContact == 1 or iContact == 2:
-				base_name = os.path.basename(filen)
-				filen1 = os.path.join(model_parameters['data_dir'], '_'.join([base_name.split('_contact')[0], 'run-01', 'contact.vtk']))
-				filen2 = os.path.join(model_parameters['data_dir'], '_'.join([base_name.split('_contact')[0], 'run-02', 'contact.vtk']))
-				filen3 = os.path.join(model_parameters['data_dir'], '_'.join([base_name.split('_contact')[0], 'run-03', 'contact.vtk']))
+				filen1 = None
+				filen2 = None
+				filen3 = None
+
+				base_name1='_'.join([base_name.split('_contact')[0], 'run-01', 'contact.vtk'])
+				base_name2='_'.join([base_name.split('_contact')[0], 'run-02', 'contact.vtk'])
+				base_name3='_'.join([base_name.split('_contact')[0], 'run-03', 'contact.vtk'])
+
+				if model_parameters['data_dir'] is not None:
+					
+					filen1 = os.path.join(model_parameters['data_dir'], '_'.join([base_name.split('_contact')[0], 'run-01', 'contact.vtk']))
+					filen2 = os.path.join(model_parameters['data_dir'], '_'.join([base_name.split('_contact')[0], 'run-02', 'contact.vtk']))
+					filen3 = os.path.join(model_parameters['data_dir'], '_'.join([base_name.split('_contact')[0], 'run-03', 'contact.vtk']))
 				
 				plane = np.vstack((
 					[0.7, 1.0, 0.0],
@@ -2418,7 +2439,11 @@ def plotLead(entry,target,origin,model_parameters):
 				vtkModelBuilder.tube_radius = contact_diameter
 				vtkModelBuilder.tube_thickness = 0.3
 				vtkModelBuilder.plane = plane
-				vtkModelBuilder.filename = filen1
+				if model_parameters['data_dir'] is not None:
+					vtkModelBuilder.filename = os.path.join(model_parameters['data_dir'], base_name1)
+				else:
+					vtkModelBuilder.filename = None
+				vtkModelBuilder.nodeName = base_name1
 				vtkModelBuilder.model_color = model_parameters['contact_col']
 				vtkModelBuilder.model_visibility = model_parameters['contact_vis']
 				vtkModelBuilder.build_seg_contact()
@@ -2444,7 +2469,11 @@ def plotLead(entry,target,origin,model_parameters):
 				vtkModelBuilder.tube_radius = contact_diameter
 				vtkModelBuilder.tube_thickness = 0.3
 				vtkModelBuilder.plane = plane
-				vtkModelBuilder.filename = filen2
+				if model_parameters['data_dir'] is not None:
+					vtkModelBuilder.filename = os.path.join(model_parameters['data_dir'], base_name2)
+				else:
+					vtkModelBuilder.filename = None
+				vtkModelBuilder.nodeName = base_name2
 				vtkModelBuilder.model_color = model_parameters['contact_col']
 				vtkModelBuilder.model_visibility = model_parameters['contact_vis']
 				vtkModelBuilder.build_seg_contact()
@@ -2469,7 +2498,11 @@ def plotLead(entry,target,origin,model_parameters):
 				vtkModelBuilder.tube_radius = contact_diameter
 				vtkModelBuilder.tube_thickness = 0.3
 				vtkModelBuilder.plane = plane
-				vtkModelBuilder.filename = filen3
+				if model_parameters['data_dir'] is not None:
+					vtkModelBuilder.filename = os.path.join(model_parameters['data_dir'], base_name3)
+				else:
+					vtkModelBuilder.filename = None
+				vtkModelBuilder.nodeName = base_name3
 				vtkModelBuilder.model_color = model_parameters['contact_col']
 				vtkModelBuilder.model_visibility = model_parameters['contact_vis']
 				vtkModelBuilder.build_seg_contact()
@@ -2482,6 +2515,7 @@ def plotLead(entry,target,origin,model_parameters):
 				vtkModelBuilder.tube_radius = contact_diameter
 				vtkModelBuilder.tube_thickness = 0.3
 				vtkModelBuilder.filename = filen
+				vtkModelBuilder.nodeName = base_name
 				vtkModelBuilder.model_color = model_parameters['contact_col']
 				vtkModelBuilder.model_visibility = model_parameters['contact_vis']
 				vtkModelBuilder.build_line()
@@ -2494,6 +2528,7 @@ def plotLead(entry,target,origin,model_parameters):
 			vtkModelBuilder.tube_radius = contact_diameter
 			vtkModelBuilder.tube_thickness = 0.3
 			vtkModelBuilder.filename = filen
+			vtkModelBuilder.nodeName = base_name
 			vtkModelBuilder.model_color = model_parameters['contact_col']
 			vtkModelBuilder.model_visibility = model_parameters['contact_vis']
 			vtkModelBuilder.build_line()
@@ -2504,23 +2539,25 @@ def plotLead(entry,target,origin,model_parameters):
 		start += e_specs['contact_size']
 		start += e_specs['contact_spacing']
 
-	csvfile = os.path.join(model_parameters['data_dir'], 'summaries', 'contact_coordinates.csv')
-	
-	if not os.path.exists(csvfile):
-		contactFileHeader = ['plan', 'type', 'contact', 'X', 'Y', 'Z']
-		with open(csvfile, 'w') as (output):
+	if model_parameters['data_dir'] is not None:
+		csvfile = os.path.join(model_parameters['data_dir'], 'summaries', 'contact_coordinates.csv')
+		
+		if not os.path.exists(csvfile):
+			contactFileHeader = ['plan', 'type', 'contact', 'X', 'Y', 'Z']
+			with open(csvfile, 'w') as (output):
+				writer = csv.writer(output, lineterminator='\n')
+				writer.writerows(contactFileHeader)
+		
+		with open(csvfile, 'a') as (output):
 			writer = csv.writer(output, lineterminator='\n')
-			writer.writerows(contactFileHeader)
-	
-	with open(csvfile, 'a') as (output):
-		writer = csv.writer(output, lineterminator='\n')
-		writer.writerows(contactFile)
+			writer.writerows(contactFile)
 
 	contacts=slicer.mrmlScene.AddNewNodeByClass('vtkMRMLMarkupsFiducialNode')
 	contacts.SetName(f"{model_parameters['plan_name']}_contacts")
 	contacts.AddDefaultStorageNode()
 	contacts.GetStorageNode().SetCoordinateSystem(0)
-	contacts.GetDisplayNode().SetGlyphScale(0)
+	contacts.GetDisplayNode().SetGlyphScale(3)
+	contacts.GetDisplayNode().SetGlyphType(10)
 	contacts.GetDisplayNode().SetTextScale(5)
 
 	for icontact in range(e_specs['num_groups']):
@@ -2528,8 +2565,9 @@ def plotLead(entry,target,origin,model_parameters):
 		n = contacts.AddControlPoint(vtk.vtkVector3d(midContactList[icontact][0], midContactList[icontact][1], midContactList[icontact][2]))
 		contacts.SetNthControlPointLabel(n, new_label)
 
-	contacts.GetDisplayNode().SetSelectedColor(0.666, 1, 0.498)
-	contacts.GetDisplayNode().GetTextProperty().SetVerticalJustificationToCentered()
+	contacts.GetDisplayNode().SetVisibility(0)
+	contacts.GetDisplayNode().SetSelectedColor(0, 1, 0)
+	contacts.GetDisplayNode().GetTextProperty().SetVerticalJustificationToTop()
 
 
 def plotMicroelectrode(coords, alpha, beta, model_parameters):

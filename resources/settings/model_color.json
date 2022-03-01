@@ -1,7 +1,7 @@
 {
     "plannedLeadColor": [
         0,
-        1,
+        0,
         1
     ],
     "intraLeadColor": [
@@ -16,8 +16,8 @@
     ],
     "plannedContactColor": [
         1.0,
-        1.0,
-        0.0
+        0,
+        0.468
     ],
     "intraContactColor": [
         1.0,
