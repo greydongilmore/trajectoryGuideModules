@@ -1402,7 +1402,7 @@ class frameDetectLogic(ScriptedLoadableModuleLogic):
 			topbottomNode.SetName(outputFCSVPrefix % ('topbottom'))
 
 			#writeFCSV(fiducialsNode,os.path.join(derivFolder, 'frame', outputFCSVPrefix % ('fiducials')+'.fcsv'))
-			#writeFCSV(topbottomNode,os.path.join(derivFolder, 'frame', outputFCSVPrefix % ('topbottom')+'.fcsv'))
+			writeFCSV(topbottomNode,os.path.join(derivFolder, 'frame', outputFCSVPrefix % ('topbottom')+'.fcsv'))
 
 			slicer.util.getNode(outputFCSVPrefix % ('fiducials')).GetDisplayNode().SetVisibility(0)
 			slicer.util.getNode(outputFCSVPrefix % ('topbottom')).GetDisplayNode().SetVisibility(0)
@@ -1444,8 +1444,6 @@ class frameDetectLogic(ScriptedLoadableModuleLogic):
 				outfile_name = os.path.join(derivFolder, 'frame',
 					f"{derivFolder.split(os.path.sep)[-1]}_space-{frame_settings['system']}_desc-centroids_fids.tsv")
 				
-				
-
 				with open(outfile_name, 'w') as out_file:
 					writer = csv.writer(out_file, delimiter = "\t")
 					writer.writerow(frameFiducialPoints.keys())
