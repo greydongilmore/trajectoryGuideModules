@@ -1,5 +1,5 @@
 
-import qt, ctk, slicer, vtk, numpy as np, pandas as pd,os, shutil, csv, json, sys, subprocess, platform, math, re
+import qt, ctk, slicer, vtk, numpy as np, pandas as pd,os, shutil, csv, json, sys, subprocess, platform, math, re, time
 from .variables import electrodeModels, coordSys, slicerLayout, trajectoryGuideLayout, trajectoryGuideAxialLayout, slicerLayoutAxial,\
 microelectrodeModels
 from random import uniform
@@ -308,6 +308,7 @@ class vtkModelBuilderClass:
 		self._save_file()
 
 	def _save_file(self):
+		save_done=False
 		if self.filename is not None:
 			writer = vtk.vtkPolyDataWriter()
 			writer.SetInputData(self.final_model.GetOutput())
@@ -2349,11 +2350,10 @@ def plotLead(entry,target,origin,model_parameters):
 	vtkModelBuilder.nodeName = os.path.splitext(model_parameters['lead_fileN'])[0]
 	vtkModelBuilder.model_color = model_parameters['model_col']
 	vtkModelBuilder.model_visibility = model_parameters['model_vis']
-	vtkModelBuilder.build_electrode()
+	save_done=vtkModelBuilder.build_electrode()
 	if model_parameters['plot_model']:
 		vtkModelBuilder.add_to_scene()
 
-	
 	#### this will be updated within the loop so need to assign to variable.
 	start = e_specs['encapsultation']
 	contact_diameter = e_specs['diameter']+.05
@@ -2551,6 +2551,10 @@ def plotLead(entry,target,origin,model_parameters):
 		with open(csvfile, 'a') as (output):
 			writer = csv.writer(output, lineterminator='\n')
 			writer.writerows(contactFile)
+
+	for imarkup in slicer.util.getNodesByClass('vtkMRMLMarkupsFiducialNode'):
+		if f"{model_parameters['plan_name']}_contacts" in imarkup.GetName():
+			slicer.mrmlScene.RemoveNode(slicer.util.getNode(imarkup.GetName()))
 
 	contacts=slicer.mrmlScene.AddNewNodeByClass('vtkMRMLMarkupsFiducialNode')
 	contacts.SetName(f"{model_parameters['plan_name']}_contacts")

@@ -522,7 +522,7 @@ class preopPlanningWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 			
 			originPointWorld = getPointCoords('acpc', self.originPoint)
 			crosshairSpinboxACPC = list([self.ui.CrosshairCoordsPlanningX.value, self.ui.CrosshairCoordsPlanningY.value, self.ui.CrosshairCoordsPlanningZ.value])
-			fiducialMarkupsWorld = getPointCoords((self.ui.planName.currentText + '_line'), '_'.join([self.ui.planName.currentText,fiducialPoint]), node_type='vtkMRMLMarkupsLineNode')
+			fiducialMarkupsWorld = getPointCoords((self.ui.planName.currentText + '_line'), '_'.join([self.ui.planName.currentText, fiducialPoint]), node_type='vtkMRMLMarkupsLineNode')
 			
 			self.frameRotationNode = getFrameRotation()
 
@@ -749,7 +749,7 @@ class preopPlanningWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 				self.ui.planEntryPlaceButton.setCurrentNode(self.markupsNodeEntry)
 
 				self.markupsNodeEntry.AddObserver(slicer.vtkMRMLMarkupsNode.PointPositionDefinedEvent, self.onPointAdd)
-				self.markupsNodeEntry.AddObserver(slicer.vtkMRMLMarkupsNode.PointPositionUndefinedEvent, self.onPointDelete)
+				#self.markupsNodeEntry.AddObserver(slicer.vtkMRMLMarkupsNode.PointPositionUndefinedEvent, self.onPointDelete)
 
 			if len(slicer.util.getNodes('target')) == 0:
 				self.markupsNodeTarget = slicer.mrmlScene.AddNewNodeByClass('vtkMRMLMarkupsFiducialNode')
@@ -759,7 +759,7 @@ class preopPlanningWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 				self.ui.planTargetPlaceButton.setCurrentNode(self.markupsNodeTarget)
 
 				self.markupsNodeTarget.AddObserver(slicer.vtkMRMLMarkupsNode.PointPositionDefinedEvent, self.onPointAdd)
-				self.markupsNodeTarget.AddObserver(slicer.vtkMRMLMarkupsNode.PointPositionUndefinedEvent, self.onPointDelete)
+				#self.markupsNodeTarget.AddObserver(slicer.vtkMRMLMarkupsNode.PointPositionUndefinedEvent, self.onPointDelete)
 
 	def onPlanAdd(self):
 		if not self.ui.planNameEdit.isVisible():
@@ -1011,6 +1011,7 @@ class preopPlanningWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
 	def convertFiducialNodesToLine(self, node1_name, node2_name, new_name, visibility=True):
 		lineNode = getMarkupsNode(new_name, node_type='vtkMRMLMarkupsLineNode', create=True)
+		plan_name = new_name.split('_')[0]
 		entry_coords_world=None
 		target_coords_world=None
 		side = None
@@ -1020,6 +1021,7 @@ class preopPlanningWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 				for ifid in range(node_temp.GetNumberOfControlPoints()):
 					nodeCoords = np.zeros(3)
 					nodelabel = ''.join([lbl for lbl in node_temp.GetNthControlPointLabel(ifid) if lbl.isalpha()])
+					nodelabel = '_'.join([plan_name, nodelabel])
 					node_temp.GetNthControlPointPositionWorld(ifid, nodeCoords)
 
 				nodePresent = False
@@ -1683,8 +1685,8 @@ class preopPlanningWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 				'traj_len':float(adjustPrecision(trajectory_dist)),
 				'axial_ang':float(adjustPrecision(ringAngle)) if ringAngle else ringAngle,
 				'sag_ang': float(adjustPrecision(arcAngle)) if arcAngle else arcAngle, 
-				'frame_entry':list(adjustPrecision(frame_entry)) if frame_entry else frame_entry, 
-				'frame_target':list(adjustPrecision(frame_target)) if frame_target else frame_target, 
+				'frame_entry':list(adjustPrecision(frame_entry)) if len(frame_entry) > 0 else frame_entry, 
+				'frame_target':list(adjustPrecision(frame_target)) if len(frame_target) > 0 else frame_target, 
 				'mer_tracks':{}
 			}
 

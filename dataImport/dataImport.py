@@ -787,6 +787,7 @@ class dataImportLogic(ScriptedLoadableModuleLogic):
 							lineNode.SetNthControlPointLabel(n, '_'.join([plan_name,'target']))
 							lineNode.SetNthControlPointLocked(n, True)
 
+							lineNode.GetDisplayNode().SetVisibility(0)
 							lineNode.GetDisplayNode().PointLabelsVisibilityOff()
 							lineNode.SetAttribute('ProbeEye', '1')
 
