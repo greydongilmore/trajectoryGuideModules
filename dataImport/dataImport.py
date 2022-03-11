@@ -753,43 +753,54 @@ class dataImportLogic(ScriptedLoadableModuleLogic):
 
 							model_parameters = {
 								'plan_name': plan_name,
-								'type':'pre',
 								'side': surgical_data['trajectories'][plan_name]['side'],
 								'elecUsed': surgical_data['trajectories'][plan_name]['pre']['elecUsed'], 
 								'microUsed': surgical_data['trajectories'][plan_name]['pre']['microUsed'],
 								'data_dir': None,
 								'lead_fileN': os.path.basename(ifile),
 								'contact_fileN': os.path.basename(ifile).replace('_lead.vtk', f"_label-%s_contact.vtk"), 
-								'model_col':model_colors['plannedLeadColor'], 
-								'model_vis':slice_vis['plannedLead3DVis'], 
-								'contact_col':model_colors['plannedContactColor'], 
-								'contact_vis':slice_vis['plannedContact3DVis'],
 								'plot_model': True
 							}
 							
-							plotLead(
-								surgical_data['trajectories'][plan_name]['pre']['entry'],
-								surgical_data['trajectories'][plan_name]['pre']['target'],
-								None, 
-								model_parameters
-							)
+							for iplan in ('pre','intra', 'post'):
+								if surgical_data['trajectories'][plan_name][iplan]['entry']:
 
-							lineNode = getMarkupsNode(plan_name +'_line', node_type='vtkMRMLMarkupsLineNode', create=True)
+									if iplan == 'pre':
+										model_col = 'planned'
+									elif iplan == 'intra':
+										model_col = 'intra'
+									elif iplan == 'post':
+										model_col = 'actual'
 
-							entry = surgical_data['trajectories'][plan_name]['pre']['entry']
-							target = surgical_data['trajectories'][plan_name]['pre']['target']
+									model_parameters['type']=iplan
+									model_parameters['model_col']=model_colors[f'{model_col}LeadColor']
+									model_parameters['model_vis']=slice_vis[f'{model_col}Lead3DVis']
+									model_parameters['contact_col']=model_colors[f'{model_col}ContactColor']
+									model_parameters['contact_vis']=slice_vis[f'{model_col}Contact3DVis']
+									print(model_parameters)
+									plotLead(
+										surgical_data['trajectories'][plan_name][iplan]['entry'],
+										surgical_data['trajectories'][plan_name][iplan]['target'],
+										None, 
+										model_parameters
+									)
 
-							n = lineNode.AddControlPointWorld(vtk.vtkVector3d(entry[0], entry[1], entry[2]))
-							lineNode.SetNthControlPointLabel(n, '_'.join([plan_name,'entry']))
-							lineNode.SetNthControlPointLocked(n, True)
+									lineNode = getMarkupsNode(plan_name +'_line', node_type='vtkMRMLMarkupsLineNode', create=True)
 
-							n = lineNode.AddControlPointWorld(vtk.vtkVector3d(target[0], target[1], target[2]))
-							lineNode.SetNthControlPointLabel(n, '_'.join([plan_name,'target']))
-							lineNode.SetNthControlPointLocked(n, True)
+									entry = surgical_data['trajectories'][plan_name][iplan]['entry']
+									target = surgical_data['trajectories'][plan_name][iplan]['target']
 
-							lineNode.GetDisplayNode().SetVisibility(0)
-							lineNode.GetDisplayNode().PointLabelsVisibilityOff()
-							lineNode.SetAttribute('ProbeEye', '1')
+									n = lineNode.AddControlPointWorld(vtk.vtkVector3d(entry[0], entry[1], entry[2]))
+									lineNode.SetNthControlPointLabel(n, '_'.join([plan_name,'entry']))
+									lineNode.SetNthControlPointLocked(n, True)
+
+									n = lineNode.AddControlPointWorld(vtk.vtkVector3d(target[0], target[1], target[2]))
+									lineNode.SetNthControlPointLabel(n, '_'.join([plan_name,'target']))
+									lineNode.SetNthControlPointLocked(n, True)
+
+									lineNode.GetDisplayNode().SetVisibility(0)
+									lineNode.GetDisplayNode().PointLabelsVisibilityOff()
+									lineNode.SetAttribute('ProbeEye', '1')
 
 					elif os.path.basename(ifile).endswith('.stl'):
 						node = slicer.util.loadModel(ifile)

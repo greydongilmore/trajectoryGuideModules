@@ -18,7 +18,7 @@ from helpers.helpers import plotLead, rotation_matrix, warningBox, vtkModelBuild
 getPointCoords,adjustPrecision,getMarkupsNode, addCustomLayouts, frame_angles, plotMicroelectrode
 
 from helpers.variables import fontSetting, groupboxStyle, coordSys, slicerLayout, electrodeModels, microelectrodeModels, \
-pre_info_dict, intra_info_dict, post_info_dict
+pre_info_dict, intra_info_dict, post_info_dict, plan_info_dict
 
 #
 # postopLocalization

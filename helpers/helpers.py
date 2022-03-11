@@ -2415,24 +2415,26 @@ def plotLead(entry,target,origin,model_parameters):
 				base_name2='_'.join([base_name.split('_contact')[0], 'run-02', 'contact.vtk'])
 				base_name3='_'.join([base_name.split('_contact')[0], 'run-03', 'contact.vtk'])
 
+				nodes = [x.GetName() for x in slicer.util.getNodesByClass('vtkMRMLModelNode') if not slicer.vtkMRMLSliceLogic.IsSliceModelNode(x)]
+
 				if model_parameters['data_dir'] is not None:
 					
 					filen1 = os.path.join(model_parameters['data_dir'], '_'.join([base_name.split('_contact')[0], 'run-01', 'contact.vtk']))
 					filen2 = os.path.join(model_parameters['data_dir'], '_'.join([base_name.split('_contact')[0], 'run-02', 'contact.vtk']))
 					filen3 = os.path.join(model_parameters['data_dir'], '_'.join([base_name.split('_contact')[0], 'run-03', 'contact.vtk']))
-				
+					
+					for inode in nodes:
+						for ifilename in (filen1,filen2,filen3):
+							if ifilename.split('.vtk')[0] in inode.GetName():
+								filepath = slicer.util.getNode(inode.GetID()).GetStorageNode().GetFileName()				
+								slicer.mrmlScene.RemoveNode(slicer.util.getNode(inode.GetID()))
+								os.remove(filepath)
+
 				plane = np.vstack((
 					[0.7, 1.0, 0.0],
 					[1.0, -0.4, 0.0],
 					[1.0, -0.4, 0.0]
 				))
-
-				nodes = [x for x in slicer.util.getNodesByClass('vtkMRMLModelNode') if not slicer.vtkMRMLSliceLogic.IsSliceModelNode(x)]
-				for inodes in nodes:
-					if os.path.split(os.path.basename(filen1))[(-1)].split('.vtk')[0] in inodes.GetName():
-						filepath = slicer.util.getNode(inodes.GetID()).GetStorageNode().GetFileName()				
-						slicer.mrmlScene.RemoveNode(slicer.util.getNode(inodes.GetID()))
-						os.remove(filepath)
 
 				vtkModelBuilder = vtkModelBuilderClass()
 				vtkModelBuilder.coords = bottomTop[iContact, :]
@@ -2457,13 +2459,6 @@ def plotLead(entry,target,origin,model_parameters):
 					[0.4, -1.0, 0.0]
 				))
 
-				nodes = [x for x in slicer.util.getNodesByClass('vtkMRMLModelNode') if not slicer.vtkMRMLSliceLogic.IsSliceModelNode(x)]
-				for inodes in nodes:
-					if os.path.split(os.path.basename(filen2))[(-1)].split('.vtk')[0] in inodes.GetName():
-						filepath = slicer.util.getNode(inodes.GetID()).GetStorageNode().GetFileName()				
-						slicer.mrmlScene.RemoveNode(slicer.util.getNode(inodes.GetID()))
-						os.remove(filepath)
-
 				vtkModelBuilder = vtkModelBuilderClass()
 				vtkModelBuilder.coords = bottomTop[iContact, :]
 				vtkModelBuilder.tube_radius = contact_diameter
@@ -2485,14 +2480,7 @@ def plotLead(entry,target,origin,model_parameters):
 					[-1.0, 0.1, 0.0],
 					[-1.0, 0.1, 0.0]
 				))
-
-				nodes = [x for x in slicer.util.getNodesByClass('vtkMRMLModelNode') if not slicer.vtkMRMLSliceLogic.IsSliceModelNode(x)]
-				for inodes in nodes:
-					if os.path.split(os.path.basename(filen3))[(-1)].split('.vtk')[0] in inodes.GetName():
-						filepath = slicer.util.getNode(inodes.GetID()).GetStorageNode().GetFileName()				
-						slicer.mrmlScene.RemoveNode(slicer.util.getNode(inodes.GetID()))
-						os.remove(filepath)
-
+				
 				vtkModelBuilder = vtkModelBuilderClass()
 				vtkModelBuilder.coords = bottomTop[iContact, :]
 				vtkModelBuilder.tube_radius = contact_diameter

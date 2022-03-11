@@ -1558,7 +1558,6 @@ class registrationLogic(ScriptedLoadableModuleLogic):
 					'-speeeeed'
 				])
 
-			print(reg_cmd)
 			logText = 'Register volumes {} of {}: {} to {}'.format(str(cnt), str(len(movingVolumeNode)), ivol[0].GetName(), fixedVolumeNode[0].GetName())
 			cnt += 1
 			ep = self.startReg(reg_cmd, logText, self.regAlgo)
@@ -1848,7 +1847,6 @@ class registrationLogic(ScriptedLoadableModuleLogic):
 					'-speeeeed'
 				])
 
-			print(reg_cmd)
 			logText = f"Registering {fixedVolumeNode[0].GetName()} to {self.regAlgo['templateSpace']} space"
 			ep = self.startReg(reg_cmd, logText, self.regAlgo['regAlgoTemplateParams'])
 			self.logProcessOutput(ep)
