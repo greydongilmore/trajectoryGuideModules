@@ -1401,7 +1401,7 @@ class frameDetectLogic(ScriptedLoadableModuleLogic):
 			fiducialsNode.SetName(outputFCSVPrefix % ('fiducials'))
 			topbottomNode.SetName(outputFCSVPrefix % ('topbottom'))
 
-			#writeFCSV(fiducialsNode,os.path.join(derivFolder, 'frame', outputFCSVPrefix % ('fiducials')+'.fcsv'))
+			writeFCSV(fiducialsNode,os.path.join(derivFolder, 'frame', outputFCSVPrefix % ('fiducials')+'.fcsv'))
 			writeFCSV(topbottomNode,os.path.join(derivFolder, 'frame', outputFCSVPrefix % ('topbottom')+'.fcsv'))
 
 			slicer.util.getNode(outputFCSVPrefix % ('fiducials')).GetDisplayNode().SetVisibility(0)

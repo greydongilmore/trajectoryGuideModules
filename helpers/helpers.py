@@ -1369,7 +1369,6 @@ def targetFrameObject(inputFiducials, frame_system, targetModelGlyphName, target
 	fidNodeFrame.SetName('frameSystemFiducials')
 	fidNodeFrame.AddDefaultStorageNode()
 	wasModify=fidNodeFrame.StartModify()
-
 	appenderTube = vtk.vtkAppendPolyData()
 	for fiducialIndex in frameSystemPoints.keys():
 		framePointsVTK = vtk.vtkPoints()
@@ -1387,9 +1386,10 @@ def targetFrameObject(inputFiducials, frame_system, targetModelGlyphName, target
 				top=np.array(frameSystemPoints[fiducialIndex][iLine]['top'])
 				bot=np.array(frameSystemPoints[fiducialIndex][iLine]['bot'])
 			#### interpolate points between the start and end of the N-localizer bar
-			for ipoint in np.vstack([np.linspace(float(top[dim]),float(bot[dim]),num_points+9) for dim in range(3)]).T:
+			for ipoint in np.vstack([np.linspace(float(top[dim]),float(bot[dim]),num_points) for dim in range(3)]).T:
 				n = fidNodeFrame.AddControlPoint(vtk.vtkVector3d(ipoint[0], ipoint[1], ipoint[2]))
 				fidNodeFrame.SetNthControlPointLabel(n, f"P{int(ipoint[2])}")
+
 			#### interpolate points between the start and end of the N-localizer bar
 			for ipoint in np.vstack([np.linspace(float(top[dim]),float(bot[dim]),2) for dim in range(3)]).T:
 				framePointsVTK.InsertNextPoint(int(ipoint[0]), int(ipoint[1]), int(ipoint[2]))
@@ -1618,6 +1618,160 @@ def runFrameModelRegistration(inputSourceModel, inputTargetModel, inputTransform
 	inputTransform.SetMatrixTransformToParent(transform_matrix)
 
 	return inputTransform
+
+
+def AOPA_Major(X, Y, tol):
+	"""
+	Computes the Procrustean fiducial registration between X and Y with 
+	anisotropic Scaling:
+		
+		Y = R * A * X + t
+		
+	where X is a mxn matrix, m is typically 3
+		  Y is a mxn matrix, same dimension as X
+		  
+		  R is a mxm rotation matrix,
+		  A is a mxm diagonal scaling matrix, and
+		  t is a mx1 translation vector
+		  
+	based on the Majorization Principle
+
+	Elvis C.S. Chen
+	chene AT robarts DOT ca
+	"""
+	[m,n] = X.shape
+	II = np.identity(n) - np.ones((n,n))/n
+	mX = np.nan_to_num(np.matmul(X,II)/np.linalg.norm(np.matmul(X,II), ord=2, axis=1, keepdims=True))
+	mY = np.matmul(Y,II)
+	
+	# estimate the initial rotation
+	B = np.matmul(mY, mX.transpose())
+	u, s, vh = np.linalg.svd(B)
+	
+	# check for flip
+	D = np.identity(m)
+	D[m-1,m-1] = np.linalg.det(np.matmul(u,vh))
+	R = np.matmul(u, np.matmul(D,vh))
+	
+	# loop
+	err = np.Infinity
+	E_old = 1000000 * np.ones((m,n))
+	while err > tol: 
+		u, s, vh = np.linalg.svd( np.matmul(B, np.diag(np.diag(np.matmul(R.transpose(),B)))) )
+		D[m-1,m-1] = np.linalg.det(np.matmul(u,vh))
+		R = np.matmul(u, np.matmul(D,vh))
+		E = np.matmul(R,mX) - mY
+		err = np.linalg.norm(E-E_old)
+		E_old = E
+	# after rotation is computed, compute the scale
+	B = np.matmul(Y, np.matmul(II, X.transpose()))
+	A = np.diag( np.divide( np.diag( np.matmul(B.transpose(), R)), np.diag( np.matmul(X, np.matmul(II, X.transpose()))) ) )
+	if (math.isnan(A[2,2])):
+		# special case for ultrasound calibration, where z=0
+		A[2,2] = .5 * (A[0,0] + A[1,1]) # artificially assign a number to the scale in z-axis
+	# calculate translation
+	t = np.reshape(np.mean( Y - np.matmul(R, np.matmul(A,X)), 1), [m,1])
+	return[R,t,A]
+
+
+def look_at(vec_pos, vec_look_at):
+	z = vec_look_at - vec_pos
+	z = z / np.linalg.norm(z)
+	x = np.cross(z, np.array([0., 1., 0.]))
+	x = x / np.linalg.norm(x)
+	y = np.cross(x, z)
+	y = y / np.linalg.norm(y)
+	view_mat = np.zeros((3, 3))
+	view_mat[:3, 0] = x
+	view_mat[:3, 1] = y
+	view_mat[:3, 2] = z
+	return view_mat 
+
+def data_norm(x):
+	mu = x.mean(axis=1, keepdims=True)
+	sigma = x.std(axis=1, keepdims=True)
+	return (x-mu)/sigma
+
+def normalize(d):
+	# d is a (n x dimension) np array
+	d -= np.min(d, axis=0)
+	d /= np.ptp(d, axis=0)
+	return d
+
+def p2l(X, Y, D, tol):
+	"""
+	Computes the Procrustean point-line registration between X and Y+nD with 
+	anisotropic Scaling,
+		
+	where X is a mxn matrix, m is typically 3
+		  Y is a mxn matrix denoting line origin, same dimension as X
+		  D is a mxn normalized matrix denoting line direction
+		  
+		  R is a mxm rotation matrix,
+		  A is a mxm diagonal scaling matrix, and
+		  t is a mx1 translation vector
+		  Q is a mxn fiducial on line that is closest to X after registration
+		  fre is the fiducial localization error
+		  
+	based on the Majorization Principle
+	"""
+	[m,n] = X.shape
+	err = np.Infinity
+	E_old = 1000000 * np.ones((m,n))
+	e = np.ones((1,n))
+	# intialization
+	Q = Y
+	# normalize the line orientation just in case
+	Dir = D/np.linalg.norm(D, ord=2,axis=0,keepdims=True)
+	while err > tol:
+		[R, t, A] = AOPA_Major(X, Q, tol)
+		E  = Q-np.matmul(R,np.matmul(A,X))-np.matmul(t,e)
+		# project point to line
+		Q = Y+Dir*np.tile(np.einsum('ij,ij->j',np.matmul(R,np.matmul(A,X))+np.matmul(t,e)-Y,Dir),(m,1))
+		err = np.linalg.norm(E-E_old)
+		E_old = E
+	E = Q - np.matmul(R, np.matmul(A,X)) - np.matmul(t,e)
+	# calculate fiducial registration error
+	fre = np.sum(np.linalg.norm(E,ord=2,axis=0,keepdims=True))/X.shape[1]
+	
+	transform_matrix = vtk.vtkMatrix4x4()
+	transform_matrix.SetElement(0, 0, R[0][0])
+	transform_matrix.SetElement(0, 1, R[0][1])
+	transform_matrix.SetElement(0, 2, R[0][2])
+	transform_matrix.SetElement(1, 0, R[1][0])
+	transform_matrix.SetElement(1, 1, R[1][1])
+	transform_matrix.SetElement(1, 2, R[1][2])
+	transform_matrix.SetElement(2, 0, R[2][0])
+	transform_matrix.SetElement(2, 1, R[2][1])
+	transform_matrix.SetElement(2, 2, R[2][2])
+	transform_matrix.SetElement(0, 3, t[0]),
+	transform_matrix.SetElement(1, 3, t[0]),
+	transform_matrix.SetElement(2, 3, t[0])
+	transform_matrix.SetElement(3, 0, 0)
+	transform_matrix.SetElement(3, 1, 0)
+	transform_matrix.SetElement(3, 2, 0)
+	transform_matrix.SetElement(3, 3, 1)
+
+	if len(slicer.util.getNodes('*p2l*')) > 0:
+		slicer.mrmlScene.RemoveNode(slicer.util.getNode('p2l'))
+
+	transformOut = slicer.mrmlScene.AddNode(slicer.vtkMRMLLinearTransformNode())
+	transformOut.SetName('p2l')
+	transformOut.SetMatrixTransformFromParent(transform_matrix)
+	node=slicer.mrmlScene.AddNewNodeByClass('vtkMRMLMarkupsFiducialNode')
+	node.SetName('p2l_points')
+	node.AddDefaultStorageNode()
+	node.GetStorageNode().SetCoordinateSystem(0)
+
+	nodeModify=node.StartModify()
+
+	for ifid in range(Q.shape[1]):
+		n = node.AddControlPoint(vtk.vtkVector3d(Q[0,ifid], Q[1,ifid], Q[2,ifid]))
+		node.SetNthControlPointLabel(n, f"point_{str(ifid).zfill(2)}")
+
+	node.EndModify(nodeModify)
+
+	return [transformOut,R,A,t,Q,fre]
 
 def centerOfMass(poly):
 	""" Return center of mass of polydata.
@@ -1902,6 +2056,7 @@ def getFrameRotation():
 
 		frameRotation = slicer.mrmlScene.AddNode(slicer.vtkMRMLLinearTransformNode())
 		frameRotation.SetName('frame_rotation')
+
 		frameRotationMatrix = vtk.vtkMatrix4x4()
 		frameRotationMatrix.SetElement(0, 0, riiprime[0][0])
 		frameRotationMatrix.SetElement(0, 1, riiprime[0][1])
@@ -2093,14 +2248,11 @@ def norm_vec(P1, P2):
 	"""
 	if isinstance(P1, list):
 		P1 = np.array(P1)
-
 	if isinstance(P2, list):
 		P2 = np.array(P2)
-
 	DirVec = P2-P1
 	MagVec = np.sqrt([np.square(DirVec[0]) + np.square(DirVec[1]) + np.square(DirVec[2])])
 	NormVec = np.array([float(DirVec[0] / MagVec), float(DirVec[1] / MagVec), float(DirVec[2] / MagVec)])
-
 	return NormVec
 
 def rotateTrajectory(target,arcAngle,ringAngle,dist):
@@ -2141,16 +2293,20 @@ def rotation_matrix(pitch, roll, yaw):
 
 	Parameters
 	----------
-	P1: ndarray
-		Starting point coordinates.
+	pitch: ndarray
+		rotation about y-axis.
+	roll: ndarray
+		rotation about x-axis.
+	yaw: ndarray
+		rotation about z-axis.
 
 	P2 : ndarray
 		Ending point coordinates.
 	
 	Returns
 	-------
-	NormVec : ndarray
-		The normal vector of the vector.
+	M: ndarray
+		a 3x3 rotation matrix with rotations applied to given angles.
 
 	"""
 	pitch, roll, yaw = np.array([pitch, roll, yaw]) * np.pi / 180
