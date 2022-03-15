@@ -271,7 +271,7 @@ class dataImportWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 				self.default_dir = os.path.normpath(trajectoryGuide_settings['default_dir'])
 				self.trimPathName(self.ui.defaultDirectoryLabel, self.default_dir)
 		else:
-			self.default_dir = ''
+			self.default_dir = os.path.expanduser('HOME')
 			#self.trimPathName(self.ui.defaultDirectoryLabel, self.default_dir)
 		
 		parent = None
@@ -280,10 +280,11 @@ class dataImportWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 				if w.objectName == 'qSlicerMainWindow':
 					parent=w
 
-		self.patient_data_directory = os.path.normpath(qt.QFileDialog().getExistingDirectory(parent, 'Open a folder', self.default_dir, qt.QFileDialog.ShowDirsOnly))
-		if self.patient_data_directory:
-			self.trimPathName(self.ui.directoryLabel, self.patient_data_directory)
-	
+		if self.default_dir != "":
+			self.patient_data_directory = os.path.normpath(qt.QFileDialog().getExistingDirectory(parent, 'Open a folder', self.default_dir, qt.QFileDialog.ShowDirsOnly))
+			if self.patient_data_directory != ".":
+				self.trimPathName(self.ui.directoryLabel, self.patient_data_directory)
+		
 	def onDefaultDirectoryButton(self):
 		parent = None
 		for w in slicer.app.topLevelWidgets():
@@ -785,7 +786,7 @@ class dataImportLogic(ScriptedLoadableModuleLogic):
 										model_parameters
 									)
 
-									lineNode = getMarkupsNode(plan_name +'_line', node_type='vtkMRMLMarkupsLineNode', create=True)
+									lineNode = getMarkupsNode(plan_name +f'_line{iplan}', node_type='vtkMRMLMarkupsLineNode', create=True)
 
 									entry = surgical_data['trajectories'][plan_name][iplan]['entry']
 									target = surgical_data['trajectories'][plan_name][iplan]['target']
