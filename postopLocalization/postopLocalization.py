@@ -523,13 +523,13 @@ class postopLocalizationWidget(ScriptedLoadableModuleWidget, VTKObservationMixin
 							self.ui.topY.value = surgical_data['trajectories'][planName]['post']['entry'][1]
 							self.ui.topZ.value = surgical_data['trajectories'][planName]['post']['entry'][2]
 					else:
-						botPointCoords = getPointCoords((self.ui.planName.currentText + '_line_post'), 'bot', node_type='vtkMRMLMarkupsLineNode')
+						botPointCoords = getPointCoords((self.ui.planName.currentText + '_line-post'), 'bot', node_type='vtkMRMLMarkupsLineNode')
 						if not np.array_equal(adjustPrecision(botPointCoords), adjustPrecision(np.array([0.0] * 3))):
 							self.ui.botX.value = botPointCoords[0]
 							self.ui.botY.value = botPointCoords[1]
 							self.ui.botZ.value = botPointCoords[2]
 
-						topPointCoords = getPointCoords((self.ui.planName.currentText + '_line_post'), 'top', node_type='vtkMRMLMarkupsLineNode')
+						topPointCoords = getPointCoords((self.ui.planName.currentText + '_line-post'), 'top', node_type='vtkMRMLMarkupsLineNode')
 						if not np.array_equal(adjustPrecision(topPointCoords), adjustPrecision(np.array([0.0] * 3))):
 							self.ui.topX.value = topPointCoords[0]
 							self.ui.topY.value = topPointCoords[1]
@@ -542,7 +542,7 @@ class postopLocalizationWidget(ScriptedLoadableModuleWidget, VTKObservationMixin
 			if activeLabel in fiducialNode.GetNthControlPointLabel(ifid):
 				fiducialNode.RemoveNthControlPoint(ifid)
 
-		planPointOrigin = getPointCoords((self.ui.planName.currentText + '_line'), activeLabel, node_type='vtkMRMLMarkupsLineNode')
+		planPointOrigin = getPointCoords((self.ui.planName.currentText + '_line-post'), activeLabel, node_type='vtkMRMLMarkupsLineNode')
 		if np.array_equal(adjustPrecision(planPointOrigin), adjustPrecision(np.array([0.0] * 3))):
 			if fiducialNode is not None:
 				if 'bot' in activeLabel:
@@ -564,8 +564,8 @@ class postopLocalizationWidget(ScriptedLoadableModuleWidget, VTKObservationMixin
 			activeLabelName='entry'
 			activeNodeName=f'{self.ui.planName.currentText}_top'
 
-		if len(slicer.util.getNodes(self.ui.planName.currentText + '_line_post')) > 0:
-			activePointCoords = getPointCoords((self.ui.planName.currentText + '_line_post'), activeLabelName, node_type='vtkMRMLMarkupsLineNode')
+		if len(slicer.util.getNodes(self.ui.planName.currentText + '_line-post')) > 0:
+			activePointCoords = getPointCoords((self.ui.planName.currentText + '_line-post'), activeLabelName, node_type='vtkMRMLMarkupsLineNode')
 		else:
 			if 'bot' in activeLabel:
 				activePointCoords=np.array([self.ui.botX.value, self.ui.botY.value, self.ui.botZ.value])
@@ -600,15 +600,15 @@ class postopLocalizationWidget(ScriptedLoadableModuleWidget, VTKObservationMixin
 				self.ui.topY.value = activePointCoords[1]
 				self.ui.topZ.value = activePointCoords[2]
 
-			oppositePointCoords = getPointCoords((self.ui.planName.currentText + '_line_post'), oppositePoint, node_type='vtkMRMLMarkupsLineNode')
+			oppositePointCoords = getPointCoords((self.ui.planName.currentText + '_line-post'), oppositePoint, node_type='vtkMRMLMarkupsLineNode')
 			if np.array_equal(adjustPrecision(oppositePointCoords), adjustPrecision(np.array([0.0] * 3))):
 				oppositePointCoords = getPointCoords(oppositePoint, oppositePoint)
 
 			if not np.array_equal(adjustPrecision(oppositePointCoords), adjustPrecision(np.array([0.0] * 3))):
-				self.convertFiducialNodesToLine(activeLabel, oppositePoint, self.ui.planName.currentText + '_line_post')
+				self.convertFiducialNodesToLine(activeLabel, oppositePoint, self.ui.planName.currentText + '_line-post')
 
-				botPointCoords = getPointCoords((self.ui.planName.currentText + '_line_post'), 'bot', node_type='vtkMRMLMarkupsLineNode')
-				topPointCoords = getPointCoords((self.ui.planName.currentText + '_line_post'), 'top', node_type='vtkMRMLMarkupsLineNode')
+				botPointCoords = getPointCoords((self.ui.planName.currentText + '_line-post'), 'bot', node_type='vtkMRMLMarkupsLineNode')
+				topPointCoords = getPointCoords((self.ui.planName.currentText + '_line-post'), 'top', node_type='vtkMRMLMarkupsLineNode')
 
 				self.ui.botX.value = botPointCoords[0]
 				self.ui.botY.value = botPointCoords[1]
@@ -963,12 +963,12 @@ class postopLocalizationLogic(ScriptedLoadableModuleLogic):
 		
 		plotLead(entry_coords_world.copy(),target_coords_world.copy(),origin_point.copy(), model_parameters)
 		
-		lineNode = getMarkupsNode(plan_name + '_line_post', 'vtkMRMLMarkupsLineNode', False)
+		lineNode = getMarkupsNode(plan_name + '_line-post', 'vtkMRMLMarkupsLineNode', False)
 		if lineNode is not None:
 			slicer.mrmlScene.RemoveNode(slicer.util.getNode(lineNode.GetName()))
 
 		markupsNodeTrackLine = slicer.mrmlScene.AddNewNodeByClass('vtkMRMLMarkupsLineNode')
-		markupsNodeTrackLine.SetName(plan_name + '_line_post')
+		markupsNodeTrackLine.SetName(plan_name + '_line-post')
 		markupsNodeTrackLine.GetDisplayNode().SetVisibility(0)
 		markupsNodeTrackLine.AddDefaultStorageNode()
 

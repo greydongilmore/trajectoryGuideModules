@@ -324,6 +324,7 @@ class vtkModelBuilderClass:
 
 		if self.nodeName is not None and self.filename is None:
 			node = slicer.mrmlScene.AddNewNodeByClass('vtkMRMLModelNode')
+			node.AddDefaultStorageNode()
 			node.SetAndObservePolyData(self.final_model.GetOutput())
 			node.SetName(self.nodeName)
 			nodeDisplayNode = slicer.mrmlScene.AddNewNodeByClass('vtkMRMLModelDisplayNode')
@@ -2555,7 +2556,7 @@ def plotLead(entry,target,origin,model_parameters):
 				vtkModelBuilder.tube_thickness = 0.3
 				vtkModelBuilder.electrodeLen = e_specs['contact_size']
 				vtkModelBuilder.filename = filen
-				vtkModelBuilder.nodeName = base_name
+				vtkModelBuilder.nodeName = os.path.splitext(base_name)[0]
 				vtkModelBuilder.model_color = model_parameters['contact_col']
 				vtkModelBuilder.model_visibility = model_parameters['contact_vis']
 				vtkModelBuilder.build_dir_bottomContact()
@@ -2601,7 +2602,7 @@ def plotLead(entry,target,origin,model_parameters):
 					vtkModelBuilder.filename = os.path.join(model_parameters['data_dir'], base_name1)
 				else:
 					vtkModelBuilder.filename = None
-				vtkModelBuilder.nodeName = base_name1
+				vtkModelBuilder.nodeName = os.path.splitext(base_name1)[0]
 				vtkModelBuilder.model_color = model_parameters['contact_col']
 				vtkModelBuilder.model_visibility = model_parameters['contact_vis']
 				vtkModelBuilder.build_seg_contact()
@@ -2624,7 +2625,7 @@ def plotLead(entry,target,origin,model_parameters):
 					vtkModelBuilder.filename = os.path.join(model_parameters['data_dir'], base_name2)
 				else:
 					vtkModelBuilder.filename = None
-				vtkModelBuilder.nodeName = base_name2
+				vtkModelBuilder.nodeName = os.path.splitext(base_name2)[0]
 				vtkModelBuilder.model_color = model_parameters['contact_col']
 				vtkModelBuilder.model_visibility = model_parameters['contact_vis']
 				vtkModelBuilder.build_seg_contact()
@@ -2646,7 +2647,7 @@ def plotLead(entry,target,origin,model_parameters):
 					vtkModelBuilder.filename = os.path.join(model_parameters['data_dir'], base_name3)
 				else:
 					vtkModelBuilder.filename = None
-				vtkModelBuilder.nodeName = base_name3
+				vtkModelBuilder.nodeName = os.path.splitext(base_name3)[0]
 				vtkModelBuilder.model_color = model_parameters['contact_col']
 				vtkModelBuilder.model_visibility = model_parameters['contact_vis']
 				vtkModelBuilder.build_seg_contact()
@@ -2659,7 +2660,7 @@ def plotLead(entry,target,origin,model_parameters):
 				vtkModelBuilder.tube_radius = contact_diameter
 				vtkModelBuilder.tube_thickness = 0.3
 				vtkModelBuilder.filename = filen
-				vtkModelBuilder.nodeName = base_name
+				vtkModelBuilder.nodeName = os.path.splitext(base_name)[0]
 				vtkModelBuilder.model_color = model_parameters['contact_col']
 				vtkModelBuilder.model_visibility = model_parameters['contact_vis']
 				vtkModelBuilder.build_line()
@@ -2672,7 +2673,7 @@ def plotLead(entry,target,origin,model_parameters):
 			vtkModelBuilder.tube_radius = contact_diameter
 			vtkModelBuilder.tube_thickness = 0.3
 			vtkModelBuilder.filename = filen
-			vtkModelBuilder.nodeName = base_name
+			vtkModelBuilder.nodeName = os.path.splitext(base_name)[0]
 			vtkModelBuilder.model_color = model_parameters['contact_col']
 			vtkModelBuilder.model_visibility = model_parameters['contact_vis']
 			vtkModelBuilder.build_line()
@@ -2697,11 +2698,11 @@ def plotLead(entry,target,origin,model_parameters):
 			writer.writerows(contactFile)
 
 	for imarkup in slicer.util.getNodesByClass('vtkMRMLMarkupsFiducialNode'):
-		if f"{model_parameters['plan_name']}_contacts" in imarkup.GetName():
+		if f"{model_parameters['plan_name']}_contacts-{model_parameters['type']}" in imarkup.GetName():
 			slicer.mrmlScene.RemoveNode(slicer.util.getNode(imarkup.GetName()))
 
 	contacts=slicer.mrmlScene.AddNewNodeByClass('vtkMRMLMarkupsFiducialNode')
-	contacts.SetName(f"{model_parameters['plan_name']}_contacts")
+	contacts.SetName(f"{model_parameters['plan_name']}_contacts-{model_parameters['type']}")
 	contacts.AddDefaultStorageNode()
 	contacts.GetStorageNode().SetCoordinateSystem(0)
 	contacts.GetDisplayNode().SetGlyphScale(3)

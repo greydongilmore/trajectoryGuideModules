@@ -737,8 +737,6 @@ class dataImportLogic(ScriptedLoadableModuleLogic):
 
 				if '_lead' in os.path.basename(ifile):
 					objectType='Lead'
-				elif '_contact' in os.path.basename(ifile):
-					objectType='Contact'
 				elif '_track' in os.path.basename(ifile):
 					objectType='Microelectrodes'
 				elif '_activity' in os.path.basename(ifile):
@@ -749,8 +747,10 @@ class dataImportLogic(ScriptedLoadableModuleLogic):
 				if planType is not None and objectType is not None:
 					if os.path.basename(ifile).endswith('_lead.vtk'):
 						task_name = [x for x in os.path.basename(ifile).split('_') if 'task' in x]
-						if task_name:
+						ses_name = [x for x in os.path.basename(ifile).split('_') if 'ses' in x]
+						if task_name and ses_name:
 							plan_name = task_name[0].split('-')[1]
+							phase_name = ses_name[0].split('-')[1]
 
 							model_parameters = {
 								'plan_name': plan_name,
@@ -763,46 +763,45 @@ class dataImportLogic(ScriptedLoadableModuleLogic):
 								'plot_model': True
 							}
 							
-							for iplan in ('pre','intra', 'post'):
-								if surgical_data['trajectories'][plan_name][iplan]['entry']:
+							if surgical_data['trajectories'][plan_name][phase_name]['entry']:
 
-									if iplan == 'pre':
-										model_col = 'planned'
-									elif iplan == 'intra':
-										model_col = 'intra'
-									elif iplan == 'post':
-										model_col = 'actual'
+								if phase_name == 'pre':
+									model_col = 'planned'
+								elif phase_name == 'intra':
+									model_col = 'intra'
+								elif phase_name == 'post':
+									model_col = 'actual'
 
-									model_parameters['type']=iplan
-									model_parameters['model_col']=model_colors[f'{model_col}LeadColor']
-									model_parameters['model_vis']=slice_vis[f'{model_col}Lead3DVis']
-									model_parameters['contact_col']=model_colors[f'{model_col}ContactColor']
-									model_parameters['contact_vis']=slice_vis[f'{model_col}Contact3DVis']
-									print(model_parameters)
-									plotLead(
-										surgical_data['trajectories'][plan_name][iplan]['entry'],
-										surgical_data['trajectories'][plan_name][iplan]['target'],
-										None, 
-										model_parameters
-									)
+								model_parameters['type']=phase_name
+								model_parameters['model_col']=model_colors[f'{model_col}LeadColor']
+								model_parameters['model_vis']=slice_vis[f'{model_col}Lead3DVis']
+								model_parameters['contact_col']=model_colors[f'{model_col}ContactColor']
+								model_parameters['contact_vis']=slice_vis[f'{model_col}Contact3DVis']
+								print(model_parameters)
+								plotLead(
+									surgical_data['trajectories'][plan_name][phase_name]['entry'],
+									surgical_data['trajectories'][plan_name][phase_name]['target'],
+									None, 
+									model_parameters
+								)
+								
+								lineNode = getMarkupsNode(plan_name + f'_line-{phase_name}', node_type='vtkMRMLMarkupsLineNode', create=True)
 
-									lineNode = getMarkupsNode(plan_name +f'_line{iplan}', node_type='vtkMRMLMarkupsLineNode', create=True)
+								entry = surgical_data['trajectories'][plan_name][phase_name]['entry']
+								target = surgical_data['trajectories'][plan_name][phase_name]['target']
 
-									entry = surgical_data['trajectories'][plan_name][iplan]['entry']
-									target = surgical_data['trajectories'][plan_name][iplan]['target']
+								n = lineNode.AddControlPointWorld(vtk.vtkVector3d(entry[0], entry[1], entry[2]))
+								lineNode.SetNthControlPointLabel(n, '_'.join([plan_name,'entry']))
+								lineNode.SetNthControlPointLocked(n, True)
 
-									n = lineNode.AddControlPointWorld(vtk.vtkVector3d(entry[0], entry[1], entry[2]))
-									lineNode.SetNthControlPointLabel(n, '_'.join([plan_name,'entry']))
-									lineNode.SetNthControlPointLocked(n, True)
+								n = lineNode.AddControlPointWorld(vtk.vtkVector3d(target[0], target[1], target[2]))
+								lineNode.SetNthControlPointLabel(n, '_'.join([plan_name,'target']))
+								lineNode.SetNthControlPointLocked(n, True)
 
-									n = lineNode.AddControlPointWorld(vtk.vtkVector3d(target[0], target[1], target[2]))
-									lineNode.SetNthControlPointLabel(n, '_'.join([plan_name,'target']))
-									lineNode.SetNthControlPointLocked(n, True)
-
-									lineNode.GetDisplayNode().SetVisibility(0)
-									lineNode.GetDisplayNode().PointLabelsVisibilityOff()
-									lineNode.SetAttribute('ProbeEye', '1')
-
+								lineNode.GetDisplayNode().SetVisibility(0)
+								lineNode.GetDisplayNode().PointLabelsVisibilityOff()
+								lineNode.SetAttribute('ProbeEye', '1')
+					
 					elif os.path.basename(ifile).endswith('.stl'):
 						node = slicer.util.loadModel(ifile)
 						if isinstance(modelColors[f'{planType}{objectType}Color'],str):
