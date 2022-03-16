@@ -8,6 +8,7 @@ import glob
 import vtk, qt, slicer
 from slicer.ScriptedLoadableModule import *
 from slicer.util import VTKObservationMixin
+import numpy as np
 
 if getattr(sys, 'frozen', False):
 	cwd = os.path.dirname(sys.argv[0])
@@ -19,7 +20,7 @@ sys.path.insert(1, os.path.dirname(cwd))
 from helpers.helpers import vtkModelBuilderClass,getFrameCenter, getReverseTransform,\
 addCustomLayouts, hex2rgb, sorted_nicely, sortSceneData, getMarkupsNode, plotLead
 from helpers.variables import coordSys, slicerLayout, surgical_info_dict, \
-pre_info_dict, intra_info_dict, post_info_dict
+pre_info_dict, intra_info_dict, post_info_dict, module_dictionary
 
 #
 # dataImport
@@ -109,6 +110,7 @@ class dataImportWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 		# These connections ensure that whenever user changes some settings on the GUI, that is saved in the MRML scene
 		# (in the selected parameter node).
 		
+		self.ui.moduleSelectCB.connect('currentIndexChanged(int)', self.onModuleSelectorCB)
 		self.ui.directoryButton.connect('clicked(bool)', self.setExistingDirectory)
 		self.ui.renameScansButtonGroup.connect('buttonClicked(QAbstractButton*)', self.onRenameScansButtonGroupClicked)
 		self.ui.usePreviousValuesButtonGroup.connect('buttonClicked(QAbstractButton*)', self.onUsePreviousValuesClicked)
@@ -120,6 +122,12 @@ class dataImportWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 		
 		self.logic.addCustomLayouts()
 	
+	def onModuleSelectorCB(self, moduleIndex):
+		moduleName = module_dictionary[self.ui.moduleSelectCB.itemText(moduleIndex)]
+		currentModule = slicer.util.moduleSelector().selectedModule
+		if currentModule != moduleName:
+			slicer.util.moduleSelector().selectModule(moduleName)
+
 	@staticmethod
 	def areDependenciesSatisfied():
 		depends=[]
@@ -186,6 +194,9 @@ class dataImportWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 		if self.logic is not None:
 			self.setParameterNode(self.logic.getParameterNode())
 
+		moduleIndex = [i for i,x in enumerate(list(module_dictionary.values())) if x == slicer.util.moduleSelector().selectedModule][0]
+		self.ui.moduleSelectCB.setCurrentIndex(self.ui.moduleSelectCB.findText(list(module_dictionary)[moduleIndex]))
+		
 		# Select default input nodes if nothing is selected yet to save a few clicks for the user
 		#if not self._parameterNode.GetNodeReference("InputVolume"):
 		#	firstVolumeNode = slicer.mrmlScene.GetFirstNodeByClass("vtkMRMLScalarVolumeNode")
@@ -295,7 +306,7 @@ class dataImportWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 		childDlg = qt.QFileDialog()
 		self.default_dir = os.path.normpath(childDlg.getExistingDirectory(parent, 'Open a folder', os.path.expanduser('HOME'), qt.QFileDialog.ShowDirsOnly))
 
-		if self.default_dir != "":
+		if self.default_dir != ".":
 			with open(self._parameterNode.GetParameter('trajectoryGuide_settings'), 'r') as (settings_file):
 				trajectoryGuide_settings = json.load(settings_file)
 			
@@ -777,24 +788,25 @@ class dataImportLogic(ScriptedLoadableModuleLogic):
 								model_parameters['model_vis']=slice_vis[f'{model_col}Lead3DVis']
 								model_parameters['contact_col']=model_colors[f'{model_col}ContactColor']
 								model_parameters['contact_vis']=slice_vis[f'{model_col}Contact3DVis']
-								print(model_parameters)
+								
+								entryP = np.array(surgical_data['trajectories'][plan_name][phase_name]['entry'])
+								targetP = np.array(surgical_data['trajectories'][plan_name][phase_name]['target'])
+								
+								
 								plotLead(
-									surgical_data['trajectories'][plan_name][phase_name]['entry'],
-									surgical_data['trajectories'][plan_name][phase_name]['target'],
+									entryP,
+									targetP,
 									None, 
 									model_parameters
 								)
 								
 								lineNode = getMarkupsNode(plan_name + f'_line-{phase_name}', node_type='vtkMRMLMarkupsLineNode', create=True)
 
-								entry = surgical_data['trajectories'][plan_name][phase_name]['entry']
-								target = surgical_data['trajectories'][plan_name][phase_name]['target']
-
-								n = lineNode.AddControlPointWorld(vtk.vtkVector3d(entry[0], entry[1], entry[2]))
+								n = lineNode.AddControlPointWorld(vtk.vtkVector3d(entryP[0], entryP[1], entryP[2]))
 								lineNode.SetNthControlPointLabel(n, '_'.join([plan_name,'entry']))
 								lineNode.SetNthControlPointLocked(n, True)
 
-								n = lineNode.AddControlPointWorld(vtk.vtkVector3d(target[0], target[1], target[2]))
+								n = lineNode.AddControlPointWorld(vtk.vtkVector3d(targetP[0], targetP[1], targetP[2]))
 								lineNode.SetNthControlPointLabel(n, '_'.join([plan_name,'target']))
 								lineNode.SetNthControlPointLocked(n, True)
 

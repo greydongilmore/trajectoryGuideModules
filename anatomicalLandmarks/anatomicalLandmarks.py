@@ -16,7 +16,7 @@ elif __file__:
 sys.path.insert(1, os.path.dirname(cwd))
 
 from helpers.helpers import warningBox, addCustomLayouts,adjustPrecision,getPointCoords,getMarkupsNode,getFrameCenter
-from helpers.variables import coordSys, fontSetting, slicerLayout, groupboxStyle
+from helpers.variables import coordSys, fontSetting, slicerLayout, groupboxStyle, module_dictionary
 
 #
 # anatomicalLandmarks
@@ -114,6 +114,8 @@ class anatomicalLandmarksWidget(ScriptedLoadableModuleWidget, VTKObservationMixi
 
 		# These connections ensure that whenever user changes some settings on the GUI, that is saved in the MRML scene
 		# (in the selected parameter node).
+
+		self.ui.moduleSelectCB.connect('currentIndexChanged(int)', self.onModuleSelectorCB)
 
 		self.crosshairNode = slicer.mrmlScene.GetFirstNodeByClass('vtkMRMLCrosshairNode')
 		self.crosshairNode.AddObserver(slicer.vtkMRMLCrosshairNode.CursorPositionModifiedEvent, self.onCursorPositionModifiedEvent)
@@ -270,6 +272,10 @@ class anatomicalLandmarksWidget(ScriptedLoadableModuleWidget, VTKObservationMixi
 
 		self.setParameterNode(self.logic.getParameterNode())
 
+		moduleIndex = [i for i,x in enumerate(list(module_dictionary.values())) if x == slicer.util.moduleSelector().selectedModule][0]
+		self.ui.moduleSelectCB.setCurrentIndex(self.ui.moduleSelectCB.findText(list(module_dictionary)[moduleIndex]))
+		
+
 		# Select default input nodes if nothing is selected yet to save a few clicks for the user
 		#if not self._parameterNode.GetNodeReference("InputVolume"):
 		#	firstVolumeNode = slicer.mrmlScene.GetFirstNodeByClass("vtkMRMLScalarVolumeNode")
@@ -333,6 +339,12 @@ class anatomicalLandmarksWidget(ScriptedLoadableModuleWidget, VTKObservationMixi
 			self._parameterNode.SetParameter("frame_system", caller.name)
 
 		self._parameterNode.EndModify(wasModified)
+
+	def onModuleSelectorCB(self, moduleIndex):
+		moduleName = module_dictionary[self.ui.moduleSelectCB.itemText(moduleIndex)]
+		currentModule = slicer.util.moduleSelector().selectedModule
+		if currentModule != moduleName:
+			slicer.util.moduleSelector().selectModule(moduleName)
 
 	def setupMarkupNodes(self):
 		self.ui.acPoint.setMRMLScene(slicer.mrmlScene)
@@ -726,22 +738,23 @@ class anatomicalLandmarksWidget(ScriptedLoadableModuleWidget, VTKObservationMixi
 			coordsFrame = np.array([self.ui.frameCoordsX.value, self.ui.frameCoordsY.value, self.ui.frameCoordsZ.value])
 
 			fc = getFrameCenter(self._parameterNode.GetParameter('frame_system'))
-			print(self._parameterNode.GetParameter('frame_system'))
+
 			if 'leksell' in self._parameterNode.GetParameter('frame_system'):
-				frameToRAS = np.array([
-					[ -1, 0, 0, 100],
-					[  0, 1, 0,-100],
-					[  0, 0,-1, 100],
-					[  0, 0, 0,   1]
-				])
-				coordsRAS=np.dot(frameToRAS, np.append(coordsFrame,1))[:3]
+				
 				RASToFrame = np.array([
 					[ 1, 0, 0, fc[0]],
 					[ 0, 1, 0, fc[1]],
 					[ 0, 0, 1, fc[2]],
 					[ 0, 0, 0,   1]
 				])
-				coordsRAS=np.dot(RASToFrame, np.append(coordsRAS,1))[:3]
+				coordsRAS=np.dot(RASToFrame, np.append(coordsFrame,1))[:3]
+				frameToRAS = np.array([
+					[ -1, 0, 0, 100],
+					[  0, 1, 0,-100],
+					[  0, 0,-1, 100],
+					[  0, 0, 0,   1]
+				])
+				coordsRAS=np.dot(frameToRAS, np.append(coordsRAS,1))[:3]
 			else:
 				RASToFrame = np.array([
 					[ 1, 0, 0, fc[0]],

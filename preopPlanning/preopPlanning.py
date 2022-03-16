@@ -16,7 +16,7 @@ rotation_matrix, vtkModelBuilderClass,getMarkupsNode,getPointCoords,adjustPrecis
 getFrameRotation,dotdict,addCustomLayouts, plotMicroelectrode
 
 from helpers.variables import coordSys, groupboxStyle, slicerLayout, electrodeModels, microelectrodeModels, \
-plan_info_dict, pre_info_dict, intra_info_dict, post_info_dict
+plan_info_dict, pre_info_dict, intra_info_dict, post_info_dict, module_dictionary
 
 #
 # preopPlanning
@@ -164,9 +164,9 @@ class preopPlanningWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 		self.ui.planPosLatMERWig.setVisible(0)
 
 		self.ui.planElecCB.addItems(['Select Electrode']+list(electrodeModels))
-		self.ui.planMicroModel.addItems(['Select Microlectrode']+list(microelectrodeModels['probes']))
+		self.ui.planMicroModel.addItems(['Select Microelectrode']+list(microelectrodeModels['probes']))
 		#self.ui.planMicroModel.setCurrentIndex(self.ui.planMicroModel.findText(microelectrodeModels['default']))
-		self.ui.planMicroModel.setCurrentIndex(self.ui.planMicroModel.findText('Select Microlectrode'))
+		self.ui.planMicroModel.setCurrentIndex(self.ui.planMicroModel.findText('Select Microelectrode'))
 
 
 	def _setupConnections(self):
@@ -180,6 +180,8 @@ class preopPlanningWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 		# These connections ensure that whenever user changes some settings on the GUI, that is saved in the MRML scene
 		# (in the selected parameter node).
 		
+		self.ui.moduleSelectCB.connect('currentIndexChanged(int)', self.onModuleSelectorCB)
+
 		self.ui.crosshairUpdateButton.clicked.connect(lambda : self.onUpdateCrosshairPlanning(True))
 		self.ui.crosshairUpdateFrameButton.clicked.connect(lambda : self.onUpdateCrosshairFrame(True))
 		self.ui.planAdd.connect('clicked(bool)', self.onPlanAdd)
@@ -262,6 +264,9 @@ class preopPlanningWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
 		self.setParameterNode(self.logic.getParameterNode())
 
+		moduleIndex = [i for i,x in enumerate(list(module_dictionary.values())) if x == slicer.util.moduleSelector().selectedModule][0]
+		self.ui.moduleSelectCB.setCurrentIndex(self.ui.moduleSelectCB.findText(list(module_dictionary)[moduleIndex]))
+		
 		# Select default input nodes if nothing is selected yet to save a few clicks for the user
 		#if not self._parameterNode.GetNodeReference("InputVolume"):
 		#	firstVolumeNode = slicer.mrmlScene.GetFirstNodeByClass("vtkMRMLScalarVolumeNode")
@@ -342,6 +347,11 @@ class preopPlanningWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 		self.ui.planTargetPlaceButton.placeButton().show()
 		self.ui.planTargetPlaceButton.deleteButton().show()
 
+	def onModuleSelectorCB(self, moduleIndex):
+		moduleName = module_dictionary[self.ui.moduleSelectCB.itemText(moduleIndex)]
+		currentModule = slicer.util.moduleSelector().selectedModule
+		if currentModule != moduleName:
+			slicer.util.moduleSelector().selectModule(moduleName)
 
 	def onPointAdd(self, caller, event):
 		activeLabel = caller.GetName()
@@ -933,25 +943,31 @@ class preopPlanningWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
 					planPointsPresent=False
 					if 'pre' in list(surgical_data['trajectories'][planName]):
-						if 'entry' in list(surgical_data['trajectories'][planName]['pre']):
-							if surgical_data['trajectories'][planName]['pre']['entry']:
-								if self.ui.planEntryX.value != surgical_data['trajectories'][planName]['pre']['entry'][0] - origin_point[0]:
-									self.ui.planEntryX.value = surgical_data['trajectories'][planName]['pre']['entry'][0] - origin_point[0]
-								if self.ui.planEntryY.value != surgical_data['trajectories'][planName]['pre']['entry'][1] - origin_point[1]:
-									self.ui.planEntryY.value = surgical_data['trajectories'][planName]['pre']['entry'][1] - origin_point[1]
-								if self.ui.planEntryZ.value != surgical_data['trajectories'][planName]['pre']['entry'][2] - origin_point[2]:
-									self.ui.planEntryZ.value = surgical_data['trajectories'][planName]['pre']['entry'][2] - origin_point[2]
-								planPointsPresent=True
+						self.frameRotationNode = getFrameRotation()
 						
-						if 'target' in list(surgical_data['trajectories'][planName]['pre']):
-							if surgical_data['trajectories'][planName]['pre']['target']:
-								if self.ui.planTargetX.value != surgical_data['trajectories'][planName]['pre']['target'][0] - origin_point[0]:
-									self.ui.planTargetX.value = surgical_data['trajectories'][planName]['pre']['target'][0] - origin_point[0]
-								if self.ui.planTargetY.value != surgical_data['trajectories'][planName]['pre']['target'][1] - origin_point[1]:
-									self.ui.planTargetY.value = surgical_data['trajectories'][planName]['pre']['target'][1] - origin_point[1]
-								if self.ui.planTargetZ.value != surgical_data['trajectories'][planName]['pre']['target'][2] - origin_point[2]:
-									self.ui.planTargetZ.value = surgical_data['trajectories'][planName]['pre']['target'][2] - origin_point[2]
-								planPointsPresent=True
+						if surgical_data['trajectories'][planName]['pre']['entry']:
+							entryP = np.array(surgical_data['trajectories'][planName]['pre']['entry']) - origin_point
+							entryRAS=applyTransformToPoints(self.frameRotationNode, entryP, reverse=False)
+
+							if self.ui.planEntryX.value != entryRAS[0]:
+								self.ui.planEntryX.value = entryRAS[0]
+							if self.ui.planEntryY.value != entryRAS[1]:
+								self.ui.planEntryY.value = entryRAS[1]
+							if self.ui.planEntryZ.value != entryRAS[2]:
+								self.ui.planEntryZ.value = entryRAS[2]
+							planPointsPresent=True
+					
+						if surgical_data['trajectories'][planName]['pre']['target']:
+							targetP = np.array(surgical_data['trajectories'][planName]['pre']['target']) - origin_point
+							targetRAS=applyTransformToPoints(self.frameRotationNode, targetP, reverse=False)
+
+							if self.ui.planTargetX.value != targetRAS[0]:
+								self.ui.planTargetX.value = targetRAS[0]
+							if self.ui.planTargetY.value != targetRAS[1]:
+								self.ui.planTargetY.value = targetRAS[1]
+							if self.ui.planTargetZ.value != targetRAS[2]:
+								self.ui.planTargetZ.value = targetRAS[2]
+							planPointsPresent=True
 
 					if planPointsPresent:
 						
@@ -1401,21 +1417,22 @@ class preopPlanningWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 			fc = getFrameCenter(self._parameterNode.GetParameter('frame_system'))
 
 			if 'leksell' in self._parameterNode.GetParameter('frame_system'):
-				frameToRAS = np.array([
-					[ -1, 0, 0, 100],
-					[ 0, 1, 0, -100],
-					[ 0, 0, -1, 100],
-					[ 0, 0, 0,   1]
-				])
-				coordsFrame=np.dot(frameToRAS, np.append(coordsFrame,1))[:3]
-
+				
 				RASToFrame = np.array([
 					[ 1, 0, 0, fc[0]],
 					[ 0, 1, 0, fc[1]],
 					[ 0, 0, 1, fc[2]],
 					[ 0, 0, 0,   1]
 				])
-				coordsRAS=np.dot(RASToFrame, np.append(coordsFrame,1))[:3]
+				coordsFrame=np.dot(RASToFrame, np.append(coordsFrame,1))[:3]
+
+				frameToRAS = np.array([
+					[ -1, 0, 0, 100],
+					[ 0, 1, 0, -100],
+					[ 0, 0, -1, 100],
+					[ 0, 0, 0,   1]
+				])
+				coordsRAS=np.dot(frameToRAS, np.append(coordsFrame,1))[:3]
 			else:
 				frameToRAS = np.array([
 					[ 1, 0, 0, fc[0]],

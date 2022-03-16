@@ -20,7 +20,8 @@ elif __file__:
 sys.path.insert(1, os.path.dirname(cwd))
 
 from helpers.helpers import warningBox, getReverseTransform, addCustomLayouts, CheckableComboBox
-from helpers.variables import fontSetting, slicerLayout,groupboxStyle, groupboxStyleTitle, fontSettingTitle,ctkCollapsibleGroupBoxStyle,ctkCollapsibleGroupBoxTitle
+from helpers.variables import fontSetting, slicerLayout,groupboxStyle, groupboxStyleTitle, \
+fontSettingTitle,ctkCollapsibleGroupBoxStyle,ctkCollapsibleGroupBoxTitle, module_dictionary
 
 #
 # registration
@@ -201,6 +202,8 @@ class registrationWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 		# These connections ensure that whenever user changes some settings on the GUI, that is saved in the MRML scene
 		# (in the selected parameter node).
 		
+		self.ui.moduleSelectCB.connect('currentIndexChanged(int)', self.onModuleSelectorCB)
+
 		self.ui.regAlgoBG.buttonClicked.connect(self.onButtonClick)
 		self.ui.regAlgoTemplateBG.buttonClicked.connect(self.onButtonClick)
 		self.ui.referenceVolCBox.connect('currentNodeChanged(bool)', self.onReferenceVolCBox)
@@ -265,6 +268,10 @@ class registrationWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
 		self.setParameterNode(self.logic.getParameterNode())
 
+		moduleIndex = [i for i,x in enumerate(list(module_dictionary.values())) if x == slicer.util.moduleSelector().selectedModule][0]
+		self.ui.moduleSelectCB.setCurrentIndex(self.ui.moduleSelectCB.findText(list(module_dictionary)[moduleIndex]))
+		
+		
 		# Select default input nodes if nothing is selected yet to save a few clicks for the user
 		#if not self._parameterNode.GetNodeReference("InputVolume"):
 		#	firstVolumeNode = slicer.mrmlScene.GetFirstNodeByClass("vtkMRMLScalarVolumeNode")
@@ -318,6 +325,12 @@ class registrationWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
 		#wasModified = self._parameterNode.StartModify()  # Modify all properties in a single batch
 		#self._parameterNode.EndModify(wasModified)
+
+	def onModuleSelectorCB(self, moduleIndex):
+		moduleName = module_dictionary[self.ui.moduleSelectCB.itemText(moduleIndex)]
+		currentModule = slicer.util.moduleSelector().selectedModule
+		if currentModule != moduleName:
+			slicer.util.moduleSelector().selectModule(moduleName)
 
 	@vtk.calldata_type(vtk.VTK_OBJECT)
 	def onScalerVolumeNodeAdded(self, caller, event, calldata):

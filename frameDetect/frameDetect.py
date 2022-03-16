@@ -18,7 +18,8 @@ elif __file__:
 sys.path.insert(1, os.path.dirname(cwd))
 
 from helpers.helpers import frameDetection, warningBox, writeFCSV, addCustomLayouts, imagePopup
-from helpers.variables import coordSys, slicerLayout,groupboxStyle, groupboxStyleTitle, slicerLayoutAxial, surgical_info_dict
+from helpers.variables import coordSys, slicerLayout,groupboxStyle, groupboxStyleTitle, \
+slicerLayoutAxial, surgical_info_dict, module_dictionary
 
 #
 # frameDetect
@@ -116,6 +117,9 @@ class frameDetectWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 		# These connections ensure that whenever user changes some settings on the GUI, that is saved in the MRML scene
 		# (in the selected parameter node).
 		#self.ui.frameFidVolumeCBox.connect("currentNodeChanged(vtkMRMLNode*)", self.updateParameterNodeFromGUI)
+
+		self.ui.moduleSelectCB.connect('currentIndexChanged(int)', self.onModuleSelectorCB)
+
 		self.ui.frameSystemBG.connect('buttonClicked(QAbstractButton*)', self.updateParameterNodeFromGUI)
 		
 		self.ui.frameDetectButton.clicked.connect(self.onFrameDetectButton)
@@ -187,6 +191,9 @@ class frameDetectWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
 		self.setParameterNode(self.logic.getParameterNode())
 
+		moduleIndex = [i for i,x in enumerate(list(module_dictionary.values())) if x == slicer.util.moduleSelector().selectedModule][0]
+		self.ui.moduleSelectCB.setCurrentIndex(self.ui.moduleSelectCB.findText(list(module_dictionary)[moduleIndex]))
+		
 	def setParameterNode(self, inputParameterNode):
 		"""
 		Set and observe parameter node.
@@ -270,6 +277,12 @@ class frameDetectWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 			self._parameterNode.SetParameter("frame_system", frame_sys)
 
 		self._parameterNode.EndModify(wasModified)
+
+	def onModuleSelectorCB(self, moduleIndex):
+		moduleName = module_dictionary[self.ui.moduleSelectCB.itemText(moduleIndex)]
+		currentModule = slicer.util.moduleSelector().selectedModule
+		if currentModule != moduleName:
+			slicer.util.moduleSelector().selectModule(moduleName)
 
 	def onShowPreviousSaved(self, frameFidVolume):
 
@@ -435,15 +448,18 @@ class frameDetectWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 				slicer.mrmlScene.RemoveNode(slicer.util.getNode(imodel.GetID()))
 
 		fcsvNodeName = f"*{self._parameterNode.GetParameter('derivFolder').split(os.path.sep)[-1]}_*desc-%s_fids*"
+		glyph_model = f"*space-*_acq-glyph_label-*"
+		tube_model = f"*space-*_acq-tube_label-*"
 
 		searchNodes=['*sourceFiducialModel*',fcsvNodeName % ('fiducials'),fcsvNodeName % ('topbottom'),
 			fcsvNodeName % ('N1'),fcsvNodeName % ('N2'),fcsvNodeName % ('N3'),'*frame_center*',
 			'*from-fiducials_to-localizer_xfm*', '*arcToFrame*','*arc_collar*','*centerOfMass*',
-			f"*space-{self.frameSystem}_acq-glyph_label-*",f"*space-{self.frameSystem}_acq-tube_label-*"
+			glyph_model,tube_model,'*frameSystemFiducials*'
 		]
 		
 		for inode in searchNodes:
 			if len(slicer.util.getNodes(inode))>0:
+				print(slicer.util.getNodes(inode))
 				slicer.mrmlScene.RemoveNode(list(slicer.util.getNodes(inode).values())[0])
 
 		if self.ui.frameFidVolumeCBox.currentNode() is not None:
@@ -602,23 +618,26 @@ class frameDetectWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 			return
 
 		if os.path.exists(os.path.join(self._parameterNode.GetParameter('derivFolder'), 'frame')):
-			parent = None
-			for w in slicer.app.topLevelWidgets():
-				if hasattr(w,'objectName'):
-					if w.objectName == 'qSlicerMainWindow':
-						parent=w
-
-			windowTitle = "Frame directory exists"
-			windowText = "Frame detection has already been run, would you like to re-run?"
-			if parent is None:
-				ret = qt.QMessageBox.question(self, windowTitle, windowText, qt.QMessageBox.Yes | qt.QMessageBox.No)
-			else:
-				ret = qt.QMessageBox.question(parent, windowTitle, windowText, qt.QMessageBox.Yes | qt.QMessageBox.No)
-			
-			if ret == qt.QMessageBox.No:
-				return
-			else:
+			if len(os.listdir(os.path.join(self._parameterNode.GetParameter('derivFolder'), 'frame')))==0:
 				self.resetValues()
+			else:
+				parent = None
+				for w in slicer.app.topLevelWidgets():
+					if hasattr(w,'objectName'):
+						if w.objectName == 'qSlicerMainWindow':
+							parent=w
+
+				windowTitle = "Frame directory exists"
+				windowText = "Frame detection has already been run, would you like to re-run?"
+				if parent is None:
+					ret = qt.QMessageBox.question(self, windowTitle, windowText, qt.QMessageBox.Yes | qt.QMessageBox.No)
+				else:
+					ret = qt.QMessageBox.question(parent, windowTitle, windowText, qt.QMessageBox.Yes | qt.QMessageBox.No)
+				
+				if ret == qt.QMessageBox.No:
+					return
+				else:
+					self.resetValues()
 		
 		os.makedirs(os.path.join(self._parameterNode.GetParameter('derivFolder'), 'frame'))
 

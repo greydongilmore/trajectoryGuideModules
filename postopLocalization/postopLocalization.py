@@ -18,7 +18,7 @@ from helpers.helpers import plotLead, rotation_matrix, warningBox, vtkModelBuild
 getPointCoords,adjustPrecision,getMarkupsNode, addCustomLayouts, frame_angles, plotMicroelectrode
 
 from helpers.variables import fontSetting, groupboxStyle, coordSys, slicerLayout, electrodeModels, microelectrodeModels, \
-pre_info_dict, intra_info_dict, post_info_dict, plan_info_dict
+pre_info_dict, intra_info_dict, post_info_dict, plan_info_dict, module_dictionary
 
 #
 # postopLocalization
@@ -111,7 +111,7 @@ class postopLocalizationWidget(ScriptedLoadableModuleWidget, VTKObservationMixin
 
 		self.ui.postElecCB.addItems(['Select Electrode']+list(electrodeModels))
 		self.ui.postElecCB.setCurrentIndex(self.ui.postElecCB.findText('Select Electrode'))
-		self.ui.postMicroModelCB.addItems(['None']+list(microelectrodeModels['probes']))
+		self.ui.postMicroModelCB.addItems(['Select Microelectrode']+list(microelectrodeModels['probes']))
 		self.ui.postMicroModelCB.setCurrentIndex(self.ui.postMicroModelCB.findText('None'))
 
 	def _setupConnections(self):
@@ -122,6 +122,8 @@ class postopLocalizationWidget(ScriptedLoadableModuleWidget, VTKObservationMixin
 		# These connections ensure that whenever user changes some settings on the GUI, that is saved in the MRML scene
 		# (in the selected parameter node).
 		
+		self.ui.moduleSelectCB.connect('currentIndexChanged(int)', self.onModuleSelectorCB)
+
 		self.ui.planAdd.connect('clicked(bool)', self.onPlanAdd)
 		self.ui.planDelete.connect('clicked(bool)', self.onPlanDelete)
 		self.ui.planAddConfirm.connect('clicked(bool)', self.onPlanAddConfirm)
@@ -190,6 +192,10 @@ class postopLocalizationWidget(ScriptedLoadableModuleWidget, VTKObservationMixin
 		# so that when the scene is saved and reloaded, these settings are restored.
 
 		self.setParameterNode(self.logic.getParameterNode())
+
+		moduleIndex = [i for i,x in enumerate(list(module_dictionary.values())) if x == slicer.util.moduleSelector().selectedModule][0]
+		self.ui.moduleSelectCB.setCurrentIndex(self.ui.moduleSelectCB.findText(list(module_dictionary)[moduleIndex]))
+		
 
 		# Select default input nodes if nothing is selected yet to save a few clicks for the user
 		#if not self._parameterNode.GetNodeReference("InputVolume"):
@@ -260,6 +266,12 @@ class postopLocalizationWidget(ScriptedLoadableModuleWidget, VTKObservationMixin
 		#wasModified = self._parameterNode.StartModify()  # Modify all properties in a single batch
 		#self._parameterNode.EndModify(wasModified)
 
+	def onModuleSelectorCB(self, moduleIndex):
+		moduleName = module_dictionary[self.ui.moduleSelectCB.itemText(moduleIndex)]
+		currentModule = slicer.util.moduleSelector().selectedModule
+		if currentModule != moduleName:
+			slicer.util.moduleSelector().selectModule(moduleName)
+	
 	def setupMarkupNodes(self):
 		self.markupsLogic = slicer.modules.markups.logic()
 		

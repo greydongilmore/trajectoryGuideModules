@@ -379,7 +379,7 @@ class frameDetection:
 			self.frame_detect()
 
 	def findIntersection(self, final_location):
-		end_padding=5
+		end_padding=1
 		localizers=[]
 		for axis,labels in self.frame_settings['localizer_axis'].items():
 			if not isinstance(labels,list):
@@ -387,9 +387,14 @@ class frameDetection:
 			
 			for ilabel in labels:
 				data_cut = final_location[np.isin(final_location[:,3], ilabel)]
-				line1 = [data_cut[data_cut[:,3]==ilabel[2],:3][end_padding], data_cut[data_cut[:,3]==ilabel[2],:3][-1*end_padding]]
-				line2 = [data_cut[data_cut[:,3]==ilabel[1],:3][end_padding], data_cut[data_cut[:,3]==ilabel[1],:3][-1*end_padding]]
-				line3 = [data_cut[data_cut[:,3]==ilabel[0],:3][end_padding], data_cut[data_cut[:,3]==ilabel[0],:3][-1*end_padding]]
+				if end_padding >0:
+					line1 = [data_cut[data_cut[:,3]==ilabel[2],:3][end_padding], data_cut[data_cut[:,3]==ilabel[2],:3][-1*end_padding]]
+					line2 = [data_cut[data_cut[:,3]==ilabel[1],:3][end_padding], data_cut[data_cut[:,3]==ilabel[1],:3][-1*end_padding]]
+					line3 = [data_cut[data_cut[:,3]==ilabel[0],:3][end_padding], data_cut[data_cut[:,3]==ilabel[0],:3][-1*end_padding]]
+				else:
+					line1 = [data_cut[data_cut[:,3]==ilabel[2],:3][0], data_cut[data_cut[:,3]==ilabel[2],:3]][-1]
+					line2 = [data_cut[data_cut[:,3]==ilabel[1],:3][0], data_cut[data_cut[:,3]==ilabel[1],:3]][-1]
+					line3 = [data_cut[data_cut[:,3]==ilabel[0],:3][0], data_cut[data_cut[:,3]==ilabel[0],:3]][-1]
 				
 				if axis == 'AP':
 					x1 = line1[0][1]
@@ -1151,7 +1156,7 @@ class frameDetection:
 			#### construct frame target Polydata
 			targetModelGlyphName=f"{self.derivFolder.split(os.path.sep)[-1]}_space-{self.frame_settings['system']}_acq-glyph_label-all_localizer"
 			targetModelTubeName=f"{self.derivFolder.split(os.path.sep)[-1]}_space-{self.frame_settings['system']}_acq-tube_label-all_localizer"
-			inputTargetModel,frameTubeNode,tubePolyData=targetFrameObject(inputFiducials, self.frame_settings['system'], targetModelGlyphName, targetModelTubeName)
+			inputTargetModel,frameTubeNode,tubePolyData,fidNodeFrame=targetFrameObject(inputFiducials, self.frame_settings['system'], targetModelGlyphName, targetModelTubeName)
 
 			#### set output ICP transform prior to running registration
 			fidNodeTB = slicer.util.getNode(fcsvNodeName % ('topbottom'))
@@ -1162,18 +1167,53 @@ class frameDetection:
 			self.node.SetAndObserveTransformNodeID(inputTransform.GetID())
 
 			#### run ICP registration
-			inputTransform = runFrameModelRegistration(inputPolyData, tubePolyData, inputTransform, **self.frame_settings['settings']['parameters'])
+			inputTransform = runFrameModelRegistration(inputPolyData, inputTargetModel, inputTransform, **self.frame_settings['settings']['parameters'])
+
+			#fixed_orig =  slicer.util.arrayFromMarkupsControlPoints(fidNodeFrame)
+			#moving_orig = slicer.util.arrayFromMarkupsControlPoints(inputFiducials)
+#
+#			#fixed_orig = fixed_orig.T
+#			#moving_orig = moving_orig.T
+#
+#			#Ncoords, Npoints = fixed_orig.shape
+#			#Ncoords_Y, Npoints_Y = moving_orig.shape
+#
+#			#Xbar = np.mean(fixed_orig,1)
+#			#Ybar = np.mean(moving_orig,1)
+#
+#			#Xtilde = fixed_orig-np.tile(Xbar,(1,Npoints)).reshape(fixed_orig.shape)
+#			#Ytilde = moving_orig-np.tile(Ybar,(1,Npoints_Y)).reshape(moving_orig.shape)
+#			#H = moving_orig @ np.transpose(moving_orig)
+#
+#			#U, S, V= np.linalg.svd(H)
+#
+#			#R = V*np.diag(np.c_[1, 1, np.linalg.det(V@U)])*U.T
+			#tin = Ybar - R@Xbar
+
+
+			#a, b = (vec1 / np.linalg.norm(vec1)).reshape(3), (vec2 / np.linalg.norm(vec2)).reshape(3)
+			#v = np.cross(a, b)
+			#c = np.dot(a, b)
+			#s = np.linalg.norm(v)
+			#kmat = np.array([[0, -v[2], v[1]], [v[2], 0, -v[0]], [-v[1], v[0], 0]])
+			#rotation_matrix = np.eye(3) + kmat + kmat.dot(kmat) * ((1 - c) / (s ** 2))
 			
+			#print(Xtilde.shape,Ytilde.shape, tin.shape)
+			#scale = 1.0 / np.linalg.norm(Xtilde)
+			#scale *= np.linalg.norm(Ytilde)
+
+			#R,t,A,Q,fre, inputTransform =p2l(fixed_orig, moving_orig, Xtilde-Ytilde, .00005, inputTransform)
+
+			#print('Computed rotation:\n', R, '\nComputed translation\n', t, '\nComputed scaling\n',A, '\nComputed fre\n',fre)
 			#### apply the transform to the floating Polydata
 			#if self.frame_settings['settings']['parameters']['reverseSourceTar']:
 			#	frameTubeNode.SetAndObserveTransformNodeID(inputTransform.GetID())
 			#	#frameTubeNode.SetAndObserveTransformNodeID(inputTransform.GetID())
 			#else:
-			inputPolyData.SetAndObserveTransformNodeID(inputTransform.GetID())
-
+			
 			#### compute RMSE
-			self.meanError, self.pointError, self.pointDistanceXYZ, self.sourcePoints, self.idealPoints = ComputeMeanDistance(inputPolyData, tubePolyData,inputTransform)
-
+			self.meanError, self.pointError, self.pointDistanceXYZ, self.sourcePoints, self.idealPoints = ComputeMeanDistance(inputPolyData, inputTargetModel,inputTransform)
+			inputPolyData.SetAndObserveTransformNodeID(inputTransform.GetID())
 			self.final_location_clusters = self.convert_ijk(self.final_location_clusters, inputTransform)
 			self.final_location_clusters = self.final_location_clusters[np.lexsort((self.final_location_clusters[:,2],self.final_location_clusters[:,3]))]
 
@@ -1215,7 +1255,7 @@ def targetFrameObject(inputFiducials, frame_system, targetModelGlyphName, target
 		anteriorBar_xmin=35
 		anteriorBar_ymax=55
 		frameSystemPoints={
-			'localizer_3':{
+			'localizer_1':{
 				'c': {
 						'top':[x_min-total_width, y_min, (origin[0]+origin_z)+n_height],
 						'bot':[x_min-total_width, y_min, origin[0]+origin_z],
@@ -1243,10 +1283,10 @@ def targetFrameObject(inputFiducials, frame_system, targetModelGlyphName, target
 					'bot':[(x_min-anteriorBar_xmin)-n_width, y_min+anteriorBar_ymax, origin[0]+origin_z]
 				}
 			},
-			'localizer_1':{
+			'localizer_3':{
 				'c': {
-						'top':[x_min, y_min, (origin[0]+origin_z)+n_height],
-						'bot':[x_min, y_min, origin[0]+origin_z],
+					'top':[x_min, y_min, (origin[0]+origin_z)+n_height],
+					'bot':[x_min, y_min, origin[0]+origin_z],
 				},
 				'mid':{
 					'top':'a',
@@ -1371,6 +1411,7 @@ def targetFrameObject(inputFiducials, frame_system, targetModelGlyphName, target
 	fidNodeFrame.AddDefaultStorageNode()
 	wasModify=fidNodeFrame.StartModify()
 	appenderTube = vtk.vtkAppendPolyData()
+	appenderInterp = vtk.vtkAppendPolyData()
 	for fiducialIndex in frameSystemPoints.keys():
 		framePointsVTK = vtk.vtkPoints()
 		sourceVertices = vtk.vtkCellArray()
@@ -1386,14 +1427,36 @@ def targetFrameObject(inputFiducials, frame_system, targetModelGlyphName, target
 			else:
 				top=np.array(frameSystemPoints[fiducialIndex][iLine]['top'])
 				bot=np.array(frameSystemPoints[fiducialIndex][iLine]['bot'])
-			#### interpolate points between the start and end of the N-localizer bar
-			for ipoint in np.vstack([np.linspace(float(top[dim]),float(bot[dim]),num_points) for dim in range(3)]).T:
+			
+			for ipoint in np.vstack([np.linspace(float(bot[dim]),float(top[dim]),num_points) for dim in range(3)]).T:
 				n = fidNodeFrame.AddControlPoint(vtk.vtkVector3d(ipoint[0], ipoint[1], ipoint[2]))
-				fidNodeFrame.SetNthControlPointLabel(n, f"P{int(ipoint[2])}")
+				fidNodeFrame.SetNthControlPointLabel(n, f"{fiducialIndex}_{iLine}_P{int(ipoint[2])}")
 
 			#### interpolate points between the start and end of the N-localizer bar
+			fiducialIndexInterp=0
+			lineSource = vtk.vtkLineSource()
 			for ipoint in np.vstack([np.linspace(float(top[dim]),float(bot[dim]),2) for dim in range(3)]).T:
 				framePointsVTK.InsertNextPoint(int(ipoint[0]), int(ipoint[1]), int(ipoint[2]))
+				if fiducialIndexInterp==0:
+					lineSource.SetPoint1( ipoint[0], ipoint[1], ipoint[2] )
+				else:
+					lineSource.SetPoint2( ipoint[0], ipoint[1], ipoint[2] )
+				lineSource.Update()
+				fiducialIndexInterp+=1
+
+			mySpline = vtk.vtkCardinalSpline()
+			mySpline.SetLeftConstraint(2)
+			mySpline.SetLeftValue(0.0)
+			mySpline.SetRightConstraint(2)
+			mySpline.SetRightValue(0.0)
+
+			spline = vtk.vtkSplineFilter( )
+			spline.SetSpline(mySpline)
+			spline.SetInputConnection(lineSource.GetOutputPort())
+			spline.SetSubdivideToSpecified()
+			spline.SetNumberOfSubdivisions(num_points-1)
+			spline.Update()
+
 			#### construct Polydata lines for tube filter
 			lines = vtk.vtkCellArray()
 			for i in range(framePointsVTK.GetNumberOfPoints()-1):
@@ -1401,17 +1464,56 @@ def targetFrameObject(inputFiducials, frame_system, targetModelGlyphName, target
 				polyLine.GetPointIds().SetId(0, i)
 				polyLine.GetPointIds().SetId(1, i + 1)
 				lines.InsertNextCell(polyLine)
+
 			#### append the points/lines for tube filter
 			tubePolyData = vtk.vtkPolyData()
 			tubePolyData.SetPoints(framePointsVTK)
 			tubePolyData.SetLines(lines)
 			appenderTube.AddInputData(tubePolyData)
 			appenderTube.Update()
+			tubePolyData2 = vtk.vtkPolyData()
+			tubePolyData2.SetPoints(spline.GetOutput().GetPoints())
+			appenderInterp.AddInputData(tubePolyData2)
+			appenderInterp.Update()
 
-	fidNodeFrame.EndModify(wasModify)
+	a=arrayFromMarkupsControlPointLabels(fidNodeFrame)
+	X=slicer.util.arrayFromMarkupsControlPoints(fidNodeFrame)
+	
+	if 'leksell' in frame_system:
+		fidNodeFrame.RemoveAllControlPoints()
 
-	frameGlyphNode=convertMarkupsToPolyData(fidNodeFrame, node_name=targetModelGlyphName)
-	slicer.mrmlScene.RemoveNode(fidNodeFrame)
+		idxa=[i for i,x in enumerate(a) if 'localizer_1_a' in x]
+		idxb=[i for i,x in enumerate(a) if 'localizer_1_mid' in x]
+		idxc=[i for i,x in enumerate(a) if 'localizer_1_c' in x]
+		b=np.r_[np.c_[X[idxa,:],np.repeat('localizer_1_a',len(idxa))],
+			np.c_[X[idxb,:],np.repeat('localizer_1_mid',len(idxb))], 
+			np.c_[X[idxc,:],np.repeat('localizer_1_c',len(idxc))]]
+
+		idxa=[i for i,x in enumerate(a) if 'localizer_2_a' in x]
+		idxb=[i for i,x in enumerate(a) if 'localizer_2_mid' in x]
+		idxc=[i for i,x in enumerate(a) if 'localizer_2_c' in x]
+
+		c=np.r_[np.c_[X[idxa,:],np.repeat('localizer_2_a',len(idxa))],
+			np.c_[X[idxb,:],np.repeat('localizer_2_mid',len(idxb))], 
+			np.c_[X[idxc,:],np.repeat('localizer_2_c',len(idxc))]]
+
+		idxa=[i for i,x in enumerate(a) if 'localizer_3_c' in x]
+		idxb=[i for i,x in enumerate(a) if 'localizer_3_mid' in x]
+		idxc=[i for i,x in enumerate(a) if 'localizer_3_a' in x]
+
+		d=np.r_[np.c_[X[idxa,:],np.repeat('localizer_3_c',len(idxa))],
+			np.c_[X[idxb,:],np.repeat('localizer_3_mid',len(idxb))], 
+			np.c_[X[idxc,:],np.repeat('localizer_3_a',len(idxc))]]
+
+		fixed=np.vstack([b,c,d])
+		print(len(fixed))
+		for ipoint in fixed:
+			n = fidNodeFrame.AddControlPoint(vtk.vtkVector3d(ipoint[0].astype(float), ipoint[1].astype(float), ipoint[2].astype(float)))
+			fidNodeFrame.SetNthControlPointLabel(n, f"{ipoint[3]}_P{int(float(ipoint[2]))}")
+	else:
+		fidNodeFrame.EndModify(wasModify)
+		frameGlyphNode=convertMarkupsToPolyData(fidNodeFrame, node_name=targetModelGlyphName)
+		slicer.mrmlScene.RemoveNode(fidNodeFrame)
 
 	# display the polydata as tubes
 	tubeFilter = vtk.vtkTubeFilter()
@@ -1432,7 +1534,21 @@ def targetFrameObject(inputFiducials, frame_system, targetModelGlyphName, target
 	frameTubeNode.GetDisplayNode().LightingOff()
 	frameTubeNode.SetName(targetModelTubeName)
 
-	return frameGlyphNode,frameTubeNode,appenderTube
+	#### display polydata as glyphs
+	glyphFilter = vtk.vtkVertexGlyphFilter()
+	glyphFilter.SetInputConnection(appenderInterp.GetOutputPort())
+	glyphFilter.Update()
+
+	frameGlyphNode = slicer.mrmlScene.AddNewNodeByClass('vtkMRMLModelNode')
+	frameGlyphNode.CreateDefaultDisplayNodes()
+	frameGlyphNode.SetAndObservePolyData(glyphFilter.GetOutput())
+	frameGlyphNode.SetName(targetModelGlyphName)
+
+	return frameGlyphNode,frameTubeNode,appenderTube,fidNodeFrame
+
+def _centered(A):
+	mu = A.mean(axis=0)
+	return A - mu, mu
 
 def convertMarkupsToPolyData(inputFiducials, node_name=None):
 	"""Converts markups to polydata.
@@ -1449,26 +1565,32 @@ def convertMarkupsToPolyData(inputFiducials, node_name=None):
 	
 	"""
 	framePointsVTK = vtk.vtkPoints()
+	pointPolyData = vtk.vtkPolyData()
 	sourceVertices = vtk.vtkCellArray()
+	pointPolyData.SetPoints(framePointsVTK)
+	#pointPolyData.SetVerts(sourceVertices)
+
 	for fiducialIndex in range(inputFiducials.GetNumberOfControlPoints()):
-		p = np.zeros(3)
-		inputFiducials.GetNthControlPointPositionWorld(fiducialIndex, p)
-		id=framePointsVTK.InsertNextPoint(p[0],p[1],p[2])
+		#p = np.zeros(3)
+		#inputFiducials.GetNthControlPointPositionWorld(fiducialIndex, p)
+		id=framePointsVTK.InsertNextPoint(inputFiducials.GetNthControlPointPositionVector(fiducialIndex))
 		sourceVertices.InsertNextCell(1)
 		sourceVertices.InsertCellPoint(id)
-
-	pointPolyData = vtk.vtkPolyData()
-	pointPolyData.SetPoints(framePointsVTK)
-	pointPolyData.SetVerts(sourceVertices)
-
+	
 	#### display polydata as glyphs
 	glyphFilter = vtk.vtkVertexGlyphFilter()
 	glyphFilter.AddInputData(pointPolyData)
 	glyphFilter.Update()
 
+	filter1=vtk.vtkCleanPolyData()
+	filter1.SetToleranceIsAbsolute(False)
+	filter1.SetTolerance(.001)
+	filter1.SetInputData(glyphFilter.GetOutput())
+	filter1.Update()
+
 	sourceGlyphNode = slicer.mrmlScene.AddNewNodeByClass('vtkMRMLModelNode')
 	sourceGlyphNode.CreateDefaultDisplayNodes()
-	sourceGlyphNode.SetAndObservePolyData(glyphFilter.GetOutput())
+	sourceGlyphNode.SetAndObservePolyData(filter1.GetOutput())
 	if node_name is not None:
 		sourceGlyphNode.SetName(node_name)
 	else:
@@ -1620,6 +1742,29 @@ def runFrameModelRegistration(inputSourceModel, inputTargetModel, inputTransform
 
 	return inputTransform
 
+def look_at(vec_pos, vec_look_at):
+	z = vec_look_at - vec_pos
+	z = z / np.linalg.norm(z)
+	x = np.cross(z, np.array([0., 1., 0.]))
+	x = x / np.linalg.norm(x)
+	y = np.cross(x, z)
+	y = y / np.linalg.norm(y)
+	view_mat = np.zeros((3, 3))
+	view_mat[:3, 0] = x
+	view_mat[:3, 1] = y
+	view_mat[:3, 2] = z
+	return view_mat 
+
+def data_norm(x):
+	mu = x.mean(axis=1, keepdims=True)
+	sigma = x.std(axis=1, keepdims=True)
+	return (x-mu)/sigma
+
+def normalize(d):
+	# d is a (n x dimension) np array
+	d -= np.min(d, axis=0)
+	d /= np.ptp(d, axis=0)
+	return d
 
 def AOPA_Major(X, Y, tol):
 	"""
@@ -1674,32 +1819,7 @@ def AOPA_Major(X, Y, tol):
 	t = np.reshape(np.mean( Y - np.matmul(R, np.matmul(A,X)), 1), [m,1])
 	return[R,t,A]
 
-
-def look_at(vec_pos, vec_look_at):
-	z = vec_look_at - vec_pos
-	z = z / np.linalg.norm(z)
-	x = np.cross(z, np.array([0., 1., 0.]))
-	x = x / np.linalg.norm(x)
-	y = np.cross(x, z)
-	y = y / np.linalg.norm(y)
-	view_mat = np.zeros((3, 3))
-	view_mat[:3, 0] = x
-	view_mat[:3, 1] = y
-	view_mat[:3, 2] = z
-	return view_mat 
-
-def data_norm(x):
-	mu = x.mean(axis=1, keepdims=True)
-	sigma = x.std(axis=1, keepdims=True)
-	return (x-mu)/sigma
-
-def normalize(d):
-	# d is a (n x dimension) np array
-	d -= np.min(d, axis=0)
-	d /= np.ptp(d, axis=0)
-	return d
-
-def p2l(X, Y, D, tol):
+def p2l(X, Y, D, tol, inputTransform):
 	"""
 	Computes the Procrustean point-line registration between X and Y+nD with 
 	anisotropic Scaling,
@@ -1734,45 +1854,17 @@ def p2l(X, Y, D, tol):
 	E = Q - np.matmul(R, np.matmul(A,X)) - np.matmul(t,e)
 	# calculate fiducial registration error
 	fre = np.sum(np.linalg.norm(E,ord=2,axis=0,keepdims=True))/X.shape[1]
-	
+	lps2ras = np.diag([-1, -1, 1])
+	data = np.eye(4)
+	data[0:3, 3] = t.T
+	data[:3, :3] = np.dot(np.dot(lps2ras, R.T), lps2ras)
 	transform_matrix = vtk.vtkMatrix4x4()
-	transform_matrix.SetElement(0, 0, R[0][0])
-	transform_matrix.SetElement(0, 1, R[0][1])
-	transform_matrix.SetElement(0, 2, R[0][2])
-	transform_matrix.SetElement(1, 0, R[1][0])
-	transform_matrix.SetElement(1, 1, R[1][1])
-	transform_matrix.SetElement(1, 2, R[1][2])
-	transform_matrix.SetElement(2, 0, R[2][0])
-	transform_matrix.SetElement(2, 1, R[2][1])
-	transform_matrix.SetElement(2, 2, R[2][2])
-	transform_matrix.SetElement(0, 3, t[0]),
-	transform_matrix.SetElement(1, 3, t[0]),
-	transform_matrix.SetElement(2, 3, t[0])
-	transform_matrix.SetElement(3, 0, 0)
-	transform_matrix.SetElement(3, 1, 0)
-	transform_matrix.SetElement(3, 2, 0)
-	transform_matrix.SetElement(3, 3, 1)
-
-	if len(slicer.util.getNodes('*p2l*')) > 0:
-		slicer.mrmlScene.RemoveNode(slicer.util.getNode('p2l'))
-
-	transformOut = slicer.mrmlScene.AddNode(slicer.vtkMRMLLinearTransformNode())
-	transformOut.SetName('p2l')
-	transformOut.SetMatrixTransformFromParent(transform_matrix)
-	node=slicer.mrmlScene.AddNewNodeByClass('vtkMRMLMarkupsFiducialNode')
-	node.SetName('p2l_points')
-	node.AddDefaultStorageNode()
-	node.GetStorageNode().SetCoordinateSystem(0)
-
-	nodeModify=node.StartModify()
-
-	for ifid in range(Q.shape[1]):
-		n = node.AddControlPoint(vtk.vtkVector3d(Q[0,ifid], Q[1,ifid], Q[2,ifid]))
-		node.SetNthControlPointLabel(n, f"point_{str(ifid).zfill(2)}")
-
-	node.EndModify(nodeModify)
-
-	return [transformOut,R,A,t,Q,fre]
+	dimensions = len(data) - 1
+	for row in range(dimensions):
+		for col in range(dimensions + 1):
+			transform_matrix.SetElement(row, col, data[(row, col)])
+	inputTransform.SetMatrixTransformToParent(transform_matrix)
+	return [R,t,A,Q,fre, inputTransform]
 
 def centerOfMass(poly):
 	""" Return center of mass of polydata.
@@ -2548,7 +2640,7 @@ def plotLead(entry,target,origin,model_parameters):
 		midContactList.append(midContact)
 
 		contactFile.append([model_parameters['plan_name'], model_parameters['type'], str(iContact + 1), midContact[0] * -1, midContact[1] * -1, midContact[2]])
-		if any(x.lower() in model_parameters['elecUsed'].lower() for x in ('directional', 'bsci_directional','b.sci. directional')):
+		if any(x.lower() in model_parameters['elecUsed'].lower() for x in ('bsci_directional','b.sci. directional')):
 			if iContact == 0:
 				vtkModelBuilder = vtkModelBuilderClass()
 				vtkModelBuilder.coords = bottomTop[iContact, :]
@@ -2582,9 +2674,9 @@ def plotLead(entry,target,origin,model_parameters):
 					
 					for inode in nodes:
 						for ifilename in (filen1,filen2,filen3):
-							if ifilename.split('.vtk')[0] in inode.GetName():
+							if ifilename.split('.vtk')[0] in inode:
 								filepath = slicer.util.getNode(inode.GetID()).GetStorageNode().GetFileName()				
-								slicer.mrmlScene.RemoveNode(slicer.util.getNode(inode.GetID()))
+								slicer.mrmlScene.RemoveNode(slicer.util.getNode(inode))
 								os.remove(filepath)
 
 				plane = np.vstack((

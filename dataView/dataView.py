@@ -18,7 +18,7 @@ sys.path.insert(1, os.path.dirname(cwd))
 from helpers.helpers import vtkModelBuilderClass, getReverseTransform, hex2rgb, rgbToHex,\
 createModelBox, sorted_nicely, addCustomLayouts, sortSceneData
 from helpers.variables import coordSys, slicerLayout, groupboxStyle, ctkCollapsibleGroupBoxStyle,\
-ctkCollapsibleGroupBoxTitle, groupboxStyleTitle, fontSettingTitle, defaultTemplateSpace
+ctkCollapsibleGroupBoxTitle, groupboxStyleTitle, fontSettingTitle, defaultTemplateSpace, module_dictionary
 
 #
 # dataView
@@ -144,6 +144,8 @@ class dataViewWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 		# These connections ensure that whenever user changes some settings on the GUI, that is saved in the MRML scene
 		# (in the selected parameter node).
 		
+		self.ui.moduleSelectCB.connect('currentIndexChanged(int)', self.onModuleSelectorCB)
+
 		self.ui.colorPickerButtonGroup.connect('buttonClicked(QAbstractButton*)', self.onGroupButton)
 		self.ui.patientModelsViewButtonGroup.buttonClicked.connect(self.onGroupButton)
 		self.ui.planName.connect('currentIndexChanged(int)', self.onPlanChange)
@@ -226,6 +228,10 @@ class dataViewWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
 		self.setParameterNode(self.logic.getParameterNode())
 
+		moduleIndex = [i for i,x in enumerate(list(module_dictionary.values())) if x == slicer.util.moduleSelector().selectedModule][0]
+		self.ui.moduleSelectCB.setCurrentIndex(self.ui.moduleSelectCB.findText(list(module_dictionary)[moduleIndex]))
+		
+		
 	def setParameterNode(self, inputParameterNode):
 		"""
 		Set and observe parameter node.
@@ -284,6 +290,12 @@ class dataViewWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 		#wasModified = self._parameterNode.StartModify()  # Modify all properties in a single batch
 
 		#self._parameterNode.EndModify(wasModified)
+
+	def onModuleSelectorCB(self, moduleIndex):
+		moduleName = module_dictionary[self.ui.moduleSelectCB.itemText(moduleIndex)]
+		currentModule = slicer.util.moduleSelector().selectedModule
+		if currentModule != moduleName:
+			slicer.util.moduleSelector().selectModule(moduleName)
 
 	def setupModelWigets(self):
 

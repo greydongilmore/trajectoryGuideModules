@@ -76,7 +76,7 @@ electrodeModels['B.Sci. directional'] = bsci_directional
 bsci_nondirectional = {
 		'num_groups': 8,
 		'num_contacts': 8,
-		'encapsultation': 0,
+		'encapsultation': 1.1,
 		'lead_shift':0,
 		'contact_size': 1.5,
 		'contact_spacing': 0.5,
@@ -330,3 +330,20 @@ trajectoryGuideAxialLayout = (
 			"     </item>"
 			"</layout>"
 		)
+
+#
+#------------------------------ Module Dictionary -------------------------------
+#
+
+module_dictionary= {
+	'01: Data Import': 'dataImport',
+	'02: Frame Detection': 'frameDetect',
+	'03: Registration':'registration',
+	'04: Anatomical Landmarks': 'anatomicalLandmarks',
+	'05: Preop Planning': 'preopPlanning',
+	'06: Intraop Planning': 'intraopPlanning',
+	'07: Postop Localization': 'postopLocalization',
+	'08: Postop Programming': 'postopProgramming',
+	'Data View': 'dataView'
+ }
+ 

@@ -15,7 +15,7 @@ elif __file__:
 sys.path.insert(1, os.path.dirname(cwd))
 
 from helpers.helpers import warningBox, VTAModelBuilderClass, dotdict, getMarkupsNode, getPointCoords, addCustomLayouts, createElecBox, imagePopup
-from helpers.variables import electrodeModels,groupboxStyle, slicerLayout
+from helpers.variables import electrodeModels,groupboxStyle, slicerLayout, module_dictionary
 
 #
 # postopProgramming
@@ -122,6 +122,8 @@ class postopProgrammingWidget(ScriptedLoadableModuleWidget, VTKObservationMixin)
 		# These connections ensure that whenever user changes some settings on the GUI, that is saved in the MRML scene
 		# (in the selected parameter node).
 		
+		self.ui.moduleSelectCB.connect('currentIndexChanged(int)', self.onModuleSelectorCB)
+
 		self.ui.planAdd.connect('clicked(bool)', self.onPlanAdd)
 		self.ui.planDelete.connect('clicked(bool)', self.onPlanDelete)
 		self.ui.planAddConfirm.connect('clicked(bool)', self.onPlanAddConfirm)
@@ -194,6 +196,9 @@ class postopProgrammingWidget(ScriptedLoadableModuleWidget, VTKObservationMixin)
 
 		self.setParameterNode(self.logic.getParameterNode())
 
+		moduleIndex = [i for i,x in enumerate(list(module_dictionary.values())) if x == slicer.util.moduleSelector().selectedModule][0]
+		self.ui.moduleSelectCB.setCurrentIndex(self.ui.moduleSelectCB.findText(list(module_dictionary)[moduleIndex]))
+		
 		# Select default input nodes if nothing is selected yet to save a few clicks for the user
 		#if not self._parameterNode.GetNodeReference("InputVolume"):
 		#	firstVolumeNode = slicer.mrmlScene.GetFirstNodeByClass("vtkMRMLScalarVolumeNode")
@@ -262,6 +267,12 @@ class postopProgrammingWidget(ScriptedLoadableModuleWidget, VTKObservationMixin)
 
 		#wasModified = self._parameterNode.StartModify()  # Modify all properties in a single batch
 		#self._parameterNode.EndModify(wasModified)
+
+	def onModuleSelectorCB(self, moduleIndex):
+		moduleName = module_dictionary[self.ui.moduleSelectCB.itemText(moduleIndex)]
+		currentModule = slicer.util.moduleSelector().selectedModule
+		if currentModule != moduleName:
+			slicer.util.moduleSelector().selectModule(moduleName)
 
 	def onButtonClick(self, button):
 		if isinstance(button,tuple):

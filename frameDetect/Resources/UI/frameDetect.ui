@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>Form</class>
- <widget class="qMRMLWidget" name="Form">
+ <class>frameDetect</class>
+ <widget class="qMRMLWidget" name="frameDetect">
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
     <width>401</width>
-    <height>1482</height>
+    <height>1559</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -20,6 +20,100 @@
    <string>Form</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
+   <item alignment="Qt::AlignHCenter">
+    <widget class="QGroupBox" name="groupBox">
+     <property name="font">
+      <font>
+       <family>Arial</family>
+       <pointsize>11</pointsize>
+      </font>
+     </property>
+     <property name="title">
+      <string>trajectoryGuide Modules</string>
+     </property>
+     <layout class="QGridLayout" name="gridLayout_27">
+      <item row="0" column="0">
+       <widget class="ctkComboBox" name="moduleSelectCB">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="minimumSize">
+         <size>
+          <width>250</width>
+          <height>0</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>250</width>
+          <height>16777215</height>
+         </size>
+        </property>
+        <property name="currentIndex">
+         <number>1</number>
+        </property>
+        <property name="placeholderText">
+         <string>Module Selector</string>
+        </property>
+        <property name="defaultText">
+         <string>Module Selector</string>
+        </property>
+        <property name="elideMode">
+         <enum>Qt::ElideRight</enum>
+        </property>
+        <item>
+         <property name="text">
+          <string>01: Data Import</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>02: Frame Detection</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>03: Registration</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>04: Anatomical Landmarks</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>05: Preop Planning</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>06: Intraop Planning</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>07: Postop Localization</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>08: Postop Programming</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Data View</string>
+         </property>
+        </item>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
    <item alignment="Qt::AlignHCenter">
     <widget class="QWidget" name="widget" native="true">
      <property name="sizePolicy">
@@ -3616,6 +3710,11 @@
    <container>1</container>
   </customwidget>
   <customwidget>
+   <class>ctkComboBox</class>
+   <extends>QComboBox</extends>
+   <header>ctkComboBox.h</header>
+  </customwidget>
+  <customwidget>
    <class>qMRMLNodeComboBox</class>
    <extends>QWidget</extends>
    <header>qMRMLNodeComboBox.h</header>
@@ -3641,13 +3740,13 @@
  <resources/>
  <connections/>
  <buttongroups>
-  <buttongroup name="frameFidButtonGroup"/>
-  <buttongroup name="distanceMetricButtonGroup"/>
   <buttongroup name="frameSystemBG">
    <property name="exclusive">
     <bool>true</bool>
    </property>
   </buttongroup>
+  <buttongroup name="distanceMetricButtonGroup"/>
+  <buttongroup name="frameFidButtonGroup"/>
   <buttongroup name="matchCentroidsButtonGroup"/>
  </buttongroups>
 </ui>
