@@ -515,15 +515,8 @@ class intraopPlanningWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 			return
 
 		microUsed = None
-		if surgical_data['trajectories'][plan_name]['pre'].lower() != '':
+		if surgical_data['trajectories'][plan_name]['pre'] is not None:
 			microUsed = surgical_data['trajectories'][plan_name]['pre']['microUsed']
-
-		mer_info={}
-		mer_info['center']=[self.ui.centerSlider.minimumValue, self.ui.centerSlider.maximumValue]
-		mer_info['anterior']=[self.ui.anteriorSlider.minimumValue, self.ui.anteriorSlider.maximumValue]
-		mer_info['posterior']=[self.ui.posteriorSlider.minimumValue, self.ui.posteriorSlider.maximumValue]
-		mer_info['medial']=[self.ui.medialSlider.minimumValue, self.ui.medialSlider.maximumValue]
-		mer_info['lateral']=[self.ui.lateralSlider.minimumValue, self.ui.lateralSlider.maximumValue]
 
 		entry_pre = np.array(surgical_data['trajectories'][plan_name]['pre']['entry'])
 		target_pre = np.array(surgical_data['trajectories'][plan_name]['pre']['target'])
@@ -532,6 +525,20 @@ class intraopPlanningWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 		channels_used=surgical_data['trajectories'][plan_name]['pre']['chansUsed']
 		implant_depth=self.ui.intraopElecDepth.value
 		channel_index = self.leftChanIndex if surgical_data['trajectories'][plan_name]['side'] == 'left' else self.rightChanIndex
+
+
+		mer_info={}
+		mer_info['center']=[self.ui.centerSlider.minimumValue, self.ui.centerSlider.maximumValue]
+		mer_info['anterior']=[self.ui.anteriorSlider.minimumValue, self.ui.anteriorSlider.maximumValue]
+		mer_info['posterior']=[self.ui.posteriorSlider.minimumValue, self.ui.posteriorSlider.maximumValue]
+		mer_info['medial']=[self.ui.medialSlider.minimumValue, self.ui.medialSlider.maximumValue]
+		mer_info['lateral']=[self.ui.lateralSlider.minimumValue, self.ui.lateralSlider.maximumValue]
+
+		if not channels_used:
+			channels_used=[]
+			for ichan in list(mer_info):
+				if not 'n/a' in mer_info[ichan]:
+					channels_used.append(ichan)
 
 		#### determine coordinate roation based on pre-op coords first.
 		DirVec = entry_pre - target_pre
@@ -653,7 +660,7 @@ class intraopPlanningWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 					mer_bot = 'n/a'
 					mer_top = 'n/a'
 
-				ch_info_temp = {
+				ch_info[ichan] = {
 					'mer_top':mer_top,
 					'mer_bot':mer_bot,
 					'acpc_entry':list(adjustPrecision(P1_shift + NormVec.T * MagVec)),
@@ -672,7 +679,7 @@ class intraopPlanningWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 							mer_bot = 'n/a'
 							mer_top = 'n/a'
 
-						ch_info_temp = {
+						ch_info[ichan] = {
 							'mer_top':mer_top,
 							'mer_bot':mer_bot,
 							'acpc_entry':list(adjustPrecision(new_coords_shift.T[idx] + NormVec.T * MagVec)),
@@ -680,8 +687,7 @@ class intraopPlanningWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 						}
 
 			if coords_track is not None and self.intraopMERTracksPlot and model_parameters['microUsed'] is not None:
-				ch_info[ichan] = ch_info_temp
-
+				
 				model_parameters['mer_filename'] = track_filename
 				model_parameters['model_col'] = model_colors['plannedMicroelectrodesColor']
 				model_parameters['model_vis'] = model_colors['plannedMicroelectrodesColor']

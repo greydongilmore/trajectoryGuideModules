@@ -459,7 +459,6 @@ class frameDetectWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 		
 		for inode in searchNodes:
 			if len(slicer.util.getNodes(inode))>0:
-				print(slicer.util.getNodes(inode))
 				slicer.mrmlScene.RemoveNode(list(slicer.util.getNodes(inode).values())[0])
 
 		if self.ui.frameFidVolumeCBox.currentNode() is not None:

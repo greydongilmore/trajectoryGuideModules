@@ -1210,10 +1210,11 @@ class frameDetection:
 			#	frameTubeNode.SetAndObserveTransformNodeID(inputTransform.GetID())
 			#	#frameTubeNode.SetAndObserveTransformNodeID(inputTransform.GetID())
 			#else:
-			
+
 			#### compute RMSE
-			self.meanError, self.pointError, self.pointDistanceXYZ, self.sourcePoints, self.idealPoints = ComputeMeanDistance(inputPolyData, inputTargetModel,inputTransform)
+			self.meanError, self.pointError, self.pointDistanceXYZ, self.sourcePoints, self.idealPoints = ComputeMeanDistance(inputPolyData, frameTubeNode,inputTransform)
 			inputPolyData.SetAndObserveTransformNodeID(inputTransform.GetID())
+
 			self.final_location_clusters = self.convert_ijk(self.final_location_clusters, inputTransform)
 			self.final_location_clusters = self.final_location_clusters[np.lexsort((self.final_location_clusters[:,2],self.final_location_clusters[:,3]))]
 
@@ -1476,44 +1477,45 @@ def targetFrameObject(inputFiducials, frame_system, targetModelGlyphName, target
 			appenderInterp.AddInputData(tubePolyData2)
 			appenderInterp.Update()
 
-	a=arrayFromMarkupsControlPointLabels(fidNodeFrame)
-	X=slicer.util.arrayFromMarkupsControlPoints(fidNodeFrame)
+	#a=arrayFromMarkupsControlPointLabels(fidNodeFrame)
+	#X=slicer.util.arrayFromMarkupsControlPoints(fidNodeFrame)
+	#
+	#if 'leksell' in frame_system:
+	#	fidNodeFrame.RemoveAllControlPoints()
+#
+#	#	idxa=[i for i,x in enumerate(a) if 'localizer_1_a' in x]
+#	#	idxb=[i for i,x in enumerate(a) if 'localizer_1_mid' in x]
+#	#	idxc=[i for i,x in enumerate(a) if 'localizer_1_c' in x]
+#	#	b=np.r_[np.c_[X[idxa,:],np.repeat('localizer_1_a',len(idxa))],
+#	#		np.c_[X[idxb,:],np.repeat('localizer_1_mid',len(idxb))], 
+#	#		np.c_[X[idxc,:],np.repeat('localizer_1_c',len(idxc))]]
+#
+#	#	idxa=[i for i,x in enumerate(a) if 'localizer_2_a' in x]
+#	#	idxb=[i for i,x in enumerate(a) if 'localizer_2_mid' in x]
+#	#	idxc=[i for i,x in enumerate(a) if 'localizer_2_c' in x]
+#
+#	#	c=np.r_[np.c_[X[idxa,:],np.repeat('localizer_2_a',len(idxa))],
+#	#		np.c_[X[idxb,:],np.repeat('localizer_2_mid',len(idxb))], 
+#	#		np.c_[X[idxc,:],np.repeat('localizer_2_c',len(idxc))]]
+#
+#	#	idxa=[i for i,x in enumerate(a) if 'localizer_3_c' in x]
+#	#	idxb=[i for i,x in enumerate(a) if 'localizer_3_mid' in x]
+#	#	idxc=[i for i,x in enumerate(a) if 'localizer_3_a' in x]
+#
+#	#	d=np.r_[np.c_[X[idxa,:],np.repeat('localizer_3_c',len(idxa))],
+#	#		np.c_[X[idxb,:],np.repeat('localizer_3_mid',len(idxb))], 
+#	#		np.c_[X[idxc,:],np.repeat('localizer_3_a',len(idxc))]]
+#
+#	#	fixed=np.vstack([b,c,d])
+#	#	print(len(fixed))
+#	#	for ipoint in fixed:
+#	#		n = fidNodeFrame.AddControlPoint(vtk.vtkVector3d(ipoint[0].astype(float), ipoint[1].astype(float), ipoint[2].astype(float)))
+#	#		fidNodeFrame.SetNthControlPointLabel(n, f"{ipoint[3]}_P{int(float(ipoint[2]))}")
+	#else:
 	
-	if 'leksell' in frame_system:
-		fidNodeFrame.RemoveAllControlPoints()
-
-		idxa=[i for i,x in enumerate(a) if 'localizer_1_a' in x]
-		idxb=[i for i,x in enumerate(a) if 'localizer_1_mid' in x]
-		idxc=[i for i,x in enumerate(a) if 'localizer_1_c' in x]
-		b=np.r_[np.c_[X[idxa,:],np.repeat('localizer_1_a',len(idxa))],
-			np.c_[X[idxb,:],np.repeat('localizer_1_mid',len(idxb))], 
-			np.c_[X[idxc,:],np.repeat('localizer_1_c',len(idxc))]]
-
-		idxa=[i for i,x in enumerate(a) if 'localizer_2_a' in x]
-		idxb=[i for i,x in enumerate(a) if 'localizer_2_mid' in x]
-		idxc=[i for i,x in enumerate(a) if 'localizer_2_c' in x]
-
-		c=np.r_[np.c_[X[idxa,:],np.repeat('localizer_2_a',len(idxa))],
-			np.c_[X[idxb,:],np.repeat('localizer_2_mid',len(idxb))], 
-			np.c_[X[idxc,:],np.repeat('localizer_2_c',len(idxc))]]
-
-		idxa=[i for i,x in enumerate(a) if 'localizer_3_c' in x]
-		idxb=[i for i,x in enumerate(a) if 'localizer_3_mid' in x]
-		idxc=[i for i,x in enumerate(a) if 'localizer_3_a' in x]
-
-		d=np.r_[np.c_[X[idxa,:],np.repeat('localizer_3_c',len(idxa))],
-			np.c_[X[idxb,:],np.repeat('localizer_3_mid',len(idxb))], 
-			np.c_[X[idxc,:],np.repeat('localizer_3_a',len(idxc))]]
-
-		fixed=np.vstack([b,c,d])
-		print(len(fixed))
-		for ipoint in fixed:
-			n = fidNodeFrame.AddControlPoint(vtk.vtkVector3d(ipoint[0].astype(float), ipoint[1].astype(float), ipoint[2].astype(float)))
-			fidNodeFrame.SetNthControlPointLabel(n, f"{ipoint[3]}_P{int(float(ipoint[2]))}")
-	else:
-		fidNodeFrame.EndModify(wasModify)
-		frameGlyphNode=convertMarkupsToPolyData(fidNodeFrame, node_name=targetModelGlyphName)
-		slicer.mrmlScene.RemoveNode(fidNodeFrame)
+	fidNodeFrame.EndModify(wasModify)
+	frameGlyphNode=convertMarkupsToPolyData(fidNodeFrame, node_name=targetModelGlyphName)
+	slicer.mrmlScene.RemoveNode(fidNodeFrame)
 
 	# display the polydata as tubes
 	tubeFilter = vtk.vtkTubeFilter()
@@ -1534,15 +1536,15 @@ def targetFrameObject(inputFiducials, frame_system, targetModelGlyphName, target
 	frameTubeNode.GetDisplayNode().LightingOff()
 	frameTubeNode.SetName(targetModelTubeName)
 
-	#### display polydata as glyphs
-	glyphFilter = vtk.vtkVertexGlyphFilter()
-	glyphFilter.SetInputConnection(appenderInterp.GetOutputPort())
-	glyphFilter.Update()
-
-	frameGlyphNode = slicer.mrmlScene.AddNewNodeByClass('vtkMRMLModelNode')
-	frameGlyphNode.CreateDefaultDisplayNodes()
-	frameGlyphNode.SetAndObservePolyData(glyphFilter.GetOutput())
-	frameGlyphNode.SetName(targetModelGlyphName)
+	##### display polydata as glyphs
+	#glyphFilter = vtk.vtkVertexGlyphFilter()
+	#glyphFilter.SetInputConnection(appenderInterp.GetOutputPort())
+	#glyphFilter.Update()
+#
+#	#frameGlyphNode = slicer.mrmlScene.AddNewNodeByClass('vtkMRMLModelNode')
+#	#frameGlyphNode.CreateDefaultDisplayNodes()
+#	#frameGlyphNode.SetAndObservePolyData(glyphFilter.GetOutput())
+	#frameGlyphNode.SetName(targetModelGlyphName)
 
 	return frameGlyphNode,frameTubeNode,appenderTube,fidNodeFrame
 
@@ -2575,7 +2577,7 @@ def plotLead(entry,target,origin,model_parameters):
 		if os.path.split(model_parameters['lead_fileN'])[(-1)].split('type-')[0] in inodes.GetName() and '_lead' in inodes.GetName():
 			filepath = slicer.util.getNode(inodes.GetID()).GetStorageNode().GetFileName()
 			slicer.mrmlScene.RemoveNode(slicer.util.getNode(inodes.GetID()))
-			if model_parameters['data_dir'] is not None:
+			if model_parameters['data_dir'] is not None and filepath is not None:
 				os.remove(filepath)
 
 
