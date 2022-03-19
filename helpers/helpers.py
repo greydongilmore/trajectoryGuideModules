@@ -1157,68 +1157,150 @@ class frameDetection:
 			targetModelGlyphName=f"{self.derivFolder.split(os.path.sep)[-1]}_space-{self.frame_settings['system']}_acq-glyph_label-all_localizer"
 			targetModelTubeName=f"{self.derivFolder.split(os.path.sep)[-1]}_space-{self.frame_settings['system']}_acq-tube_label-all_localizer"
 			inputTargetModel,frameTubeNode,tubePolyData,fidNodeFrame=targetFrameObject(inputFiducials, self.frame_settings['system'], targetModelGlyphName, targetModelTubeName)
+			#fidNodeFrame = convertMarkupsToPolyData(fidNodeFrame)
 
 			#### set output ICP transform prior to running registration
+			
+
+			
+			#### run ICP registration
+			inputTransform = runFrameModelRegistration(inputPolyData, inputTargetModel, inputTransform, **self.frame_settings['settings']['parameters'])
+
+			#fixed_orig =  slicer.util.arrayFromMarkupsControlPoints(fidNodeFrame)
+			#moving_orig = slicer.util.arrayFromModelPoints(inputPolyData)
+
+			#fixed_orig = fixed_orig - np.mean(fixed_orig,0)
+			#moving_orig = moving_orig - np.mean(moving_orig,0)
+
 			fidNodeTB = slicer.util.getNode(fcsvNodeName % ('topbottom'))
 			fidNodeTB.SetAndObserveTransformNodeID(inputTransform.GetID())
 			fidNodeFC = slicer.util.getNode('frame_center')
 			fidNodeFC.SetAndObserveTransformNodeID(inputTransform.GetID())
 			inputFiducials.SetAndObserveTransformNodeID(inputTransform.GetID())
 			self.node.SetAndObserveTransformNodeID(inputTransform.GetID())
-
-			#### run ICP registration
-			inputTransform = runFrameModelRegistration(inputPolyData, inputTargetModel, inputTransform, **self.frame_settings['settings']['parameters'])
-
-			#fixed_orig =  slicer.util.arrayFromMarkupsControlPoints(fidNodeFrame)
-			#moving_orig = slicer.util.arrayFromMarkupsControlPoints(inputFiducials)
-#
-#			#fixed_orig = fixed_orig.T
-#			#moving_orig = moving_orig.T
-#
-#			#Ncoords, Npoints = fixed_orig.shape
-#			#Ncoords_Y, Npoints_Y = moving_orig.shape
-#
-#			#Xbar = np.mean(fixed_orig,1)
-#			#Ybar = np.mean(moving_orig,1)
-#
-#			#Xtilde = fixed_orig-np.tile(Xbar,(1,Npoints)).reshape(fixed_orig.shape)
-#			#Ytilde = moving_orig-np.tile(Ybar,(1,Npoints_Y)).reshape(moving_orig.shape)
-#			#H = moving_orig @ np.transpose(moving_orig)
-#
-#			#U, S, V= np.linalg.svd(H)
-#
-#			#R = V*np.diag(np.c_[1, 1, np.linalg.det(V@U)])*U.T
-			#tin = Ybar - R@Xbar
-
-
-			#a, b = (vec1 / np.linalg.norm(vec1)).reshape(3), (vec2 / np.linalg.norm(vec2)).reshape(3)
-			#v = np.cross(a, b)
-			#c = np.dot(a, b)
-			#s = np.linalg.norm(v)
-			#kmat = np.array([[0, -v[2], v[1]], [v[2], 0, -v[0]], [-v[1], v[0], 0]])
-			#rotation_matrix = np.eye(3) + kmat + kmat.dot(kmat) * ((1 - c) / (s ** 2))
 			
-			#print(Xtilde.shape,Ytilde.shape, tin.shape)
-			#scale = 1.0 / np.linalg.norm(Xtilde)
-			#scale *= np.linalg.norm(Ytilde)
+			#_,_,_,inputTransform=AOPA_Major(fixed_orig.T, moving_orig.T, 0.000000000005, inputTransform)
 
-			#R,t,A,Q,fre, inputTransform =p2l(fixed_orig, moving_orig, Xtilde-Ytilde, .00005, inputTransform)
-
-			#print('Computed rotation:\n', R, '\nComputed translation\n', t, '\nComputed scaling\n',A, '\nComputed fre\n',fre)
-			#### apply the transform to the floating Polydata
-			#if self.frame_settings['settings']['parameters']['reverseSourceTar']:
-			#	frameTubeNode.SetAndObserveTransformNodeID(inputTransform.GetID())
-			#	#frameTubeNode.SetAndObserveTransformNodeID(inputTransform.GetID())
-			#else:
-
-			#### compute RMSE
-			self.meanError, self.pointError, self.pointDistanceXYZ, self.sourcePoints, self.idealPoints = ComputeMeanDistance(inputPolyData, frameTubeNode,inputTransform)
+			#_,_,_,inputTransform=orthogonal_procrustes(fixed_orig, moving_orig, inputTransform)
+			
+			#frameTubeNode.SetAndObserveTransformNodeID(inputTransform.GetID())
+			#inputTargetModel.SetAndObserveTransformNodeID(inputTransform.GetID())
 			inputPolyData.SetAndObserveTransformNodeID(inputTransform.GetID())
+			#### compute RMSE
+			self.meanError, self.pointError, self.pointDistanceXYZ, self.sourcePoints, self.idealPoints = ComputeMeanDistance(inputPolyData, inputTargetModel,inputTransform)
+			#
 
 			self.final_location_clusters = self.convert_ijk(self.final_location_clusters, inputTransform)
 			self.final_location_clusters = self.final_location_clusters[np.lexsort((self.final_location_clusters[:,2],self.final_location_clusters[:,3]))]
 
 		self.frame_center = getFrameCenter(self.frame_settings['system'])
+
+def compute_fre(fixed, moving, rotation, translation):
+	"""
+	Computes the Fiducial Registration Error, equal
+	to the root mean squared error between corresponding fiducials.
+	:param fixed: point set, N x 3 ndarray
+	:param moving: point set, N x 3 ndarray of corresponding points
+	:param rotation: 3 x 3 ndarray
+	:param translation: 3 x 1 ndarray
+	:returns: Fiducial Registration Error (FRE)
+	"""
+	# pylint: disable=assignment-from-no-return
+	#validate_procrustes_inputs(fixed, moving)
+	transformed_moving = np.matmul(rotation, moving.transpose()) + translation
+	squared_error_elementwise = np.square(fixed, transformed_moving.transpose())
+	square_distance_error = np.sum(squared_error_elementwise, 1)
+	sum_squared_error = np.sum(square_distance_error, 0)
+	mean_squared_error = sum_squared_error / fixed.shape[0]
+	fre = np.sqrt(mean_squared_error)
+	return fre, mean_squared_error, squared_error_elementwise
+
+
+
+def orthogonal_procrustes(fixed, moving, inputTransform):
+	"""
+	Implements point based registration via the Orthogonal Procrustes method.
+
+	Based on Arun's method:
+
+	  Least-Squares Fitting of two, 3-D Point Sets, Arun, 1987,
+	  `10.1109/TPAMI.1987.4767965 <http://dx.doi.org/10.1109/TPAMI.1987.4767965>`_.
+
+	Also see `this <http://eecs.vanderbilt.edu/people/mikefitzpatrick/papers/2009_Medim_Fitzpatrick_TRE_FRE_uncorrelated_as_published.pdf>`_
+	and `this <http://tango.andrew.cmu.edu/~gustavor/42431-intro-bioimaging/readings/ch8.pdf>`_.
+
+	:param fixed: point set, N x 3 ndarray
+	:param moving: point set, N x 3 ndarray of corresponding points
+	:returns: 3x3 rotation ndarray, 3x1 translation ndarray, FRE
+	:raises: ValueError
+	"""
+	# This is what we are calculating
+	R = np.eye(3)
+	T = np.zeros((3, 1))
+	# Arun equation 4
+	p = np.ndarray.mean(moving, 0)
+	# Arun equation 6
+	p_prime = np.ndarray.mean(fixed, 0)
+	# Arun equation 7
+	q = moving - p
+	# Arun equation 8
+	q_prime = fixed - p_prime
+	# Arun equation 11
+	H = np.matmul(q.transpose(), q_prime)
+	# Arun equation 12
+	# Note: numpy factors h = u * np.diag(s) * v
+	svd = np.linalg.svd(H)
+	# Replace Arun Equation 13 with Fitzpatrick, chapter 8, page 470,
+	# to avoid reflections, see issue #19
+	VU = np.matmul(svd[2].transpose(), svd[0])
+	detVU = np.linalg.det(VU)
+	diag = np.eye(3, 3)
+	diag[2][2] = detVU
+	X = np.matmul(svd[2].transpose(), np.matmul(diag, svd[0].transpose()))
+	# Arun step 5, after equation 13.
+	det_X = np.linalg.det(X)
+	if det_X < 0 and np.all(np.flip(np.isclose(svd[1], np.zeros((3, 1))))):
+		# Don't yet know how to generate test data.
+		# If you hit this line, please report it, and save your data.
+		raise ValueError("Registration fails as determinant < 0"
+						 " and no singular values are close enough to zero")
+	if det_X < 0 and np.any(np.isclose(svd[1], np.zeros((3, 1)))):
+		# Implement 2a in section VI in Arun paper.
+		v_prime = svd[2].transpose()
+		v_prime[0][2] *= -1
+		v_prime[1][2] *= -1
+		v_prime[2][2] *= -1
+		X = np.matmul(v_prime, svd[0].transpose())
+	# Compute output
+	R = X
+	tmp = p_prime.transpose() - np.matmul(R, p.transpose())
+	T[0][0] = tmp[0]
+	T[1][0] = tmp[1]
+	T[2][0] = tmp[2]
+	fre, mean_sq, sq_error = compute_fre(fixed, moving, R, T)
+	data = np.eye(4)
+	data[:3, 3] = T.T
+	data[:3, :3] = R
+	transform_matrix = vtk.vtkMatrix4x4()
+	dimensions = len(data) 
+	for row in range(dimensions):
+		for col in range(dimensions):
+			transform_matrix.SetElement(row, col, data[(row, col)])
+	inputTransform.SetMatrixTransformFromParent(transform_matrix)
+	return R, T, fre,inputTransform
+
+def _fitzpatricks_X(svd):
+	"""This is from Fitzpatrick, chapter 8, page 470.
+	   it's used in preference to Arun's equation 13,
+	   X = np.matmul(svd[2].transpose(), svd[0].transpose())
+	   to avoid reflections.
+	"""
+	VU = np.matmul(svd[2].transpose(), svd[0])
+	detVU = np.linalg.det(VU)
+	diag = np.eye(3, 3)
+	diag[2][2] = detVU
+	X = np.matmul(svd[2].transpose(), np.matmul(diag, svd[0].transpose()))
+	return X
 
 
 def targetFrameObject(inputFiducials, frame_system, targetModelGlyphName, targetModelTubeName):
@@ -1477,56 +1559,49 @@ def targetFrameObject(inputFiducials, frame_system, targetModelGlyphName, target
 			appenderInterp.AddInputData(tubePolyData2)
 			appenderInterp.Update()
 
-	#a=arrayFromMarkupsControlPointLabels(fidNodeFrame)
-	#X=slicer.util.arrayFromMarkupsControlPoints(fidNodeFrame)
-	#
-	#if 'leksell' in frame_system:
-	#	fidNodeFrame.RemoveAllControlPoints()
-#
-#	#	idxa=[i for i,x in enumerate(a) if 'localizer_1_a' in x]
-#	#	idxb=[i for i,x in enumerate(a) if 'localizer_1_mid' in x]
-#	#	idxc=[i for i,x in enumerate(a) if 'localizer_1_c' in x]
-#	#	b=np.r_[np.c_[X[idxa,:],np.repeat('localizer_1_a',len(idxa))],
-#	#		np.c_[X[idxb,:],np.repeat('localizer_1_mid',len(idxb))], 
-#	#		np.c_[X[idxc,:],np.repeat('localizer_1_c',len(idxc))]]
-#
-#	#	idxa=[i for i,x in enumerate(a) if 'localizer_2_a' in x]
-#	#	idxb=[i for i,x in enumerate(a) if 'localizer_2_mid' in x]
-#	#	idxc=[i for i,x in enumerate(a) if 'localizer_2_c' in x]
-#
-#	#	c=np.r_[np.c_[X[idxa,:],np.repeat('localizer_2_a',len(idxa))],
-#	#		np.c_[X[idxb,:],np.repeat('localizer_2_mid',len(idxb))], 
-#	#		np.c_[X[idxc,:],np.repeat('localizer_2_c',len(idxc))]]
-#
-#	#	idxa=[i for i,x in enumerate(a) if 'localizer_3_c' in x]
-#	#	idxb=[i for i,x in enumerate(a) if 'localizer_3_mid' in x]
-#	#	idxc=[i for i,x in enumerate(a) if 'localizer_3_a' in x]
-#
-#	#	d=np.r_[np.c_[X[idxa,:],np.repeat('localizer_3_c',len(idxa))],
-#	#		np.c_[X[idxb,:],np.repeat('localizer_3_mid',len(idxb))], 
-#	#		np.c_[X[idxc,:],np.repeat('localizer_3_a',len(idxc))]]
-#
-#	#	fixed=np.vstack([b,c,d])
-#	#	print(len(fixed))
-#	#	for ipoint in fixed:
-#	#		n = fidNodeFrame.AddControlPoint(vtk.vtkVector3d(ipoint[0].astype(float), ipoint[1].astype(float), ipoint[2].astype(float)))
-#	#		fidNodeFrame.SetNthControlPointLabel(n, f"{ipoint[3]}_P{int(float(ipoint[2]))}")
-	#else:
+	a=arrayFromMarkupsControlPointLabels(fidNodeFrame)
+	X=slicer.util.arrayFromMarkupsControlPoints(fidNodeFrame)
+	
+	if 'leksell' in frame_system:
+		fidNodeFrame.RemoveAllControlPoints()
+
+		idxa=[i for i,x in enumerate(a) if 'localizer_1_a' in x]
+		idxb=[i for i,x in enumerate(a) if 'localizer_1_mid' in x]
+		idxc=[i for i,x in enumerate(a) if 'localizer_1_c' in x]
+		b=np.r_[np.c_[X[idxa,:],np.repeat('localizer_1_a',len(idxa))],
+			np.c_[X[idxb,:],np.repeat('localizer_1_mid',len(idxb))], 
+			np.c_[X[idxc,:],np.repeat('localizer_1_c',len(idxc))]]
+
+		idxa=[i for i,x in enumerate(a) if 'localizer_2_a' in x]
+		idxb=[i for i,x in enumerate(a) if 'localizer_2_mid' in x]
+		idxc=[i for i,x in enumerate(a) if 'localizer_2_c' in x]
+
+		c=np.r_[np.c_[X[idxa,:],np.repeat('localizer_2_a',len(idxa))],
+			np.c_[X[idxb,:],np.repeat('localizer_2_mid',len(idxb))], 
+			np.c_[X[idxc,:],np.repeat('localizer_2_c',len(idxc))]]
+
+		idxa=[i for i,x in enumerate(a) if 'localizer_3_c' in x]
+		idxb=[i for i,x in enumerate(a) if 'localizer_3_mid' in x]
+		idxc=[i for i,x in enumerate(a) if 'localizer_3_a' in x]
+
+		d=np.r_[np.c_[X[idxa,:],np.repeat('localizer_3_c',len(idxa))],
+			np.c_[X[idxb,:],np.repeat('localizer_3_mid',len(idxb))], 
+			np.c_[X[idxc,:],np.repeat('localizer_3_a',len(idxc))]]
+
+		fixed=np.vstack([b,c,d])
+		for ipoint in fixed:
+			n = fidNodeFrame.AddControlPoint(vtk.vtkVector3d(ipoint[0].astype(float), ipoint[1].astype(float), ipoint[2].astype(float)))
+			fidNodeFrame.SetNthControlPointLabel(n, f"{ipoint[3]}_P{int(float(ipoint[2]))}")
+	
 	
 	fidNodeFrame.EndModify(wasModify)
-	frameGlyphNode=convertMarkupsToPolyData(fidNodeFrame, node_name=targetModelGlyphName)
-	slicer.mrmlScene.RemoveNode(fidNodeFrame)
+	#frameGlyphNode=convertMarkupsToPolyData(fidNodeFrame, node_name=targetModelGlyphName)
+	#slicer.mrmlScene.RemoveNode(fidNodeFrame)
 
-	# display the polydata as tubes
-	tubeFilter = vtk.vtkTubeFilter()
-	tubeFilter.SetInputConnection(appenderTube.GetOutputPort())
-	tubeFilter.SetRadius(0.1)
-	tubeFilter.SetNumberOfSides(25)
-	tubeFilter.Update()
-
+	
 	frameTubeNode = slicer.mrmlScene.AddNewNodeByClass('vtkMRMLModelNode')
 	frameTubeNode.CreateDefaultDisplayNodes()
-	frameTubeNode.SetAndObservePolyData(tubeFilter.GetOutput())
+	frameTubeNode.SetAndObservePolyData(appenderTube.GetOutput())
 	frameTubeNode.GetDisplayNode().SetVisibility(0)
 	frameTubeNode.GetDisplayNode().SetVisibility2D(0)
 	frameTubeNode.GetDisplayNode().SetColor(1,0.666,0)
@@ -1537,14 +1612,14 @@ def targetFrameObject(inputFiducials, frame_system, targetModelGlyphName, target
 	frameTubeNode.SetName(targetModelTubeName)
 
 	##### display polydata as glyphs
-	#glyphFilter = vtk.vtkVertexGlyphFilter()
-	#glyphFilter.SetInputConnection(appenderInterp.GetOutputPort())
-	#glyphFilter.Update()
-#
-#	#frameGlyphNode = slicer.mrmlScene.AddNewNodeByClass('vtkMRMLModelNode')
-#	#frameGlyphNode.CreateDefaultDisplayNodes()
-#	#frameGlyphNode.SetAndObservePolyData(glyphFilter.GetOutput())
-	#frameGlyphNode.SetName(targetModelGlyphName)
+	glyphFilter = vtk.vtkVertexGlyphFilter()
+	glyphFilter.SetInputConnection(appenderInterp.GetOutputPort())
+	glyphFilter.Update()
+	#
+	frameGlyphNode = slicer.mrmlScene.AddNewNodeByClass('vtkMRMLModelNode')
+	frameGlyphNode.CreateDefaultDisplayNodes()
+	frameGlyphNode.SetAndObservePolyData(glyphFilter.GetOutput())
+	frameGlyphNode.SetName(targetModelGlyphName)
 
 	return frameGlyphNode,frameTubeNode,appenderTube,fidNodeFrame
 
@@ -1584,15 +1659,9 @@ def convertMarkupsToPolyData(inputFiducials, node_name=None):
 	glyphFilter.AddInputData(pointPolyData)
 	glyphFilter.Update()
 
-	filter1=vtk.vtkCleanPolyData()
-	filter1.SetToleranceIsAbsolute(False)
-	filter1.SetTolerance(.001)
-	filter1.SetInputData(glyphFilter.GetOutput())
-	filter1.Update()
-
 	sourceGlyphNode = slicer.mrmlScene.AddNewNodeByClass('vtkMRMLModelNode')
 	sourceGlyphNode.CreateDefaultDisplayNodes()
-	sourceGlyphNode.SetAndObservePolyData(filter1.GetOutput())
+	sourceGlyphNode.SetAndObservePolyData(glyphFilter.GetOutput())
 	if node_name is not None:
 		sourceGlyphNode.SetName(node_name)
 	else:
@@ -1768,7 +1837,98 @@ def normalize(d):
 	d /= np.ptp(d, axis=0)
 	return d
 
-def AOPA_Major(X, Y, tol):
+def procrustes(X, Y, box_size, inputTransform, scaling=True, reflection='best'):
+	"""
+	A port of MATLAB's `procrustes` function to Numpy.
+	Procrustes analysis determines a linear transformation (translation,
+	reflection, orthogonal rotation and scaling) of the points in Y to best
+	conform them to the points in matrix X, using the sum of squared errors
+	as the goodness of fit criterion.
+		d, Z, [tform] = procrustes(X, Y)
+	Inputs:
+	------------
+	X, Y    
+		matrices of target and input coordinates. they must have equal
+		numbers of  points (rows), but Y may have fewer dimensions
+		(columns) than X.
+	scaling 
+		if False, the scaling component of the transformation is forced
+		to 1
+	reflection
+		if 'best' (default), the transformation solution may or may not
+		include a reflection component, depending on which fits the data
+		best. setting reflection to True or False forces a solution with
+		reflection or no reflection respectively.
+	Outputs
+	------------
+	d       
+		the residual sum of squared errors, normalized according to a
+		measure of the scale of X, ((X - X.mean(0))**2).sum()
+	Z
+		the matrix of transformed Y-values
+	tform   
+		a dict specifying the rotation, translation and scaling that
+		maps X --> Y
+	"""
+	n,m = X.shape
+	ny,my = Y.shape
+	muX = X.mean(0)
+	muY = Y.mean(0)
+	X0 = X - muX
+	Y0 = Y - muY
+	ssX = (X0**2.).sum()
+	ssY = (Y0**2.).sum()
+	# centred Frobenius norm
+	normX = np.sqrt(ssX)
+	normY = np.sqrt(ssY)
+	# scale to equal (unit) norm
+	X0 /= normX
+	Y0 /= normY
+	if my < m:
+		Y0 = np.concatenate((Y0, np.zeros(n, m-my)),0)
+	# optimum rotation matrix of Y
+	A = np.dot(X0.T, Y0)
+	U,s,Vt = np.linalg.svd(A,full_matrices=False)
+	V = Vt.T
+	T = np.dot(V, U.T)
+	if reflection is not 'best':
+		# does the current solution use a reflection?
+		have_reflection = np.linalg.det(T) < 0
+		# if that's not what was specified, force another reflection
+		if reflection != have_reflection:
+			V[:,-1] *= -1
+			s[-1] *= -1
+			T = np.dot(V, U.T)
+	traceTA = s.sum()
+	if scaling:
+		# optimum scaling of Y
+		b = traceTA * normX / normY
+		# standarised distance between X and b*Y*T + c
+		d = 1 - traceTA**2
+		# transformed coords
+		Z = normX*traceTA*np.dot(Y0, T) + muX
+	else:
+		b = 1
+		d = 1 + ssY/ssX - 2 * traceTA * normY / normX
+		Z = normY*np.dot(Y0, T) + muX
+	# transformation matrix
+	if my < m:
+		T = T[:my,:]
+	c = muX - b*np.dot(muY, T)
+
+	#transformation values 
+	data = np.eye(4)
+	data[:3, 3] = c.T
+	data[:3, :3] = T
+	transform_matrix = vtk.vtkMatrix4x4()
+	dimensions = len(data) 
+	for row in range(dimensions):
+		for col in range(dimensions):
+			transform_matrix.SetElement(row, col, data[(row, col)])
+	inputTransform.SetMatrixTransformToParent(transform_matrix)
+	return inputTransform
+
+def AOPA_Major(X, Y, tol, inputTransform):
 	"""
 	Computes the Procrustean fiducial registration between X and Y with 
 	anisotropic Scaling:
@@ -1811,6 +1971,7 @@ def AOPA_Major(X, Y, tol):
 		E = np.matmul(R,mX) - mY
 		err = np.linalg.norm(E-E_old)
 		E_old = E
+		print(err)
 	# after rotation is computed, compute the scale
 	B = np.matmul(Y, np.matmul(II, X.transpose()))
 	A = np.diag( np.divide( np.diag( np.matmul(B.transpose(), R)), np.diag( np.matmul(X, np.matmul(II, X.transpose()))) ) )
@@ -1819,7 +1980,18 @@ def AOPA_Major(X, Y, tol):
 		A[2,2] = .5 * (A[0,0] + A[1,1]) # artificially assign a number to the scale in z-axis
 	# calculate translation
 	t = np.reshape(np.mean( Y - np.matmul(R, np.matmul(A,X)), 1), [m,1])
-	return[R,t,A]
+	lps2ras = np.diag([-1, -1, 1, 1])
+	data = np.eye(4)
+	data[:3, 3] = t.T
+	data[:3, :3] = R
+	#data = np.dot(data, lps2ras)
+	transform_matrix = vtk.vtkMatrix4x4()
+	dimensions = len(data) 
+	for row in range(dimensions):
+		for col in range(dimensions):
+			transform_matrix.SetElement(row, col, data[(row, col)])
+	inputTransform.SetMatrixTransformFromParent(transform_matrix)
+	return[R,t,A, inputTransform]
 
 def p2l(X, Y, D, tol, inputTransform):
 	"""
@@ -1856,10 +2028,11 @@ def p2l(X, Y, D, tol, inputTransform):
 	E = Q - np.matmul(R, np.matmul(A,X)) - np.matmul(t,e)
 	# calculate fiducial registration error
 	fre = np.sum(np.linalg.norm(E,ord=2,axis=0,keepdims=True))/X.shape[1]
-	lps2ras = np.diag([-1, -1, 1])
+	lps2ras = np.diag([-1, -1, 1, 1])
 	data = np.eye(4)
 	data[0:3, 3] = t.T
-	data[:3, :3] = np.dot(np.dot(lps2ras, R.T), lps2ras)
+	data[:3, :3] = np.dot(R, A)
+	data = np.dot(data, lps2ras)
 	transform_matrix = vtk.vtkMatrix4x4()
 	dimensions = len(data) - 1
 	for row in range(dimensions):
