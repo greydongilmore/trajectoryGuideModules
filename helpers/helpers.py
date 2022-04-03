@@ -1160,7 +1160,12 @@ class frameDetection:
 			#fidNodeFrame = convertMarkupsToPolyData(fidNodeFrame)
 
 			#### set output ICP transform prior to running registration
-			
+			fidNodeTB = slicer.util.getNode(fcsvNodeName % ('topbottom'))
+			fidNodeTB.SetAndObserveTransformNodeID(inputTransform.GetID())
+			fidNodeFC = slicer.util.getNode('frame_center')
+			fidNodeFC.SetAndObserveTransformNodeID(inputTransform.GetID())
+			inputFiducials.SetAndObserveTransformNodeID(inputTransform.GetID())
+			self.node.SetAndObserveTransformNodeID(inputTransform.GetID())
 
 			
 			#### run ICP registration
@@ -1172,12 +1177,6 @@ class frameDetection:
 			#fixed_orig = fixed_orig - np.mean(fixed_orig,0)
 			#moving_orig = moving_orig - np.mean(moving_orig,0)
 
-			fidNodeTB = slicer.util.getNode(fcsvNodeName % ('topbottom'))
-			fidNodeTB.SetAndObserveTransformNodeID(inputTransform.GetID())
-			fidNodeFC = slicer.util.getNode('frame_center')
-			fidNodeFC.SetAndObserveTransformNodeID(inputTransform.GetID())
-			inputFiducials.SetAndObserveTransformNodeID(inputTransform.GetID())
-			self.node.SetAndObserveTransformNodeID(inputTransform.GetID())
 			
 			#_,_,_,inputTransform=AOPA_Major(fixed_orig.T, moving_orig.T, 0.000000000005, inputTransform)
 
@@ -1185,10 +1184,10 @@ class frameDetection:
 			
 			#frameTubeNode.SetAndObserveTransformNodeID(inputTransform.GetID())
 			#inputTargetModel.SetAndObserveTransformNodeID(inputTransform.GetID())
-			inputPolyData.SetAndObserveTransformNodeID(inputTransform.GetID())
+			
 			#### compute RMSE
-			self.meanError, self.pointError, self.pointDistanceXYZ, self.sourcePoints, self.idealPoints = ComputeMeanDistance(inputPolyData, inputTargetModel,inputTransform)
-			#
+			self.meanError, self.pointError, self.pointDistanceXYZ, self.sourcePoints, self.idealPoints = ComputeMeanDistance(inputPolyData, frameTubeNode,inputTransform)
+			inputPolyData.SetAndObserveTransformNodeID(inputTransform.GetID())
 
 			self.final_location_clusters = self.convert_ijk(self.final_location_clusters, inputTransform)
 			self.final_location_clusters = self.final_location_clusters[np.lexsort((self.final_location_clusters[:,2],self.final_location_clusters[:,3]))]
@@ -1511,6 +1510,10 @@ def targetFrameObject(inputFiducials, frame_system, targetModelGlyphName, target
 				top=np.array(frameSystemPoints[fiducialIndex][iLine]['top'])
 				bot=np.array(frameSystemPoints[fiducialIndex][iLine]['bot'])
 			
+			NormVec = norm_vec(top,bot)
+			top = top + (NormVec*7)
+			bot = bot - (NormVec*7)
+
 			for ipoint in np.vstack([np.linspace(float(bot[dim]),float(top[dim]),num_points) for dim in range(3)]).T:
 				n = fidNodeFrame.AddControlPoint(vtk.vtkVector3d(ipoint[0], ipoint[1], ipoint[2]))
 				fidNodeFrame.SetNthControlPointLabel(n, f"{fiducialIndex}_{iLine}_P{int(ipoint[2])}")
@@ -1537,7 +1540,7 @@ def targetFrameObject(inputFiducials, frame_system, targetModelGlyphName, target
 			spline.SetSpline(mySpline)
 			spline.SetInputConnection(lineSource.GetOutputPort())
 			spline.SetSubdivideToSpecified()
-			spline.SetNumberOfSubdivisions(num_points-1)
+			spline.SetNumberOfSubdivisions(num_points)
 			spline.Update()
 
 			#### construct Polydata lines for tube filter
@@ -1730,7 +1733,7 @@ def ComputeMeanDistance(inputSourceModel, inputTargetModel, icpTransform):
 	return (totalDistance / n), accumDist, np.vstack(accumPoints), np.vstack(sourcePointsAccum), np.vstack(idealPoints)
  
 def runFrameModelRegistration(inputSourceModel, inputTargetModel, inputTransform, transformType, numIterations, numLandmarks, 
-	matchCentroids, sourceRadius=None,distanceMetric='rms',maximum_mean_distance=0.001,check_mean_distance=True):
+	matchCentroids, sourceRadius=None,distanceMetric='rms',maximum_mean_distance=0.000001,check_mean_distance=True):
 	"""Runs iterative closest point registration.
 
 	Parameters
@@ -2763,8 +2766,14 @@ def plotLead(entry,target,origin,model_parameters):
 		target[2] - (NormVec[2] * e_specs['lead_shift'])
 	])
 
+	lead_end = np.array([
+		entry[0] + (NormVec[0] * e_specs['lead_tail']), 
+		entry[1] + (NormVec[1] * e_specs['lead_tail']), 
+		entry[2] + (NormVec[2] * e_specs['lead_tail'])
+	])
+
 	vtkModelBuilder = vtkModelBuilderClass()
-	vtkModelBuilder.coords = np.hstack((np.array(lead_start), np.array(entry)))
+	vtkModelBuilder.coords = np.hstack((np.array(lead_start), lead_end))
 	vtkModelBuilder.tube_radius = e_specs['diameter']
 	vtkModelBuilder.tube_thickness = 0.2
 	if model_parameters['data_dir'] is not None:

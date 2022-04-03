@@ -1123,7 +1123,7 @@ class preopPlanningWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
 			for iMarkups in slicer.util.getNodesByClass('vtkMRMLMarkupsFiducialNode'):
 				if (planName + '_contacts') in iMarkups.GetName():
-					iMarkups.GetDisplayNode().SetVisibility(1)
+					iMarkups.GetDisplayNode().SetVisibility(0)
 				else:
 					iMarkups.GetDisplayNode().SetVisibility(0)
 
