@@ -644,17 +644,41 @@ class registrationWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 			self.ui.floatingComboBox.removeItem(self.ui.floatingComboBox.findText(coreg_node_name))
 			outputVolumeNode = slicer.util.getNode(coreg_node_name)
 			final_nii = os.path.join(self._parameterNode.GetParameter('derivFolder'), 'space', coreg_node_name + '.nii.gz')
-			transformNodeFilename = os.path.join(self._parameterNode.GetParameter('derivFolder'),'space', f"{os.path.basename(self._parameterNode.GetParameter('derivFolder')).replace(' ', '_')}_"+
-					f"desc-affine_from-subject_to-{self.regAlgo['templateSpace']}_xfm.h5")
 			slicer.util.saveNode(outputVolumeNode, final_nii, {'useCompression': False})
-			transformNode = slicer.mrmlScene.GetFirstNodeByName(f"{os.path.basename(self._parameterNode.GetParameter('derivFolder')).replace(' ', '_')}_"+
-				f"desc-affine_from-subject_to-{self.regAlgo['templateSpace']}_xfm")
-			slicer.util.saveNode(transformNode, transformNodeFilename, {'useCompression': False})
 
-			shutil.copy2(os.path.join(self._parameterNode.GetParameter('derivFolder'), 'temp', coreg_node_name + '.json'), os.path.join(self._parameterNode.GetParameter('derivFolder'), 'space', coreg_node_name + '.json'))
+			if self.regAlgo['regAlgoTemplateParams']['regAlgo'].startswith('ants'):
+				transformInvNodeFilenameTarget = os.path.join(self._parameterNode.GetParameter('derivFolder'),'space', f"{os.path.basename(self._parameterNode.GetParameter('derivFolder')).replace(' ', '_')}_"+
+					f"desc-affine_from-subject_to-{self.regAlgo['templateSpace']}_type-inverseComposite_xfm.nii.gz")
+				transformInvNodeFilenameSource = os.path.join(self._parameterNode.GetParameter('derivFolder'),'temp', f"{os.path.basename(self._parameterNode.GetParameter('derivFolder')).replace(' ', '_')}_"+
+					f"desc-affine_from-subject_to-{self.regAlgo['templateSpace']}_type-inverseComposite_xfm.nii.gz")
+				
+				shutil.move(transformInvNodeFilenameSource,transformInvNodeFilenameTarget)
+
+				transformInvNodeFilenameTarget = os.path.join(self._parameterNode.GetParameter('derivFolder'),'space', f"{os.path.basename(self._parameterNode.GetParameter('derivFolder')).replace(' ', '_')}_"+
+					f"desc-affine_from-subject_to-{self.regAlgo['templateSpace']}_type-composite_xfm.nii.gz")
+				transformInvNodeFilenameSource = os.path.join(self._parameterNode.GetParameter('derivFolder'),'temp', f"{os.path.basename(self._parameterNode.GetParameter('derivFolder')).replace(' ', '_')}_"+
+					f"desc-affine_from-subject_to-{self.regAlgo['templateSpace']}_type-composite_xfm.nii.gz")
+
+				shutil.move(transformInvNodeFilenameSource,transformInvNodeFilenameTarget)
+
+				transformNode = slicer.mrmlScene.GetFirstNodeByName(f"{os.path.basename(self._parameterNode.GetParameter('derivFolder')).replace(' ', '_')}_"+
+					f"desc-affine_from-subject_to-{self.regAlgo['templateSpace']}_type-composite_xfm")
+				transformInvNode = slicer.mrmlScene.GetFirstNodeByName(f"{os.path.basename(self._parameterNode.GetParameter('derivFolder')).replace(' ', '_')}_"+
+					f"desc-affine_from-subject_to-{self.regAlgo['templateSpace']}_type-inverseComposite_xfm")
+
+				slicer.mrmlScene.RemoveNode(transformNode)
+				slicer.mrmlScene.RemoveNode(transformInvNode)
+			else:
+				transformNodeFilename = os.path.join(self._parameterNode.GetParameter('derivFolder'),'space', f"{os.path.basename(self._parameterNode.GetParameter('derivFolder')).replace(' ', '_')}_"+
+					f"desc-affine_from-subject_to-{self.regAlgo['templateSpace']}_xfm.h5")
+				transformNode = slicer.mrmlScene.GetFirstNodeByName(f"{os.path.basename(self._parameterNode.GetParameter('derivFolder')).replace(' ', '_')}_"+
+				f"desc-affine_from-subject_to-{self.regAlgo['templateSpace']}_xfm")
+			
+				slicer.util.saveNode(transformNode, transformNodeFilename, {'useCompression': False})
+				slicer.mrmlScene.RemoveNode(transformNode)
 
 			slicer.mrmlScene.RemoveNode(outputVolumeNode)
-			slicer.mrmlScene.RemoveNode(transformNode)
+			shutil.copy2(os.path.join(self._parameterNode.GetParameter('derivFolder'), 'temp', coreg_node_name + '.json'), os.path.join(self._parameterNode.GetParameter('derivFolder'), 'space', coreg_node_name + '.json'))
 			slicer.util.resetSliceViews()
 		else:
 			self.ui.floatingComboBox.removeItem(self.ui.floatingComboBox.findText(coreg_node_name))
@@ -1103,7 +1127,8 @@ class registrationLogic(ScriptedLoadableModuleLogic):
 			
 			self.antsBinDir = os.path.join(self.scriptPath, 'resources', 'ext_libs', 'ants')
 			self.antsExe = 'antsRegistration.exe'
-			
+			self.antsApplyExe = 'antsApplyTransforms.exe'
+
 			self.antsSynBinDir = os.path.join(self.scriptPath, 'resources', 'ext_libs', 'ants')
 			self.antsSynExe = 'antsRegistrationSyN.sh'
 
@@ -1126,6 +1151,7 @@ class registrationLogic(ScriptedLoadableModuleLogic):
 
 			self.antsBinDir = os.path.join(self.scriptPath, 'resources', 'ext_libs', 'ants')
 			self.antsExe = 'antsRegistration.glnxa64'
+			self.antsApplyExe = 'antsApplyTransforms.glnxa64'
 			
 			self.antsSynBinDir = os.path.join(self.scriptPath, 'resources', 'ext_libs', 'ants')
 			self.antsSynExe = 'antsRegistrationSyNQuick.sh'
@@ -1151,7 +1177,8 @@ class registrationLogic(ScriptedLoadableModuleLogic):
 
 			self.antsBinDir = os.path.join(self.scriptPath, 'resources', 'ext_libs', 'ants')
 			self.antsExe = 'antsRegistration.maci64'
-			
+			self.antsApplyExe = 'antsApplyTransforms.maci64'
+
 			self.convTransBinDir = os.path.join(self.scriptPath, 'resources', 'ext_libs', 'ants')
 			self.convTransExe = 'ConvertTransformFile.maci64'
 			
@@ -1690,11 +1717,22 @@ class registrationLogic(ScriptedLoadableModuleLogic):
 
 			elif self.regAlgo['regAlgoTemplateParams']['regAlgo'] == 'antsRegistration':
 
-				rigidMetric = self.regAlgo['regAlgoTemplateParams']['parameters']['metric']
-				rigidMetricParams = self.regAlgo['regAlgoTemplateParams']['parameters']['metric_params']
-
 				affineMetric = self.regAlgo['regAlgoTemplateParams']['parameters']['metric']
 				affineMetricParams = self.regAlgo['regAlgoTemplateParams']['parameters']['metric_params']
+
+				rigidGradientStep = self.regAlgo['regAlgoTemplateParams']['parameters']['gradientstep']
+				rigidMetric = self.regAlgo['regAlgoTemplateParams']['parameters']['metric']
+				rigidMetricParams = self.regAlgo['regAlgoTemplateParams']['parameters']['metric_params']
+				rigidConvergence = self.regAlgo['regAlgoTemplateParams']['parameters']['convergence']
+				rigidShrinkFactors = self.regAlgo['regAlgoTemplateParams']['parameters']['shrink-factors']
+				rigidSmoothingSigmas = self.regAlgo['regAlgoTemplateParams']['parameters']['smoothing-sigmas']
+
+				rigidGradientStep = '0.1'
+				rigidMetric = 'MI'
+				rigidMetricParams = '1,32,Regular,0.25'
+				rigidConvergence ='1000x500x250x0,1e-6,10'
+				rigidShrinkFactors ='12x8x4x2'
+				rigidSmoothingSigmas ='4x3x2x1vox'
 
 				synGradientStep = '0.1,3,0'
 				synMetric = 'MI'
@@ -1705,19 +1743,19 @@ class registrationLogic(ScriptedLoadableModuleLogic):
 
 				rigidstage = ' '.join([
 					f'--initial-moving-transform ["{self.ref_template}","{fixedVolume}",1]',
-					f"--transform Rigid[{self.regAlgo['regAlgoTemplateParams']['parameters']['gradientstep']}]",
+					f"--transform Rigid[{rigidGradientStep}]",
 					f'--metric {rigidMetric}["{self.ref_template}","{fixedVolume}",{rigidMetricParams}]',
-					f"--convergence [ {self.regAlgo['regAlgoTemplateParams']['parameters']['convergence']} ]",
-					f"--shrink-factors {self.regAlgo['regAlgoTemplateParams']['parameters']['shrink-factors']}",
-					f"--smoothing-sigmas {self.regAlgo['regAlgoTemplateParams']['parameters']['smoothing-sigmas']}"
+					f"--convergence [ {rigidConvergence} ]",
+					f"--shrink-factors {rigidShrinkFactors}",
+					f"--smoothing-sigmas {rigidSmoothingSigmas}"
 				])
 
 				affinestage = ' '.join([
-					f"--transform Affine[{self.regAlgo['regAlgoTemplateParams']['parameters']['gradientstep']}]",
-					f'--metric {affineMetric}["{self.ref_template}","{fixedVolume}",{affineMetricParams}]',
-					f"--convergence [ {self.regAlgo['regAlgoTemplateParams']['parameters']['convergence']} ]",
-					f"--shrink-factors {self.regAlgo['regAlgoTemplateParams']['parameters']['shrink-factors']}",
-					f"--smoothing-sigmas {self.regAlgo['regAlgoTemplateParams']['parameters']['smoothing-sigmas']}"
+					f"--transform Affine[{rigidGradientStep}]",
+					f'--metric {affineMetric}["{self.ref_template}","{fixedVolume}",{rigidMetricParams}]',
+					f"--convergence [ {rigidConvergence} ]",
+					f"--shrink-factors {rigidShrinkFactors}",
+					f"--smoothing-sigmas {rigidSmoothingSigmas}"
 				])
 
 				synStage=' '.join([
@@ -1751,25 +1789,23 @@ class registrationLogic(ScriptedLoadableModuleLogic):
 				rigidGradientStep = '0.1'
 				rigidMetric = 'MI'
 				rigidMetricParams = '1,32,Regular,0.25'
-				rigidGradientStep = '0.1'
 				rigidConvergence = "[ 1000x500x250x0,1e-6,10 ]"
-				rigidShrinkFactors = "12x8x4x2"
-				rigidSmoothingSigmas = "4x3x2x1vox"
+				rigidShrinkFactors = "12x8x4x1"
+				rigidSmoothingSigmas = "5x4x3x1vox"
 
 				affineGradientStep = '0.1'
 				affineMetric = 'MI'
 				affineMetricParams = '1,32,Regular,0.25'
-				affineGradientStep = '0.1'
-				affineConvergence = "[ 1000x500x250x0,1e-6,10 ]"
-				affineShrinkFactors = "12x8x4x2"
-				affineSmoothingSigmas = "4x3x2x1vox"
+				affineConvergence = "[ 1000x500x500x0,1e-6,10 ]"
+				affineShrinkFactors = "8x4x4x1"
+				affineSmoothingSigmas = "4x3x1x1vox"
 
 				synGradientStep = '0.1,3,0'
 				synMetric = 'MI'
 				synMetricParams = '1,32'
-				synConvergence = "[ 100x100x70x50x0,1e-6,10 ]"
-				synShrinkFactors = "10x6x4x2x1"
-				synSmoothingSigmas = "5x3x2x1x0vox"
+				synConvergence = "[ 200x50x10x0,1e-6,10 ]"
+				synShrinkFactors = "4x4x2x1"
+				synSmoothingSigmas = "2x2x1x1vox"
 
 
 				tx='Rigid'
@@ -1916,7 +1952,36 @@ class registrationLogic(ScriptedLoadableModuleLogic):
 				#convertTransform_cmd=[os.path.join(self.convTransBinDir,self.convTransExe),'3',resultTransformPath + '_coreg0GenericAffine.mat',transformNodeFilename,'--hm','--ras']
 				#command_result = subprocess.run(convertTransform_cmd, env=slicer.util.startupEnvironment())
 
+				import subprocess
 
+				cmd=' '.join([
+					f'"{os.path.join(self.antsBinDir, self.antsApplyExe)}"',
+					f'-r "{self.ref_template}"',
+					f'-t [ "{resultTransformPath}_coreg1Warp.nii.gz"]',
+					f'-t [ "{resultTransformPath}_coreg0GenericAffine.mat" ,0]',
+					f'-o [ "{resultTransformPath}_composite.nii.gz" ,1]'
+				])
+
+				command_result = subprocess.run(cmd, env=slicer.util.startupEnvironment(), stdout=(subprocess.PIPE),universal_newlines=True, shell=True)
+				resultTransformNode = slicer.util.loadTransform(resultTransformPath + '_composite.nii.gz')
+				resultTransformNode.SetName(f"{os.path.basename(derivFolder).replace(' ', '_')}_desc-affine_from-subject_to-{self.regAlgo['templateSpace']}_type-composite_xfm")
+				transformNodeFilenameNew = os.path.join(derivFolderTemp, f"{os.path.basename(derivFolder).replace(' ', '_')}_desc-affine_from-subject_to-{self.regAlgo['templateSpace']}_type-composite_xfm.nii.gz")
+				slicer.util.saveNode(resultTransformNode, transformNodeFilenameNew, {'useCompression': False})
+				
+				icmd=' '.join([
+					f'"{os.path.join(self.antsBinDir, self.antsApplyExe)}"',
+					f'-r "{fixedVolume}"',
+					f'-t [ "{resultTransformPath}_coreg0GenericAffine.mat" ,1]',
+					f'-t [ "{resultTransformPath}_coreg1InverseWarp.nii.gz"]',
+					f'-o [ "{resultTransformPath}_inverseComposite.nii.gz" ,1]'
+				])
+
+				command_result = subprocess.run(icmd, env=slicer.util.startupEnvironment(), stdout=(subprocess.PIPE),universal_newlines=True, shell=True)
+				resultTransformNode = slicer.util.loadTransform(resultTransformPath + '_inverseComposite.nii.gz')
+				resultTransformNode.SetName(f"{os.path.basename(derivFolder).replace(' ', '_')}_desc-affine_from-subject_to-{self.regAlgo['templateSpace']}_type-inverseComposite_xfm")
+				transformNodeFilenameNew = os.path.join(derivFolderTemp, f"{os.path.basename(derivFolder).replace(' ', '_')}_desc-affine_from-subject_to-{self.regAlgo['templateSpace']}_type-inverseComposite_xfm.nii.gz")
+				slicer.util.saveNode(resultTransformNode, transformNodeFilenameNew, {'useCompression': False})
+				
 				transformMatrix=self.readMatTransform(resultTransformPath + '_coreg0GenericAffine.mat')
 				#transformMatrix = self.readRegMatrix(transformNodeFilename)
 				vtkTransformMatrix = self.getVTKMatrixFromNumpyMatrix(transformMatrix)

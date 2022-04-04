@@ -176,9 +176,9 @@ class dataViewWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 		if self._parameterNode.GetParameter('derivFolder'):
 			if os.path.exists(os.path.join(self._parameterNode.GetParameter('derivFolder'),'space')):
 
-				templateSpaces = [x.split('_to-')[-1].split('_xfm')[0] for x in os.listdir(os.path.join(self._parameterNode.GetParameter('derivFolder'),'space')) if x.endswith('.h5')]
+				templateSpaces = [x.split('_to-')[-1].split('_xfm')[0].split('_')[0] for x in os.listdir(os.path.join(self._parameterNode.GetParameter('derivFolder'), 'space')) if any(x.endswith(y) for y in ('xfm.h5','xfm.nii.gz'))]
 				self.ui.templateSpaceCB.clear()
-				self.ui.templateSpaceCB.addItems(templateSpaces)
+				self.ui.templateSpaceCB.addItems(list(set(templateSpaces)))
 
 		self.logic.addCustomLayouts()
 
@@ -472,10 +472,17 @@ class dataViewWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 			with open(os.path.join(self._parameterNode.GetParameter('trajectoryGuidePath'), 'resources', 'ext_libs', 'space', 'tpl-' + space, 'active_models', 'template_model_colors.json')) as (settings_file):
 				templateModelColors = json.load(settings_file)
 			
+			templateTransformInverse=True
+
 			templateTransform = [x for x in slicer.util.getNodesByClass('vtkMRMLLinearTransformNode') if f"subject_to-{space}_xfm" in x.GetName()]
 			if not templateTransform and self._parameterNode.GetParameter('derivFolder'):
-				templateTransform = [x for x in os.listdir(os.path.join(self._parameterNode.GetParameter('derivFolder'), 'space')) if f"subject_to-{space}_xfm" in os.path.basename(x) and x.endswith('.h5')]
+				templateTransform = [x for x in os.listdir(os.path.join(self._parameterNode.GetParameter('derivFolder'), 'space')) if f"subject_to-{space}" in os.path.basename(x) and any(x.endswith(y) for y in ('xfm.h5','xfm.nii.gz'))]
 				if templateTransform:
+					
+					if len(templateTransform)>1:
+						templateTransform = [x for x in templateTransform if 'inverseComposite' in x]
+						templateTransformInverse=False
+
 					templateTransform = slicer.util.loadTransform(os.path.join(self._parameterNode.GetParameter('derivFolder'), 'space', templateTransform[0]))
 			
 			frameTransform = None
@@ -492,7 +499,8 @@ class dataViewWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 				if isinstance(templateTransform, list):
 					templateTransform = templateTransform[0]
 
-				templateTransform=getReverseTransform(templateTransform)
+				if templateTransformInverse:
+					templateTransform=getReverseTransform(templateTransform)
 
 				if acpcTransformPresent is not None and transformNodeCT is None:
 					templateTransform.SetAndObserveTransformNodeID(acpcTransformPresent.GetID())
@@ -570,8 +578,8 @@ class dataViewWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 				if len(slicer.util.getNodes(f"*{os.path.basename(ivol).split('.nii')[0]}*"))>0:
 					slicer.mrmlScene.RemoveNode(list(slicer.util.getNodes(f"*{os.path.basename(ivol).split('.nii')[0]}*").values())[0])
 
-			if len(slicer.util.getNodes(f"*subject_to-{space}_xfm*")) > 0:
-				for itrans in list(slicer.util.getNodes(f"*subject_to-{space}_xfm*").values()):
+			if len(slicer.util.getNodes(f"*subject_to-{space}_*xfm*")) > 0:
+				for itrans in list(slicer.util.getNodes(f"*subject_to-{space}_*xfm*").values()):
 					slicer.mrmlScene.RemoveNode(itrans)
 
 			if len(slicer.util.getNodes('*frame_rotation_reverse*')) > 0:
