@@ -334,6 +334,7 @@ class vtkModelBuilderClass:
 			self.nodeName = os.path.splitext(os.path.splitext(os.path.basename(self.filename))[0])[0]
 			node.SetName(self.nodeName)
 
+		node.GetModelDisplayNode().SetSliceIntersectionThickness(3)
 		if self.model_color is not None:
 			if isinstance(self.model_color,str):
 				self.model_color=hex2rgb(self.model_color)
@@ -1130,7 +1131,7 @@ class frameDetection:
 		if any(x == self.frame_settings['system'] for x in ('leksellg','brw','crw')) and frame_align:
 			transformType = 0
 			numIterations = 100
-
+			
 			transformDesc='rigid'
 			if self.frame_settings['settings']['parameters']['transformType']==1:
 				transformDesc='sim'
@@ -1166,7 +1167,6 @@ class frameDetection:
 			fidNodeFC.SetAndObserveTransformNodeID(inputTransform.GetID())
 			inputFiducials.SetAndObserveTransformNodeID(inputTransform.GetID())
 			self.node.SetAndObserveTransformNodeID(inputTransform.GetID())
-
 			
 			#### run ICP registration
 			inputTransform = runFrameModelRegistration(inputPolyData, inputTargetModel, inputTransform, **self.frame_settings['settings']['parameters'])
@@ -1513,7 +1513,7 @@ def targetFrameObject(inputFiducials, frame_system, targetModelGlyphName, target
 			NormVec = norm_vec(top,bot)
 			top = top + (NormVec*7)
 			bot = bot - (NormVec*7)
-
+			
 			for ipoint in np.vstack([np.linspace(float(bot[dim]),float(top[dim]),num_points) for dim in range(3)]).T:
 				n = fidNodeFrame.AddControlPoint(vtk.vtkVector3d(ipoint[0], ipoint[1], ipoint[2]))
 				fidNodeFrame.SetNthControlPointLabel(n, f"{fiducialIndex}_{iLine}_P{int(ipoint[2])}")
