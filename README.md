@@ -3,7 +3,9 @@
 [![Forks][forks-shield]][forks-url]
 [![Stargazers][stars-shield]][stars-url]
 [![Issues][issues-shield]][issues-url]
-[![MIT License][license-shield]][license-url]
+[![MIT License][license-shield]][license-url]<br />
+[![DOI][zenodo-shield]][zenodo-doi]
+
 
 
 <!-- PROJECT LOGO -->
@@ -163,3 +165,5 @@ Project Link: [https://github.com/greydongilmore/trajectoryGuideModules](https:/
 [license-shield]: https://img.shields.io/github/license/greydongilmore/trajectoryGuideModules.svg?style=for-the-badge
 [license-url]: https://github.com/greydongilmore/trajectoryGuideModules/blob/master/LICENSE.txt
 [trajectoryGuide-screenshot]: resources/imgs/main_interface.png
+[zenodo-shield]: https://zenodo.org/badge/404597292.svg
+[zenodo-doi]: https://zenodo.org/badge/latestdoi/404597292
