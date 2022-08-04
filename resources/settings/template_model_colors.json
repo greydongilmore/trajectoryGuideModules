@@ -1,6 +1,9 @@
 {
     "ant": "#aa0000",
     "stn": "#c8c8d7",
+    "stnassociative": "#000090",
+    "stnlimbic": "#10ffff",
+    "stnmotor": "#dcf514",
     "rn": "#b6a66e",
     "snr": "#8d5d89",
     "put": "#80ae80",

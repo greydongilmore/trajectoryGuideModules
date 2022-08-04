@@ -354,7 +354,7 @@ class dataViewWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 					opacitySliders_dict[iwig[0] + 'ModelOpacity']=iwig[1].findChild(qt.QDoubleSpinBox, f'{iwig[0]}ModelOpacity')
 
 					colorPickers_dict[iwig[0] + 'ModelVisColor']=iwig[1].findChild(ctk.ctkColorPickerButton,f'{iwig[0]}ModelVisColor')
-					colorPickers_dict[iwig[0] + 'ModelVisColor'].setColor(qt.QColor(templateModelColors[iwig[0]]))
+					colorPickers_dict[iwig[0] + 'ModelVisColor'].setColor(qt.QColor(templateModelColors[iwig[0]]['color']))
 
 					bntCnt +=5
 					if wigCnt < len(modelWig_dict[ititle]):
@@ -463,8 +463,13 @@ class dataViewWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 						else:
 							modelNode.GetDisplayNode().Visibility2DOff()
 
+		qt.QApplication.setOverrideCursor(qt.Qt.ArrowCursor)
+
 	def onTemplateViewGroupButton(self, button):
 		
+		qt.QApplication.setOverrideCursor(qt.Qt.WaitCursor)
+		qt.QApplication.processEvents()
+
 		space = self.ui.templateSpaceCB.currentText
 		self.templateModelNames = np.unique([x.split('_desc-')[(-1)].split('.vtk')[0] for x in os.listdir(os.path.join(self._parameterNode.GetParameter('trajectoryGuidePath'), 'resources', 'ext_libs', 'space', 'tpl-' + space, 'active_models')) if x.endswith('vtk')])
 		
@@ -535,8 +540,8 @@ class dataViewWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 					if model_filename:
 						vtkModelBuilder = vtkModelBuilderClass()
 						vtkModelBuilder.filename = model_filename[0]
-						vtkModelBuilder.model_color = templateModelColors[(f"{modelName}")]
-						vtkModelBuilder.model_visibility = True
+						vtkModelBuilder.model_color = templateModelColors[(f"{modelName}")]['color']
+						vtkModelBuilder.model_visibility = templateModelColors[(f"{modelName}")]['visible']
 						model = vtkModelBuilder.add_to_scene(True)
 						model.GetDisplayNode().SetFrontfaceCulling(0)
 						model.GetDisplayNode().SetBackfaceCulling(0)
@@ -545,12 +550,22 @@ class dataViewWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 						model.GetDisplayNode().SetDiffuse(1.0)
 						model.AddDefaultStorageNode()
 						model.GetStorageNode().SetCoordinateSystem(coordSys)
-						model.GetDisplayNode().SetSliceIntersectionThickness(2)
+						model.GetDisplayNode().SetSliceIntersectionThickness(3)
 
 						if templateTransform:
 							model.SetAndObserveTransformNodeID(templateTransform.GetID())
-						for viewType in {'3D', '2D'}:
-							self.uiWidget.findChild(qt.QCheckBox, modelName + 'Model' + viewType + 'Vis' + side).setChecked(True)
+
+						if templateModelColors[(f"{modelName}")]['visible']:
+							model.GetDisplayNode().Visibility3DOn()
+							model.GetDisplayNode().Visibility2DOn()
+							self.uiWidget.findChild(qt.QCheckBox, modelName + 'Model' + '3D' + 'Vis' + side).setChecked(True)
+							self.uiWidget.findChild(qt.QCheckBox, modelName + 'Model' + '2D' + 'Vis' + side).setChecked(True)
+						else:
+							model.GetDisplayNode().Visibility3DOff()
+							model.GetDisplayNode().Visibility2DOff()
+							self.uiWidget.findChild(qt.QCheckBox, modelName + 'Model' + '3D' + 'Vis' + side).setChecked(False)
+							self.uiWidget.findChild(qt.QCheckBox, modelName + 'Model' + '2D' + 'Vis' + side).setChecked(False)
+						
 
 			layoutManager = slicer.app.layoutManager()
 			self.dataViewVolume = layoutManager.sliceWidget('Red').sliceLogic().GetSliceCompositeNode().GetBackgroundVolumeID()
@@ -593,6 +608,8 @@ class dataViewWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 			applicationLogic.PropagateVolumeSelection(0)
 			applicationLogic.FitSliceToAll()
 			slicer.util.resetSliceViews()
+
+		qt.QApplication.setOverrideCursor(qt.Qt.ArrowCursor)
 
 	def onAllModelOpacityChange(self, button):
 
