@@ -92,7 +92,8 @@ class settingsPanelWidget(qt.QGroupBox, VTKObservationMixin):
 		self.ui.windowVolButton.connect('clicked(bool)', self.onWindowVolButton)
 		self.ui.linkViewsButton.connect('clicked(bool)', self.onLinkViewsButton)
 		self.ui.recenterButton.connect('clicked(bool)', self.onRecenterButton)
-		
+		self.ui.crosshairThicknessSB.valueChanged.connect(self.onToggleCrosshairThickness)
+
 		self.ui.orientationMarkerButton.clicked.connect(self.onToggleOrientationMarker)
 
 		self.volumeMenu.aboutToShow.connect(self.onVolumeButtonClick)
@@ -241,6 +242,23 @@ class settingsPanelWidget(qt.QGroupBox, VTKObservationMixin):
 			viewNodes = slicer.util.getNodesByClass('vtkMRMLAbstractViewNode')
 			for viewNode in viewNodes:
 				viewNode.SetOrientationMarkerType(slicer.vtkMRMLAbstractViewNode.OrientationMarkerTypeNone)
+	
+	def onToggleCrosshairThickness(self, value):
+		self.crossHairNode = slicer.mrmlScene.GetFirstNodeByClass('vtkMRMLCrosshairNode')
+		if self.crossHairNode.GetCrosshairMode() == 1:
+			self.crossHairNode.SetCrosshairThickness(value)
+		else:
+			nodes = slicer.util.getNodesByClass('vtkMRMLSliceCompositeNode')
+			slice_intersection=[x.GetSliceIntersectionVisibility() for x in nodes]
+
+			if all(v == 1 for v in slice_intersection):
+				layoutManager = slicer.app.layoutManager()
+				for sliceViewName in ['Red', 'Yellow', 'Green']:
+					sliceLogic = layoutManager.sliceWidget(sliceViewName).sliceLogic()
+					sliceDisplayNode = sliceLogic.GetSliceModelDisplayNode()
+					sliceDisplayNode.SetLineWidth(value)
+					sliceNode=slicer.util.getNode('vtkMRMLSliceCompositeNode' + sliceViewName)
+					sliceNode.Modified()
 
 	@vtk.calldata_type(vtk.VTK_OBJECT)
 	def onScalerVolumeNodeAdded(self, caller, event, calldata):
@@ -248,7 +266,7 @@ class settingsPanelWidget(qt.QGroupBox, VTKObservationMixin):
 		nodeName = node.GetName()
 		if nodeName[-1].isdigit():
 			nodeName = '_'.join(nodeName.split('_')[:-1])
-
+		
 		if isinstance(node, slicer.vtkMRMLScalarVolumeNode):
 			volMenu = self.volumeMenu.addAction(nodeName)
 			volMenu.setObjectName(nodeName)

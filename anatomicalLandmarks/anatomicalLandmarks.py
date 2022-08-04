@@ -836,7 +836,6 @@ class anatomicalLandmarksWidget(ScriptedLoadableModuleWidget, VTKObservationMixi
 			fidNodeACPC = getMarkupsNode('acpc')
 			rasCoordAC = getPointCoords('acpc', 'ac')
 			rasCoordPC = getPointCoords('acpc', 'pc')
-
 		
 		rasCoordMCP = [(rasCoordAC[0] + rasCoordPC[0]) / 2, (rasCoordAC[1] + rasCoordPC[1]) / 2, (rasCoordAC[2] + rasCoordPC[2]) / 2]
 
@@ -918,8 +917,6 @@ class anatomicalLandmarksWidget(ScriptedLoadableModuleWidget, VTKObservationMixi
 							fidNodeMidline.SetNthControlPointLocked(n, True)
 
 						fidCoordsMid=getPointCoords('midline', imid)
-
-						
 						fidNodeMid.GetDisplayNode().SetVisibility(0)
 
 				elif not np.array_equal(adjustPrecision(fidCoordsMid), adjustPrecision(np.zeros(3))):
@@ -956,8 +953,6 @@ class anatomicalLandmarksWidget(ScriptedLoadableModuleWidget, VTKObservationMixi
 		with open(os.path.join(self._parameterNode.GetParameter('derivFolder'), f"{self._parameterNode.GetParameter('derivFolder').split(os.path.sep)[-1]}_coordsystem.json"), 'w') as fid:
 			fid.write(json_output)
 			fid.write('\n')
-
-		
 
 	def getFidCoords(self, fids):
 		"""
