@@ -719,12 +719,9 @@ class frameDetection:
 		
 		return combined
 
-	def NLocalizersSort(self,component,ncomponents, imethod):
+	def NLocalizersSort(self,component,ncomponents, imethod, AP_index=1, ML_index=0):
 		points = np.stack(sorted(component, key=(lambda k: k[2])))
 		
-		AP_index=1
-		ML_index=0
-
 		if ncomponents==2:
 			sort_idx=0
 			if component[:,0].std() < component[:,1].std():
@@ -863,14 +860,24 @@ class frameDetection:
 		
 		return minThreshold
 
+	def check_orientation(self, img_data, img_node):
+		volumeIjkToRas = vtk.vtkMatrix4x4()
+		img_node.GetIJKToRASMatrix(volumeIjkToRas)
+		if volumeIjkToRas.GetElement(1,1) < 0.0:
+			img_data = img_data[:,::-1, ...]
+		return img_data
+
 	def frame_detect(self):
 		imethod=1
 		if imethod == 1:
 			img_data_kji = slicer.util.arrayFromVolume(self.node).copy()
+			img_data_kji=self.check_orientation(img_data_kji,self.node)
 			img_data = np.transpose(img_data_kji, (2, 1, 0))
 			pix_dim = self.node.GetSpacing()
 
+			img_data=self.check_orientation(img_data,self.node)
 			image_type=None
+
 			if not img_data_kji.min() < 0:
 				image_type='mri'
 
@@ -949,7 +956,9 @@ class frameDetection:
 			areas=np.array([prop.area for prop in properties])
 			
 			if any(substring in self.frame_settings['system'] for substring in ('leksell','crw')):
-				largeComponentsIdx = [int(x) for x in np.where(np.logical_and(areas >= self.frame_settings['min_size'], areas< self.frame_settings['max_size']))[0]]
+				minVoxelNumber =  (1.2 * (1.27/2))**2 * np.pi * 20 / np.prod(pix_dim)
+				print(minVoxelNumber)
+				largeComponentsIdx = [int(x) for x in np.where(areas >= minVoxelNumber)[0]]
 				voxelCoords=[np.array(properties[x].coords) for x in largeComponentsIdx]
 				voxel_info=np.vstack([np.c_[voxelCoords[x],np.repeat(x+1, len(voxelCoords[x]))] for x in range(len(largeComponentsIdx))])
 			
@@ -979,10 +988,15 @@ class frameDetection:
 
 			if any (x==self.frame_settings['system'] for x in ('leksellg','crw')):
 				voxel_info=self.remove_outlier(voxel_info)
-				voxel_info=self.NLocalizersSort(voxel_info, self.frame_settings['n_components'], 1)
+
+				try:
+					voxel_info=self.NLocalizersSort(voxel_info, self.frame_settings['n_components'],1)
+				except:
+					voxel_info=self.NLocalizersSort(voxel_info, self.frame_settings['n_components'],1,0,1)
+				
 				voxel_info[:,3]=np.array([self.frame_settings['labels'][x] for x in voxel_info[:,-1]])
 			
-			voxel_info=np.vstack([voxel_info[voxel_info[:,2]==x, :] for x in np.unique(voxel_info[:, 2]) if set(voxel_info[voxel_info[:,2]==x, 3]) == set(self.frame_settings['labels'])])
+			voxel_info=np.vstack([voxel_info[voxel_info[:,2]==x, :] for x in np.unique(voxel_info[:, 2]) if set(voxel_info[voxel_info[:,2]==x, -1]) == set(self.frame_settings['labels'])])
 			voxel_info=np.c_[voxel_info,np.array([int(img_data[x[0],x[1],x[2]]) for x in voxel_info])]
 			
 			self.final_location_clusters=self.convert_ijk(voxel_info,self.node)

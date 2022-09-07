@@ -985,7 +985,7 @@ class frameDetectLogic(ScriptedLoadableModuleLogic):
 			frame_settings={
 				'system': 'leksellg',
 				'image_type':image_type,
-				'min_threshold': 450,
+				'min_threshold': 350,
 				'max_threshold': 'n/a',
 				'n_markers': 9,
 				'n_components': 3,
