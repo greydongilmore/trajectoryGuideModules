@@ -675,26 +675,47 @@ class registrationWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 			final_nii = os.path.join(self._parameterNode.GetParameter('derivFolder'), 'space', coreg_node_name + '.nii.gz')
 			slicer.util.saveNode(outputVolumeNode, final_nii, {'useCompression': False})
 
-			if self.regAlgo['regAlgoTemplateParams']['regAlgo'].startswith('ants'):
-				transformInvNodeFilenameTarget = os.path.join(self._parameterNode.GetParameter('derivFolder'),'space', f"{os.path.basename(self._parameterNode.GetParameter('derivFolder')).replace(' ', '_')}_"+
-					f"desc-affine_from-subject_to-{self.regAlgo['templateSpace']}_type-inverseComposite_xfm.h5")
-				transformInvNodeFilenameSource = os.path.join(self._parameterNode.GetParameter('derivFolder'),'temp', f"{os.path.basename(self._parameterNode.GetParameter('derivFolder')).replace(' ', '_')}_"+
-					f"desc-affine_from-subject_to-{self.regAlgo['templateSpace']}_type-inverseComposite_xfm.h5")
-				
-				shutil.move(transformInvNodeFilenameSource,transformInvNodeFilenameTarget)
+			transformInvCompNodeFilenameSource = os.path.join(self._parameterNode.GetParameter('derivFolder'),'temp', f"{os.path.basename(self._parameterNode.GetParameter('derivFolder')).replace(' ', '_')}_"+
+					f"desc-affine_from-subject_to-{self.regAlgo['templateSpace']}_type-inverseComposite_xfm")
 
-				transformInvNodeFilenameTarget = os.path.join(self._parameterNode.GetParameter('derivFolder'),'space', f"{os.path.basename(self._parameterNode.GetParameter('derivFolder')).replace(' ', '_')}_"+
-					f"desc-affine_from-subject_to-{self.regAlgo['templateSpace']}_type-composite_xfm.h5")
-				transformInvNodeFilenameSource = os.path.join(self._parameterNode.GetParameter('derivFolder'),'temp', f"{os.path.basename(self._parameterNode.GetParameter('derivFolder')).replace(' ', '_')}_"+
-					f"desc-affine_from-subject_to-{self.regAlgo['templateSpace']}_type-composite_xfm.h5")
+			transformCompNodeFilenameSource = os.path.join(self._parameterNode.GetParameter('derivFolder'),'temp', f"{os.path.basename(self._parameterNode.GetParameter('derivFolder')).replace(' ', '_')}_"+
+					f"desc-affine_from-subject_to-{self.regAlgo['templateSpace']}_type-composite_xfm")
 
-				shutil.move(transformInvNodeFilenameSource,transformInvNodeFilenameTarget)
-			else:
+			transformInvCompNodeFilenameSource2 = os.path.join(self._parameterNode.GetParameter('derivFolder'),'temp', f"{os.path.basename(self._parameterNode.GetParameter('derivFolder')).replace(' ', '_')}_"+
+					f"from-subject_to-{self.regAlgo['templateSpace']}_type-inverseComposite_xfm")
+
+			transformCompNodeFilenameSource2 = os.path.join(self._parameterNode.GetParameter('derivFolder'),'temp', f"{os.path.basename(self._parameterNode.GetParameter('derivFolder')).replace(' ', '_')}_"+
+					f"from-subject_to-{self.regAlgo['templateSpace']}_type-composite_xfm")
+
+			for iext in ('.h5','.nii.gz'):
+				if os.path.exists(transformInvCompNodeFilenameSource+iext):
+					transformInvCompNodeFilenameTarget = os.path.join(self._parameterNode.GetParameter('derivFolder'),'space', f"{os.path.basename(self._parameterNode.GetParameter('derivFolder')).replace(' ', '_')}_"+
+						f"desc-affine_from-subject_to-{self.regAlgo['templateSpace']}_type-inverseComposite_xfm"+iext)
+					shutil.move(transformInvCompNodeFilenameSource+iext,transformInvCompNodeFilenameTarget)
+
+				if os.path.exists(transformCompNodeFilenameSource+iext):
+					transformCompNodeFilenameTarget = os.path.join(self._parameterNode.GetParameter('derivFolder'),'space', f"{os.path.basename(self._parameterNode.GetParameter('derivFolder')).replace(' ', '_')}_"+
+						f"desc-affine_from-subject_to-{self.regAlgo['templateSpace']}_type-composite_xfm"+iext)
+					shutil.move(transformCompNodeFilenameSource+iext,transformCompNodeFilenameTarget)
+
+				if os.path.exists(transformInvCompNodeFilenameSource2+iext):
+					transformInvCompNodeFilenameTarget2 = os.path.join(self._parameterNode.GetParameter('derivFolder'),'space', f"{os.path.basename(self._parameterNode.GetParameter('derivFolder')).replace(' ', '_')}_"+
+						f"from-subject_to-{self.regAlgo['templateSpace']}_type-inverseComposite_xfm"+iext)
+					shutil.move(transformInvCompNodeFilenameSource2+iext,transformInvCompNodeFilenameTarget2)
+
+				if os.path.exists(transformCompNodeFilenameSource2+iext):
+					transformCompNodeFilenameTarget2 = os.path.join(self._parameterNode.GetParameter('derivFolder'),'space', f"{os.path.basename(self._parameterNode.GetParameter('derivFolder')).replace(' ', '_')}_"+
+						f"from-subject_to-{self.regAlgo['templateSpace']}_type-composite_xfm"+iext)
+					shutil.move(transformCompNodeFilenameSource2+iext,transformCompNodeFilenameTarget2)
+
+			transformNodeName = f"{os.path.basename(self._parameterNode.GetParameter('derivFolder')).replace(' ', '_')}_" + f"desc-affine_from-subject_to-{self.regAlgo['templateSpace']}_xfm"
+			
+			if len(slicer.util.getNodes(f'*{transformNodeName}*')) > 0:
+				transformNode = list(slicer.util.getNodes(f'*{transformNodeName}*').values())[0]
+	
 				transformNodeFilename = os.path.join(self._parameterNode.GetParameter('derivFolder'),'space', f"{os.path.basename(self._parameterNode.GetParameter('derivFolder')).replace(' ', '_')}_"+
 					f"desc-affine_from-subject_to-{self.regAlgo['templateSpace']}_xfm.h5")
-				transformNode = slicer.mrmlScene.GetFirstNodeByName(f"{os.path.basename(self._parameterNode.GetParameter('derivFolder')).replace(' ', '_')}_"+
-				f"desc-affine_from-subject_to-{self.regAlgo['templateSpace']}_xfm")
-			
+				
 				slicer.util.saveNode(transformNode, transformNodeFilename, {'useCompression': False})
 				slicer.mrmlScene.RemoveNode(transformNode)
 
@@ -1670,16 +1691,14 @@ class registrationLogic(ScriptedLoadableModuleLogic):
 
 			elif self.regAlgo['regAlgo'] == 'greedy':
 
-				iterations = self.regAlgo['parameters']['iterations']
-				dof=self.regAlgo['parameters']['dof']
-
 				affine_cmd = ' '.join([
 					f"{os.path.join(self.greedyBinDir, self.greedyExe)}",
 					'-d 3',
 					f"-m {self.regAlgo['parameters']['metric']}",
-					f"-a -dof {dof} -ia-identity",
+					f"-a -dof {self.regAlgo['parameters']['dof']} -ia-image-centers",
 					f"-i {fixedVolume} {movingVolume}",
-					f"-o {resultTransformPath}_coregmatrix.txt"
+					f"-o {resultTransformPath}_coregmatrix.txt",
+					f"-n {self.regAlgo['parameters']['iterations']}"
 				])
 
 				warp_cmd = ' '.join([
@@ -2024,7 +2043,7 @@ class registrationLogic(ScriptedLoadableModuleLogic):
 
 				reg_affine_cmd = ' '.join([
 					f'"{os.path.join(self.greedyBinDir, self.greedyExe)}" -d 3 -threads 4',
-					f"-a",
+					f"-a -ia-image-centers",
 					f"-m {self.regAlgo['regAlgoTemplateParams']['parameters']['metric']}",
 					f'-i "{self.ref_template}" "{fixedVolume}"',
 					f'-o "{resultTransformPath}_coregmatrix.txt"',
@@ -2042,11 +2061,11 @@ class registrationLogic(ScriptedLoadableModuleLogic):
 				])
 
 				warp_cmd = ' '.join([
-					f"{os.path.join(self.greedyBinDir, self.greedyExe)}",
+					f'"{os.path.join(self.greedyBinDir, self.greedyExe)}"',
 					'-d 3',
-					f"-rf {self.ref_template}",
-					f"-rm {fixedVolume} {outputVolume}.nii.gz",
-					f"-r {resultTransformPath}_coreg1Warp.nii.gz {resultTransformPath}_coregmatrix.txt"
+					f'-rf "{self.ref_template}"',
+					f'-rm "{fixedVolume}" "{outputVolume}.nii.gz"',
+					f'-r "{resultTransformPath}_coreg1Warp.nii.gz" "{resultTransformPath}_coregmatrix.txt"'
 				])
 
 				reg_cmd = reg_affine_cmd + '&&' + reg_deform_cmd + '&&' + warp_cmd
@@ -2076,12 +2095,10 @@ class registrationLogic(ScriptedLoadableModuleLogic):
 					f'-rc "{transformNodeFilenameNew}"'
 				])
 
-				import subprocess
-
-				command_result = subprocess.run(convert_cmd, env=slicer.util.startupEnvironment())
+				ep=self.startReg(convert_cmd, '', self.regAlgo['regAlgoTemplateParams'])
 
 				resultTransformNode = slicer.util.loadTransform(transformNodeFilenameNew)
-				transformNodeFilename = os.path.join(derivFolderTemp, f"{os.path.basename(derivFolder).replace(' ', '_')}_from-subject_to-{self.regAlgo['templateSpace']}_xfm.h5")
+				transformNodeFilename = os.path.join(derivFolderTemp, f"{os.path.basename(derivFolder).replace(' ', '_')}_from-subject_to-{self.regAlgo['templateSpace']}_type-composite_xfm.h5")
 				slicer.util.saveNode(resultTransformNode, transformNodeFilename, {'useCompression': False})
 
 			elif self.regAlgo['regAlgoTemplateParams']['regAlgo'] == 'flirt':

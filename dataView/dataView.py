@@ -479,9 +479,12 @@ class dataViewWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 			
 			templateTransformInverse=True
 
-			templateTransform = [x for x in slicer.util.getNodesByClass('vtkMRMLLinearTransformNode') if f"subject_to-{space}_xfm" in x.GetName()]
+			templateTransform = [x for x in slicer.util.getNodesByClass('vtkMRMLLinearTransformNode') if f"subject_to-{space}" in x.GetName()]
 			if not templateTransform and self._parameterNode.GetParameter('derivFolder'):
-				templateTransform = [x for x in os.listdir(os.path.join(self._parameterNode.GetParameter('derivFolder'), 'space')) if f"subject_to-{space}" in os.path.basename(x) and any(x.endswith(y) for y in ('xfm.h5','xfm.nii.gz'))]
+				templateTransform = [x for x in os.listdir(os.path.join(self._parameterNode.GetParameter('derivFolder'), 'space')) if f"subject_to-{space}" in os.path.basename(x) and any(x.endswith(y) for y in ('xfm.h5'))]
+				if not templateTransform:
+					templateTransform = [x for x in os.listdir(os.path.join(self._parameterNode.GetParameter('derivFolder'), 'space')) if f"subject_to-{space}" in os.path.basename(x) and any(x.endswith(y) for y in ('xfm.nii.gz'))]
+
 				if templateTransform:
 					
 					if len(templateTransform)>1:
