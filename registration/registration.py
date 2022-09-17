@@ -1226,7 +1226,7 @@ class registrationLogic(ScriptedLoadableModuleLogic):
 			self.niftyBinDir = os.path.join(self.scriptPath, 'resources', 'ext_libs', 'niftyReg', 'linux', 'bin')
 			self.niftyExe = 'reg_aladin'
 			
-			self.greedyBinDir = os.path.join(self.scriptPath, 'resources', 'ext_libs', 'greedy-1.2.0', 'bin')
+			self.greedyBinDir = os.path.join(self.scriptPath, 'resources', 'ext_libs', 'greedy', 'linux')
 			self.greedyExe = 'greedy'
 
 			self.c3dBinDir = os.path.join(self.scriptPath, 'resources', 'ext_libs', 'c3d')
