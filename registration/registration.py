@@ -6,6 +6,7 @@ import logging
 import json
 import glob
 import stat
+import time
 import vtk, qt, slicer
 from slicer.ScriptedLoadableModule import *
 from slicer.util import VTKObservationMixin
@@ -1414,19 +1415,12 @@ class registrationLogic(ScriptedLoadableModuleLogic):
 			info.wShowWindow = 0
 			return info
 
-	def run_command(self, command):
-		regEnv = os.environ.copy()
-		regEnv['PATH'] = self.c3dBinDir + ':' + regEnv['PATH']
-		regLibDir = os.path.abspath(os.path.join(self.c3dBinDir, '../lib'))
-		regEnv['LD_LIBRARY_PATH'] = regLibDir + ':' + regEnv['LD_LIBRARY_PATH']
-
-		process=subprocess.Popen(command, env=regEnv, stdout=(subprocess.PIPE), universal_newlines=True, startupinfo=(self.getStartupInfo()), shell=True)
-		stdout = process.communicate()[0]
-
+	
 	def run_command(self,cmdLineArguments):
-		process = subprocess.Popen(cmdLineArguments, stdout=subprocess.PIPE, shell=True, stderr=subprocess.PIPE)
+		process = subprocess.Popen(cmdLineArguments, stdout=subprocess.PIPE, shell=True, stderr=subprocess.PIPE, env=slicer.util.startupEnvironment())
+		rc = process.poll()
 		stdout = process.communicate()[0]
-		p_status = process.wait()
+		return rc
 
 	def startReg(self, cmdLineArguments, logText, regAlgo):
 		"""
@@ -1538,7 +1532,8 @@ class registrationLogic(ScriptedLoadableModuleLogic):
 
 		fixedVolume = os.path.normpath(os.path.join(inputDir, fixedVolumeNode[1]))
 		slicer.util.saveNode(fixedVolumeNode[0], fixedVolume, {'useCompression': False})
-		
+		slicer.app.processEvents()
+
 		self.addLog('Registration started in working directory: ' + tempDir)
 		self.addLog('Patient registration performed using: ' + self.regAlgo['regAlgo'])
 		
@@ -1559,6 +1554,8 @@ class registrationLogic(ScriptedLoadableModuleLogic):
 		for ivol in movingVolumeNode:
 			movingVolume = os.path.normpath(os.path.join(inputDir, ivol[1]))
 			slicer.util.saveNode(ivol[0], movingVolume, {'useCompression': False})
+			slicer.app.processEvents()
+
 			movingVolFilename = ivol[1].split('.nii')[0]
 			
 			resultTransformPath = os.path.normpath(os.path.join(outputDir, ivol[1].split('.nii')[0]))
@@ -1692,28 +1689,27 @@ class registrationLogic(ScriptedLoadableModuleLogic):
 			elif self.regAlgo['regAlgo'] == 'greedy':
 
 				affine_cmd = ' '.join([
-					f"{os.path.join(self.greedyBinDir, self.greedyExe)}",
-					'-d 3',
-					f"-m {self.regAlgo['parameters']['metric']}",
+					f'"{os.path.join(self.greedyBinDir, self.greedyExe)}" -d 3 -threads 4',
 					f"-a -dof {self.regAlgo['parameters']['dof']} -ia-image-centers",
-					f"-i {fixedVolume} {movingVolume}",
-					f"-o {resultTransformPath}_coregmatrix.txt",
+					f"-m {self.regAlgo['parameters']['metric']}",
+					f'-i "{fixedVolume}" "{movingVolume}"',
+					f'-o "{resultTransformPath}_coregmatrix.txt"',
 					f"-n {self.regAlgo['parameters']['iterations']}"
 				])
 
 				warp_cmd = ' '.join([
-					f"{os.path.join(self.greedyBinDir, self.greedyExe)}",
-					'-d 3',
-					f"-rf {fixedVolume}",
-					f"-rm {movingVolume} {outputVolume}.nii.gz",
-					f"-r {resultTransformPath}_coregmatrix.txt"
+					f"{os.path.join(self.greedyBinDir, self.greedyExe)} -d 3 -threads 4",
+					f'-rf "{fixedVolume}"',
+					f'-rm "{movingVolume}" "{outputVolume}.nii.gz"',
+					f'-r "{resultTransformPath}_coregmatrix.txt"'
 				])
 
 				reg_cmd = affine_cmd + '&&' + warp_cmd
-			
+
 			logText = 'Register volumes {} of {}: {} to {}'.format(str(cnt), str(len(movingVolumeNode)), ivol[0].GetName(), fixedVolumeNode[0].GetName())
 			cnt += 1
-			ep=self.startReg(reg_cmd, logText, self.regAlgo)
+			#ep=self.startReg(reg_cmd, logText, self.regAlgo)
+			ep=self.run_command(reg_cmd)
 			#self.logProcessOutput(ep)
 			
 			if 'acq-' in ivol[0].GetName().lower():
@@ -1747,7 +1743,7 @@ class registrationLogic(ScriptedLoadableModuleLogic):
 				resultTransformNode.SetName(f"{os.path.basename(derivFolder).replace(' ', '_')}_desc-rigid_from-{transformName}_to-{fixedVolumeNode[0].GetName().split('_')[-1]}_xfm")
 				transformNodeFilename = os.path.join(derivFolderTemp, f"{os.path.basename(derivFolder).replace(' ', '_')}_desc-rigid_from-{transformName}_to-{fixedVolumeNode[0].GetName().split('_')[-1]}_xfm.h5")
 				slicer.util.saveNode(resultTransformNode, transformNodeFilename, {'useCompression': False})
-			
+
 			elif self.regAlgo['regAlgo'] == 'flirt':
 				transformNodeFilename = os.path.join(derivFolderTemp, f"{os.path.basename(derivFolder).replace(' ', '_')}_desc-rigid_from-{transformName}_to-{fixedVolumeNode[0].GetName().split('_')[-1]}_xfm.tfm")
 				
@@ -1917,8 +1913,7 @@ class registrationLogic(ScriptedLoadableModuleLogic):
 					synStage,
 					'--write-composite-transform 1',
 				])
-				print(reg_cmd)
-
+			
 			elif self.regAlgo['regAlgoTemplateParams']['regAlgo'] == 'antsRegistrationQuick':
 
 				numOfBins=32
@@ -2041,7 +2036,7 @@ class registrationLogic(ScriptedLoadableModuleLogic):
 
 			elif self.regAlgo['regAlgoTemplateParams']['regAlgo'] == 'greedy':
 
-				reg_affine_cmd = ' '.join([
+				affine_cmd = ' '.join([
 					f'"{os.path.join(self.greedyBinDir, self.greedyExe)}" -d 3 -threads 4',
 					f"-a -ia-image-centers",
 					f"-m {self.regAlgo['regAlgoTemplateParams']['parameters']['metric']}",
@@ -2050,7 +2045,7 @@ class registrationLogic(ScriptedLoadableModuleLogic):
 					f"-n {self.regAlgo['regAlgoTemplateParams']['parameters']['iterations']}"
 				])
 
-				reg_deform_cmd = ' '.join([
+				deform_cmd = ' '.join([
 					f'"{os.path.join(self.greedyBinDir, self.greedyExe)}" -d 3 -threads 4',
 					f"-m {self.regAlgo['regAlgoTemplateParams']['parameters']['metric']}",
 					f'-i "{self.ref_template}" "{fixedVolume}"',
@@ -2068,12 +2063,11 @@ class registrationLogic(ScriptedLoadableModuleLogic):
 					f'-r "{resultTransformPath}_coreg1Warp.nii.gz" "{resultTransformPath}_coregmatrix.txt"'
 				])
 
-				reg_cmd = reg_affine_cmd + '&&' + reg_deform_cmd + '&&' + warp_cmd
+				reg_cmd = affine_cmd + '&&' + deform_cmd + '&&' + warp_cmd
 			
-			print(reg_cmd)
 			logText = f"Registering {fixedVolumeNode[0].GetName()} to {self.regAlgo['templateSpace']} space"
-			ep=self.startReg(reg_cmd, logText, self.regAlgo['regAlgoTemplateParams'])
-			#self.logProcessOutput(ep)
+			#ep=self.startReg(reg_cmd, logText, self.regAlgo['regAlgoTemplateParams'])
+			ep=self.run_command(reg_cmd)
 			
 			if self.regAlgo['regAlgoTemplateParams']['regAlgo'] == 'reg_aladin':
 				transformMatrix = self.readRegMatrix(resultTransformPath+'_xfm.txt')
@@ -2095,7 +2089,7 @@ class registrationLogic(ScriptedLoadableModuleLogic):
 					f'-rc "{transformNodeFilenameNew}"'
 				])
 
-				ep=self.startReg(convert_cmd, '', self.regAlgo['regAlgoTemplateParams'])
+				ep=self.run_command(convert_cmd)
 
 				resultTransformNode = slicer.util.loadTransform(transformNodeFilenameNew)
 				transformNodeFilename = os.path.join(derivFolderTemp, f"{os.path.basename(derivFolder).replace(' ', '_')}_from-subject_to-{self.regAlgo['templateSpace']}_type-composite_xfm.h5")
