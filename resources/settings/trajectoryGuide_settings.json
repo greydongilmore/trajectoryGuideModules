@@ -1,5 +1,5 @@
 {
-    "default_dir": "/home/greydon/Documents/data/clinical/derivatives/trajectoryGuide/bids",
+    "default_dir": "/home/greydon/Documents/data/clinical/derivatives/trajGuide/bids",
     "surgical_targets": [
         "STN",
         "GPi",

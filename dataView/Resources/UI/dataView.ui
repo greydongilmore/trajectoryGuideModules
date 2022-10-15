@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>447</width>
-    <height>1761</height>
+    <height>1772</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -20,10 +20,10 @@
    <string>Form</string>
   </property>
   <layout class="QGridLayout" name="gridLayout_10">
-   <item row="5" column="0" colspan="2" alignment="Qt::AlignHCenter">
+   <item row="9" column="0" alignment="Qt::AlignHCenter">
     <widget class="ctkCollapsibleGroupBox" name="templateModelsVisGB">
      <property name="sizePolicy">
-      <sizepolicy hsizetype="MinimumExpanding" vsizetype="Preferred">
+      <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
        <horstretch>0</horstretch>
        <verstretch>0</verstretch>
       </sizepolicy>
@@ -565,7 +565,7 @@
      </layout>
     </widget>
    </item>
-   <item row="6" column="1">
+   <item row="10" column="0">
     <spacer name="verticalSpacer">
      <property name="orientation">
       <enum>Qt::Vertical</enum>
@@ -581,89 +581,173 @@
      </property>
     </spacer>
    </item>
-   <item row="4" column="0">
-    <spacer name="verticalSpacer_3">
-     <property name="orientation">
-      <enum>Qt::Vertical</enum>
-     </property>
-     <property name="sizeType">
-      <enum>QSizePolicy::Fixed</enum>
-     </property>
-     <property name="sizeHint" stdset="0">
+   <item row="6" column="0" alignment="Qt::AlignHCenter">
+    <widget class="ctkCollapsibleGroupBox" name="planModelsGB">
+     <property name="minimumSize">
       <size>
-       <width>20</width>
-       <height>20</height>
+       <width>400</width>
+       <height>0</height>
       </size>
      </property>
-    </spacer>
-   </item>
-   <item row="1" column="0" colspan="2" alignment="Qt::AlignHCenter">
-    <widget class="QGroupBox" name="sortSceneDataGB">
-     <property name="enabled">
-      <bool>false</bool>
-     </property>
-     <property name="font">
-      <font>
-       <family>Arial</family>
-       <pointsize>11</pointsize>
-      </font>
-     </property>
-     <property name="title">
-      <string>Sort Scene Data</string>
-     </property>
-     <layout class="QGridLayout" name="gridLayout_24">
-      <property name="topMargin">
-       <number>20</number>
-      </property>
-      <item row="0" column="0">
-       <widget class="QPushButton" name="sortSceneDataButton">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="minimumSize">
-         <size>
-          <width>70</width>
-          <height>0</height>
-         </size>
-        </property>
-        <property name="text">
-         <string>Sort</string>
-        </property>
-       </widget>
-      </item>
-     </layout>
-    </widget>
-   </item>
-   <item row="3" column="0" colspan="2" alignment="Qt::AlignHCenter">
-    <widget class="QGroupBox" name="planModelsGB">
      <property name="title">
       <string>Patient Data</string>
      </property>
      <layout class="QGridLayout" name="gridLayout_5">
-      <item row="5" column="0" alignment="Qt::AlignHCenter">
-       <widget class="QGroupBox" name="merActivityVisWig">
-        <property name="font">
-         <font>
-          <family>Arial</family>
-          <pointsize>11</pointsize>
-         </font>
-        </property>
+      <property name="topMargin">
+       <number>20</number>
+      </property>
+      <item row="0" column="0">
+       <widget class="QGroupBox" name="plannedLeadVisWig">
         <property name="title">
-         <string>Microelectrode Activity</string>
+         <string>All Models</string>
         </property>
-        <layout class="QGridLayout" name="gridLayout_44">
-         <property name="topMargin">
+        <layout class="QGridLayout" name="gridLayout_3">
+         <property name="horizontalSpacing">
           <number>6</number>
          </property>
          <property name="verticalSpacing">
           <number>0</number>
          </property>
-         <item row="4" column="0">
-          <widget class="QWidget" name="widget_12" native="true">
-           <layout class="QGridLayout" name="gridLayout_46">
+         <item row="2" column="3" rowspan="2">
+          <widget class="QDoubleSpinBox" name="allPatientModelsOpacity">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="maximum">
+            <double>1.000000000000000</double>
+           </property>
+           <property name="singleStep">
+            <double>0.100000000000000</double>
+           </property>
+           <property name="value">
+            <double>1.000000000000000</double>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="2">
+          <widget class="QPushButton" name="allPatientModels2DOn">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="minimumSize">
+            <size>
+             <width>50</width>
+             <height>0</height>
+            </size>
+           </property>
+           <property name="text">
+            <string>On</string>
+           </property>
+           <attribute name="buttonGroup">
+            <string notr="true">allModelsButtonGroup</string>
+           </attribute>
+          </widget>
+         </item>
+         <item row="3" column="2">
+          <widget class="QPushButton" name="allPatientModels2DOff">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="minimumSize">
+            <size>
+             <width>50</width>
+             <height>0</height>
+            </size>
+           </property>
+           <property name="text">
+            <string>Off</string>
+           </property>
+           <attribute name="buttonGroup">
+            <string notr="true">allModelsButtonGroup</string>
+           </attribute>
+          </widget>
+         </item>
+         <item row="2" column="1">
+          <widget class="QPushButton" name="allPatientModels3DOn">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="minimumSize">
+            <size>
+             <width>50</width>
+             <height>0</height>
+            </size>
+           </property>
+           <property name="text">
+            <string>On</string>
+           </property>
+           <attribute name="buttonGroup">
+            <string notr="true">allModelsButtonGroup</string>
+           </attribute>
+          </widget>
+         </item>
+         <item row="3" column="1">
+          <widget class="QPushButton" name="allPatientModels3DOff">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="minimumSize">
+            <size>
+             <width>50</width>
+             <height>0</height>
+            </size>
+           </property>
+           <property name="text">
+            <string>Off</string>
+           </property>
+           <attribute name="buttonGroup">
+            <string notr="true">allModelsButtonGroup</string>
+           </attribute>
+          </widget>
+         </item>
+         <item row="2" column="0">
+          <widget class="QLabel" name="label_41">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="minimumSize">
+            <size>
+             <width>110</width>
+             <height>0</height>
+            </size>
+           </property>
+           <property name="font">
+            <font>
+             <family>Arial</family>
+             <pointsize>12</pointsize>
+             <weight>75</weight>
+             <bold>true</bold>
+            </font>
+           </property>
+           <property name="text">
+            <string/>
+           </property>
+           <property name="indent">
+            <number>10</number>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="0" colspan="4">
+          <widget class="QWidget" name="widget_19" native="true">
+           <layout class="QGridLayout" name="gridLayout_54">
             <property name="topMargin">
              <number>0</number>
             </property>
@@ -673,101 +757,74 @@
             <property name="verticalSpacing">
              <number>0</number>
             </property>
-            <item row="0" column="1">
-             <widget class="QRadioButton" name="actualMERActivity3DVisOn">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="minimumSize">
-               <size>
-                <width>55</width>
-                <height>0</height>
-               </size>
-              </property>
-              <property name="font">
-               <font>
-                <family>Arial</family>
-                <pointsize>11</pointsize>
-               </font>
-              </property>
-              <property name="focusPolicy">
-               <enum>Qt::NoFocus</enum>
-              </property>
-              <property name="text">
-               <string>On</string>
-              </property>
-              <attribute name="buttonGroup">
-               <string notr="true">patientModelsViewButtonGroup</string>
-              </attribute>
-             </widget>
-            </item>
             <item row="0" column="3">
-             <widget class="QRadioButton" name="actualMERActivity2DVisOn">
+             <widget class="QLabel" name="label_83">
               <property name="sizePolicy">
-               <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+               <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
                 <horstretch>0</horstretch>
                 <verstretch>0</verstretch>
                </sizepolicy>
               </property>
               <property name="minimumSize">
                <size>
-                <width>55</width>
+                <width>80</width>
                 <height>0</height>
                </size>
               </property>
-              <property name="font">
-               <font>
-                <family>Arial</family>
-                <pointsize>11</pointsize>
-               </font>
-              </property>
-              <property name="focusPolicy">
-               <enum>Qt::NoFocus</enum>
-              </property>
               <property name="text">
-               <string>On</string>
+               <string>Opacity</string>
               </property>
-              <attribute name="buttonGroup">
-               <string notr="true">patientModelsViewButtonGroup</string>
-              </attribute>
+              <property name="alignment">
+               <set>Qt::AlignBottom|Qt::AlignHCenter</set>
+              </property>
              </widget>
             </item>
-            <item row="1" column="1">
-             <widget class="QRadioButton" name="actualMERActivity3DVisOff">
+            <item row="0" column="2">
+             <widget class="QLabel" name="label_46">
               <property name="sizePolicy">
-               <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+               <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
                 <horstretch>0</horstretch>
                 <verstretch>0</verstretch>
                </sizepolicy>
               </property>
               <property name="minimumSize">
                <size>
-                <width>55</width>
+                <width>80</width>
                 <height>0</height>
                </size>
               </property>
-              <property name="font">
-               <font>
-                <family>Arial</family>
-                <pointsize>11</pointsize>
-               </font>
-              </property>
-              <property name="focusPolicy">
-               <enum>Qt::NoFocus</enum>
-              </property>
               <property name="text">
-               <string>Off</string>
+               <string>2D</string>
               </property>
-              <attribute name="buttonGroup">
-               <string notr="true">patientModelsViewButtonGroup</string>
-              </attribute>
+              <property name="alignment">
+               <set>Qt::AlignBottom|Qt::AlignHCenter</set>
+              </property>
              </widget>
             </item>
-            <item row="1" column="2">
-             <spacer name="horizontalSpacer_61">
+            <item row="0" column="1">
+             <widget class="QLabel" name="label_45">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="minimumSize">
+               <size>
+                <width>80</width>
+                <height>0</height>
+               </size>
+              </property>
+              <property name="text">
+               <string>3D</string>
+              </property>
+              <property name="alignment">
+               <set>Qt::AlignBottom|Qt::AlignHCenter</set>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="0">
+             <spacer name="horizontalSpacer_25">
               <property name="orientation">
                <enum>Qt::Horizontal</enum>
               </property>
@@ -776,61 +833,63 @@
               </property>
               <property name="sizeHint" stdset="0">
                <size>
-                <width>10</width>
+                <width>105</width>
                 <height>20</height>
                </size>
               </property>
              </spacer>
             </item>
-            <item row="1" column="3">
-             <widget class="QRadioButton" name="actualMERActivity2DVisOff">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="minimumSize">
-               <size>
-                <width>55</width>
-                <height>0</height>
-               </size>
-              </property>
-              <property name="font">
-               <font>
-                <family>Arial</family>
-                <pointsize>11</pointsize>
-               </font>
-              </property>
-              <property name="styleSheet">
-               <string notr="true"/>
-              </property>
-              <property name="text">
-               <string>Off</string>
-              </property>
-              <attribute name="buttonGroup">
-               <string notr="true">patientModelsViewButtonGroup</string>
-              </attribute>
-             </widget>
-            </item>
-            <item row="1" column="4">
-             <spacer name="horizontalSpacer_62">
-              <property name="orientation">
-               <enum>Qt::Horizontal</enum>
-              </property>
-              <property name="sizeType">
-               <enum>QSizePolicy::Fixed</enum>
-              </property>
-              <property name="sizeHint" stdset="0">
-               <size>
-                <width>10</width>
-                <height>20</height>
-               </size>
-              </property>
-             </spacer>
-            </item>
-            <item row="1" column="5">
-             <widget class="ctkColorPickerButton" name="actualMERActivityVisColor">
+           </layout>
+          </widget>
+         </item>
+         <item row="3" column="0">
+          <spacer name="horizontalSpacer_26">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeType">
+            <enum>QSizePolicy::Fixed</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>105</width>
+             <height>0</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+        </layout>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="QGroupBox" name="leadVisWig">
+        <property name="font">
+         <font>
+          <family>Arial</family>
+          <pointsize>11</pointsize>
+         </font>
+        </property>
+        <property name="title">
+         <string>Leads</string>
+        </property>
+        <layout class="QGridLayout" name="gridLayout_7">
+         <property name="topMargin">
+          <number>6</number>
+         </property>
+         <item row="5" column="0">
+          <widget class="QWidget" name="widget_3" native="true">
+           <layout class="QGridLayout" name="gridLayout_6">
+            <property name="topMargin">
+             <number>0</number>
+            </property>
+            <property name="bottomMargin">
+             <number>0</number>
+            </property>
+            <property name="verticalSpacing">
+             <number>0</number>
+            </property>
+            <item row="0" column="6" rowspan="2">
+             <widget class="ctkColorPickerButton" name="actualLeadVisColor">
               <property name="minimumSize">
                <size>
                 <width>35</width>
@@ -845,27 +904,39 @@
               </attribute>
              </widget>
             </item>
-            <item row="1" column="6">
-             <widget class="QDoubleSpinBox" name="actualMERActivityOpacity">
+            <item row="0" column="1">
+             <widget class="QRadioButton" name="actualLead3DVisOn">
               <property name="sizePolicy">
-               <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+               <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                 <horstretch>0</horstretch>
                 <verstretch>0</verstretch>
                </sizepolicy>
               </property>
-              <property name="maximum">
-               <double>1.000000000000000</double>
+              <property name="minimumSize">
+               <size>
+                <width>55</width>
+                <height>0</height>
+               </size>
               </property>
-              <property name="singleStep">
-               <double>0.100000000000000</double>
+              <property name="font">
+               <font>
+                <family>Arial</family>
+                <pointsize>11</pointsize>
+               </font>
               </property>
-              <property name="value">
-               <double>1.000000000000000</double>
+              <property name="focusPolicy">
+               <enum>Qt::NoFocus</enum>
               </property>
+              <property name="text">
+               <string>On</string>
+              </property>
+              <attribute name="buttonGroup">
+               <string notr="true">patientModelsViewButtonGroup</string>
+              </attribute>
              </widget>
             </item>
             <item row="0" column="0" rowspan="2">
-             <widget class="QLabel" name="label_31">
+             <widget class="QLabel" name="label_3">
               <property name="sizePolicy">
                <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
                 <horstretch>0</horstretch>
@@ -895,30 +966,8 @@
               </property>
              </widget>
             </item>
-           </layout>
-          </widget>
-         </item>
-         <item row="2" column="0">
-          <widget class="Line" name="line_28">
-           <property name="orientation">
-            <enum>Qt::Horizontal</enum>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="0">
-          <widget class="QWidget" name="widget_11" native="true">
-           <layout class="QGridLayout" name="gridLayout_45">
-            <property name="topMargin">
-             <number>0</number>
-            </property>
-            <property name="bottomMargin">
-             <number>0</number>
-            </property>
-            <property name="verticalSpacing">
-             <number>0</number>
-            </property>
             <item row="1" column="2">
-             <spacer name="horizontalSpacer_60">
+             <spacer name="horizontalSpacer_4">
               <property name="orientation">
                <enum>Qt::Horizontal</enum>
               </property>
@@ -933,8 +982,105 @@
               </property>
              </spacer>
             </item>
+            <item row="1" column="1">
+             <widget class="QRadioButton" name="actualLead3DVisOff">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="minimumSize">
+               <size>
+                <width>55</width>
+                <height>0</height>
+               </size>
+              </property>
+              <property name="font">
+               <font>
+                <family>Arial</family>
+                <pointsize>11</pointsize>
+               </font>
+              </property>
+              <property name="focusPolicy">
+               <enum>Qt::NoFocus</enum>
+              </property>
+              <property name="text">
+               <string>Off</string>
+              </property>
+              <attribute name="buttonGroup">
+               <string notr="true">patientModelsViewButtonGroup</string>
+              </attribute>
+             </widget>
+            </item>
+            <item row="1" column="4">
+             <spacer name="horizontalSpacer_35">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="sizeType">
+               <enum>QSizePolicy::Fixed</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>10</width>
+                <height>20</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+            <item row="0" column="3">
+             <widget class="QRadioButton" name="actualLead2DVisOn">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="minimumSize">
+               <size>
+                <width>55</width>
+                <height>0</height>
+               </size>
+              </property>
+              <property name="font">
+               <font>
+                <family>Arial</family>
+                <pointsize>11</pointsize>
+               </font>
+              </property>
+              <property name="focusPolicy">
+               <enum>Qt::NoFocus</enum>
+              </property>
+              <property name="text">
+               <string>On</string>
+              </property>
+              <attribute name="buttonGroup">
+               <string notr="true">patientModelsViewButtonGroup</string>
+              </attribute>
+             </widget>
+            </item>
+            <item row="0" column="7" rowspan="2">
+             <widget class="QDoubleSpinBox" name="actualLeadOpacity">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="maximum">
+               <double>1.000000000000000</double>
+              </property>
+              <property name="singleStep">
+               <double>0.100000000000000</double>
+              </property>
+              <property name="value">
+               <double>1.000000000000000</double>
+              </property>
+             </widget>
+            </item>
             <item row="1" column="3">
-             <widget class="QRadioButton" name="intraMERActivity2DVisOff">
+             <widget class="QRadioButton" name="actualLead2DVisOff">
               <property name="sizePolicy">
                <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                 <horstretch>0</horstretch>
@@ -964,8 +1110,136 @@
               </attribute>
              </widget>
             </item>
+           </layout>
+          </widget>
+         </item>
+         <item row="1" column="0">
+          <widget class="QWidget" name="widget_2" native="true">
+           <layout class="QGridLayout" name="gridLayout_4">
+            <property name="topMargin">
+             <number>0</number>
+            </property>
+            <property name="bottomMargin">
+             <number>0</number>
+            </property>
+            <property name="verticalSpacing">
+             <number>0</number>
+            </property>
+            <item row="0" column="1">
+             <widget class="QRadioButton" name="plannedLead3DVisOn">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="minimumSize">
+               <size>
+                <width>55</width>
+                <height>0</height>
+               </size>
+              </property>
+              <property name="font">
+               <font>
+                <family>Arial</family>
+                <pointsize>11</pointsize>
+               </font>
+              </property>
+              <property name="focusPolicy">
+               <enum>Qt::NoFocus</enum>
+              </property>
+              <property name="text">
+               <string>On</string>
+              </property>
+              <attribute name="buttonGroup">
+               <string notr="true">patientModelsViewButtonGroup</string>
+              </attribute>
+             </widget>
+            </item>
+            <item row="1" column="4">
+             <spacer name="horizontalSpacer_34">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="sizeType">
+               <enum>QSizePolicy::Fixed</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>10</width>
+                <height>20</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+            <item row="0" column="0" rowspan="2">
+             <widget class="QLabel" name="label_2">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="minimumSize">
+               <size>
+                <width>100</width>
+                <height>0</height>
+               </size>
+              </property>
+              <property name="font">
+               <font>
+                <family>Arial</family>
+                <pointsize>11</pointsize>
+               </font>
+              </property>
+              <property name="text">
+               <string>Planned</string>
+              </property>
+              <property name="alignment">
+               <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+              </property>
+              <property name="indent">
+               <number>10</number>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="7" rowspan="2">
+             <widget class="QDoubleSpinBox" name="plannedLeadOpacity">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="maximum">
+               <double>1.000000000000000</double>
+              </property>
+              <property name="singleStep">
+               <double>0.100000000000000</double>
+              </property>
+              <property name="value">
+               <double>1.000000000000000</double>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="2">
+             <spacer name="horizontalSpacer_6">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="sizeType">
+               <enum>QSizePolicy::Fixed</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>10</width>
+                <height>20</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
             <item row="0" column="3">
-             <widget class="QRadioButton" name="intraMERActivity2DVisOn">
+             <widget class="QRadioButton" name="plannedLead2DVisOn">
               <property name="sizePolicy">
                <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                 <horstretch>0</horstretch>
@@ -996,7 +1270,7 @@
              </widget>
             </item>
             <item row="1" column="1">
-             <widget class="QRadioButton" name="intraMERActivity3DVisOff">
+             <widget class="QRadioButton" name="plannedLead3DVisOff">
               <property name="sizePolicy">
                <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                 <horstretch>0</horstretch>
@@ -1026,8 +1300,117 @@
               </attribute>
              </widget>
             </item>
+            <item row="1" column="3">
+             <widget class="QRadioButton" name="plannedLead2DVisOff">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="minimumSize">
+               <size>
+                <width>55</width>
+                <height>0</height>
+               </size>
+              </property>
+              <property name="font">
+               <font>
+                <family>Arial</family>
+                <pointsize>11</pointsize>
+               </font>
+              </property>
+              <property name="styleSheet">
+               <string notr="true"/>
+              </property>
+              <property name="text">
+               <string>Off</string>
+              </property>
+              <attribute name="buttonGroup">
+               <string notr="true">patientModelsViewButtonGroup</string>
+              </attribute>
+             </widget>
+            </item>
+            <item row="0" column="6" rowspan="2">
+             <widget class="ctkColorPickerButton" name="plannedLeadVisColor">
+              <property name="minimumSize">
+               <size>
+                <width>35</width>
+                <height>0</height>
+               </size>
+              </property>
+              <property name="displayColorName">
+               <bool>false</bool>
+              </property>
+              <attribute name="buttonGroup">
+               <string notr="true">colorPickerButtonGroup</string>
+              </attribute>
+             </widget>
+            </item>
+           </layout>
+          </widget>
+         </item>
+         <item row="3" column="0">
+          <widget class="QWidget" name="widget_14" native="true">
+           <layout class="QGridLayout" name="gridLayout_23">
+            <property name="topMargin">
+             <number>0</number>
+            </property>
+            <property name="bottomMargin">
+             <number>0</number>
+            </property>
+            <property name="verticalSpacing">
+             <number>0</number>
+            </property>
+            <item row="1" column="3">
+             <widget class="QRadioButton" name="intraLead2DVisOff">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="minimumSize">
+               <size>
+                <width>55</width>
+                <height>0</height>
+               </size>
+              </property>
+              <property name="font">
+               <font>
+                <family>Arial</family>
+                <pointsize>11</pointsize>
+               </font>
+              </property>
+              <property name="styleSheet">
+               <string notr="true"/>
+              </property>
+              <property name="text">
+               <string>Off</string>
+              </property>
+              <attribute name="buttonGroup">
+               <string notr="true">patientModelsViewButtonGroup</string>
+              </attribute>
+             </widget>
+            </item>
+            <item row="1" column="2">
+             <spacer name="horizontalSpacer_13">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="sizeType">
+               <enum>QSizePolicy::Fixed</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>10</width>
+                <height>20</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
             <item row="0" column="1">
-             <widget class="QRadioButton" name="intraMERActivity3DVisOn">
+             <widget class="QRadioButton" name="intraLead3DVisOn">
               <property name="sizePolicy">
                <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                 <horstretch>0</horstretch>
@@ -1057,59 +1440,39 @@
               </attribute>
              </widget>
             </item>
-            <item row="0" column="6" rowspan="2">
-             <widget class="QDoubleSpinBox" name="intraMERActivityOpacity">
+            <item row="0" column="3">
+             <widget class="QRadioButton" name="intraLead2DVisOn">
               <property name="sizePolicy">
-               <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+               <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                 <horstretch>0</horstretch>
                 <verstretch>0</verstretch>
                </sizepolicy>
               </property>
-              <property name="maximum">
-               <double>1.000000000000000</double>
-              </property>
-              <property name="singleStep">
-               <double>0.100000000000000</double>
-              </property>
-              <property name="value">
-               <double>1.000000000000000</double>
-              </property>
-             </widget>
-            </item>
-            <item row="0" column="5" rowspan="2">
-             <widget class="ctkColorPickerButton" name="intraMERActivityVisColor">
               <property name="minimumSize">
                <size>
-                <width>35</width>
+                <width>55</width>
                 <height>0</height>
                </size>
               </property>
-              <property name="displayColorName">
-               <bool>false</bool>
+              <property name="font">
+               <font>
+                <family>Arial</family>
+                <pointsize>11</pointsize>
+               </font>
+              </property>
+              <property name="focusPolicy">
+               <enum>Qt::NoFocus</enum>
+              </property>
+              <property name="text">
+               <string>On</string>
               </property>
               <attribute name="buttonGroup">
-               <string notr="true">colorPickerButtonGroup</string>
+               <string notr="true">patientModelsViewButtonGroup</string>
               </attribute>
              </widget>
             </item>
-            <item row="1" column="4">
-             <spacer name="horizontalSpacer_119">
-              <property name="orientation">
-               <enum>Qt::Horizontal</enum>
-              </property>
-              <property name="sizeType">
-               <enum>QSizePolicy::Fixed</enum>
-              </property>
-              <property name="sizeHint" stdset="0">
-               <size>
-                <width>10</width>
-                <height>20</height>
-               </size>
-              </property>
-             </spacer>
-            </item>
             <item row="0" column="0" rowspan="2">
-             <widget class="QLabel" name="label_53">
+             <widget class="QLabel" name="label_8">
               <property name="sizePolicy">
                <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
                 <horstretch>0</horstretch>
@@ -1139,12 +1502,108 @@
               </property>
              </widget>
             </item>
+            <item row="1" column="4">
+             <spacer name="horizontalSpacer_40">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="sizeType">
+               <enum>QSizePolicy::Fixed</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>10</width>
+                <height>20</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+            <item row="0" column="5" rowspan="2">
+             <widget class="ctkColorPickerButton" name="intraLeadVisColor">
+              <property name="minimumSize">
+               <size>
+                <width>35</width>
+                <height>0</height>
+               </size>
+              </property>
+              <property name="displayColorName">
+               <bool>false</bool>
+              </property>
+              <attribute name="buttonGroup">
+               <string notr="true">colorPickerButtonGroup</string>
+              </attribute>
+             </widget>
+            </item>
+            <item row="1" column="1">
+             <widget class="QRadioButton" name="intraLead3DVisOff">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="minimumSize">
+               <size>
+                <width>55</width>
+                <height>0</height>
+               </size>
+              </property>
+              <property name="font">
+               <font>
+                <family>Arial</family>
+                <pointsize>11</pointsize>
+               </font>
+              </property>
+              <property name="focusPolicy">
+               <enum>Qt::NoFocus</enum>
+              </property>
+              <property name="text">
+               <string>Off</string>
+              </property>
+              <attribute name="buttonGroup">
+               <string notr="true">patientModelsViewButtonGroup</string>
+              </attribute>
+             </widget>
+            </item>
+            <item row="0" column="6" rowspan="2">
+             <widget class="QDoubleSpinBox" name="intraLeadOpacity">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="maximum">
+               <double>1.000000000000000</double>
+              </property>
+              <property name="singleStep">
+               <double>0.100000000000000</double>
+              </property>
+              <property name="value">
+               <double>1.000000000000000</double>
+              </property>
+             </widget>
+            </item>
            </layout>
           </widget>
          </item>
+         <item row="4" column="0">
+          <widget class="Line" name="line_10">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="0">
+          <widget class="Line" name="line_9">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+          </widget>
+         </item>
          <item row="0" column="0">
-          <widget class="QWidget" name="widget_17" native="true">
-           <layout class="QGridLayout" name="gridLayout_52">
+          <widget class="QWidget" name="widget_4" native="true">
+           <layout class="QGridLayout" name="gridLayout_49">
             <property name="topMargin">
              <number>0</number>
             </property>
@@ -1155,7 +1614,7 @@
              <number>0</number>
             </property>
             <item row="0" column="1">
-             <widget class="QLabel" name="label_40">
+             <widget class="QLabel" name="label_34">
               <property name="sizePolicy">
                <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
                 <horstretch>0</horstretch>
@@ -1177,7 +1636,7 @@
              </widget>
             </item>
             <item row="0" column="2">
-             <widget class="QLabel" name="label_43">
+             <widget class="QLabel" name="label_35">
               <property name="sizePolicy">
                <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
                 <horstretch>0</horstretch>
@@ -1199,7 +1658,7 @@
              </widget>
             </item>
             <item row="0" column="3">
-             <widget class="QLabel" name="label_74">
+             <widget class="QLabel" name="label_47">
               <property name="sizePolicy">
                <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
                 <horstretch>0</horstretch>
@@ -1221,7 +1680,7 @@
              </widget>
             </item>
             <item row="0" column="4">
-             <widget class="QLabel" name="label_78">
+             <widget class="QLabel" name="label_49">
               <property name="sizePolicy">
                <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
                 <horstretch>0</horstretch>
@@ -1243,7 +1702,7 @@
              </widget>
             </item>
             <item row="1" column="1">
-             <widget class="Line" name="line_41">
+             <widget class="Line" name="line_31">
               <property name="sizePolicy">
                <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                 <horstretch>0</horstretch>
@@ -1265,7 +1724,7 @@
              </widget>
             </item>
             <item row="1" column="2">
-             <widget class="Line" name="line_42">
+             <widget class="Line" name="line_29">
               <property name="minimumSize">
                <size>
                 <width>65</width>
@@ -1281,7 +1740,7 @@
              </widget>
             </item>
             <item row="1" column="3">
-             <widget class="Line" name="line_43">
+             <widget class="Line" name="line_30">
               <property name="sizePolicy">
                <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                 <horstretch>0</horstretch>
@@ -1303,7 +1762,7 @@
              </widget>
             </item>
             <item row="1" column="4">
-             <widget class="Line" name="line_44">
+             <widget class="Line" name="line_32">
               <property name="minimumSize">
                <size>
                 <width>55</width>
@@ -1319,7 +1778,7 @@
              </widget>
             </item>
             <item row="0" column="0">
-             <spacer name="horizontalSpacer_23">
+             <spacer name="horizontalSpacer_5">
               <property name="orientation">
                <enum>Qt::Horizontal</enum>
               </property>
@@ -1340,7 +1799,7 @@
         </layout>
        </widget>
       </item>
-      <item row="3" column="0" alignment="Qt::AlignHCenter">
+      <item row="2" column="0">
        <widget class="QGroupBox" name="contactsVisWig">
         <property name="font">
          <font>
@@ -2281,7 +2740,7 @@
         </layout>
        </widget>
       </item>
-      <item row="4" column="0" alignment="Qt::AlignHCenter">
+      <item row="3" column="0">
        <widget class="QGroupBox" name="merTracksVisWig">
         <property name="font">
          <font>
@@ -3222,8 +3681,8 @@
         </layout>
        </widget>
       </item>
-      <item row="2" column="0" alignment="Qt::AlignHCenter">
-       <widget class="QGroupBox" name="leadVisWig">
+      <item row="4" column="0">
+       <widget class="QGroupBox" name="merActivityVisWig">
         <property name="font">
          <font>
           <family>Arial</family>
@@ -3231,15 +3690,18 @@
          </font>
         </property>
         <property name="title">
-         <string>Leads</string>
+         <string>Microelectrode Activity</string>
         </property>
-        <layout class="QGridLayout" name="gridLayout_7">
+        <layout class="QGridLayout" name="gridLayout_44">
          <property name="topMargin">
           <number>6</number>
          </property>
-         <item row="5" column="0">
-          <widget class="QWidget" name="widget_3" native="true">
-           <layout class="QGridLayout" name="gridLayout_6">
+         <property name="verticalSpacing">
+          <number>0</number>
+         </property>
+         <item row="4" column="0">
+          <widget class="QWidget" name="widget_12" native="true">
+           <layout class="QGridLayout" name="gridLayout_46">
             <property name="topMargin">
              <number>0</number>
             </property>
@@ -3249,24 +3711,8 @@
             <property name="verticalSpacing">
              <number>0</number>
             </property>
-            <item row="0" column="6" rowspan="2">
-             <widget class="ctkColorPickerButton" name="actualLeadVisColor">
-              <property name="minimumSize">
-               <size>
-                <width>35</width>
-                <height>0</height>
-               </size>
-              </property>
-              <property name="displayColorName">
-               <bool>false</bool>
-              </property>
-              <attribute name="buttonGroup">
-               <string notr="true">colorPickerButtonGroup</string>
-              </attribute>
-             </widget>
-            </item>
             <item row="0" column="1">
-             <widget class="QRadioButton" name="actualLead3DVisOn">
+             <widget class="QRadioButton" name="actualMERActivity3DVisOn">
               <property name="sizePolicy">
                <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                 <horstretch>0</horstretch>
@@ -3296,8 +3742,168 @@
               </attribute>
              </widget>
             </item>
+            <item row="0" column="3">
+             <widget class="QRadioButton" name="actualMERActivity2DVisOn">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="minimumSize">
+               <size>
+                <width>55</width>
+                <height>0</height>
+               </size>
+              </property>
+              <property name="font">
+               <font>
+                <family>Arial</family>
+                <pointsize>11</pointsize>
+               </font>
+              </property>
+              <property name="focusPolicy">
+               <enum>Qt::NoFocus</enum>
+              </property>
+              <property name="text">
+               <string>On</string>
+              </property>
+              <attribute name="buttonGroup">
+               <string notr="true">patientModelsViewButtonGroup</string>
+              </attribute>
+             </widget>
+            </item>
+            <item row="1" column="1">
+             <widget class="QRadioButton" name="actualMERActivity3DVisOff">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="minimumSize">
+               <size>
+                <width>55</width>
+                <height>0</height>
+               </size>
+              </property>
+              <property name="font">
+               <font>
+                <family>Arial</family>
+                <pointsize>11</pointsize>
+               </font>
+              </property>
+              <property name="focusPolicy">
+               <enum>Qt::NoFocus</enum>
+              </property>
+              <property name="text">
+               <string>Off</string>
+              </property>
+              <attribute name="buttonGroup">
+               <string notr="true">patientModelsViewButtonGroup</string>
+              </attribute>
+             </widget>
+            </item>
+            <item row="1" column="2">
+             <spacer name="horizontalSpacer_61">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="sizeType">
+               <enum>QSizePolicy::Fixed</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>10</width>
+                <height>20</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+            <item row="1" column="3">
+             <widget class="QRadioButton" name="actualMERActivity2DVisOff">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="minimumSize">
+               <size>
+                <width>55</width>
+                <height>0</height>
+               </size>
+              </property>
+              <property name="font">
+               <font>
+                <family>Arial</family>
+                <pointsize>11</pointsize>
+               </font>
+              </property>
+              <property name="styleSheet">
+               <string notr="true"/>
+              </property>
+              <property name="text">
+               <string>Off</string>
+              </property>
+              <attribute name="buttonGroup">
+               <string notr="true">patientModelsViewButtonGroup</string>
+              </attribute>
+             </widget>
+            </item>
+            <item row="1" column="4">
+             <spacer name="horizontalSpacer_62">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="sizeType">
+               <enum>QSizePolicy::Fixed</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>10</width>
+                <height>20</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+            <item row="1" column="5">
+             <widget class="ctkColorPickerButton" name="actualMERActivityVisColor">
+              <property name="minimumSize">
+               <size>
+                <width>35</width>
+                <height>0</height>
+               </size>
+              </property>
+              <property name="displayColorName">
+               <bool>false</bool>
+              </property>
+              <attribute name="buttonGroup">
+               <string notr="true">colorPickerButtonGroup</string>
+              </attribute>
+             </widget>
+            </item>
+            <item row="1" column="6">
+             <widget class="QDoubleSpinBox" name="actualMERActivityOpacity">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="maximum">
+               <double>1.000000000000000</double>
+              </property>
+              <property name="singleStep">
+               <double>0.100000000000000</double>
+              </property>
+              <property name="value">
+               <double>1.000000000000000</double>
+              </property>
+             </widget>
+            </item>
             <item row="0" column="0" rowspan="2">
-             <widget class="QLabel" name="label_3">
+             <widget class="QLabel" name="label_31">
               <property name="sizePolicy">
                <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
                 <horstretch>0</horstretch>
@@ -3327,156 +3933,19 @@
               </property>
              </widget>
             </item>
-            <item row="1" column="2">
-             <spacer name="horizontalSpacer_4">
-              <property name="orientation">
-               <enum>Qt::Horizontal</enum>
-              </property>
-              <property name="sizeType">
-               <enum>QSizePolicy::Fixed</enum>
-              </property>
-              <property name="sizeHint" stdset="0">
-               <size>
-                <width>10</width>
-                <height>20</height>
-               </size>
-              </property>
-             </spacer>
-            </item>
-            <item row="1" column="1">
-             <widget class="QRadioButton" name="actualLead3DVisOff">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="minimumSize">
-               <size>
-                <width>55</width>
-                <height>0</height>
-               </size>
-              </property>
-              <property name="font">
-               <font>
-                <family>Arial</family>
-                <pointsize>11</pointsize>
-               </font>
-              </property>
-              <property name="focusPolicy">
-               <enum>Qt::NoFocus</enum>
-              </property>
-              <property name="text">
-               <string>Off</string>
-              </property>
-              <attribute name="buttonGroup">
-               <string notr="true">patientModelsViewButtonGroup</string>
-              </attribute>
-             </widget>
-            </item>
-            <item row="1" column="4">
-             <spacer name="horizontalSpacer_35">
-              <property name="orientation">
-               <enum>Qt::Horizontal</enum>
-              </property>
-              <property name="sizeType">
-               <enum>QSizePolicy::Fixed</enum>
-              </property>
-              <property name="sizeHint" stdset="0">
-               <size>
-                <width>10</width>
-                <height>20</height>
-               </size>
-              </property>
-             </spacer>
-            </item>
-            <item row="0" column="3">
-             <widget class="QRadioButton" name="actualLead2DVisOn">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="minimumSize">
-               <size>
-                <width>55</width>
-                <height>0</height>
-               </size>
-              </property>
-              <property name="font">
-               <font>
-                <family>Arial</family>
-                <pointsize>11</pointsize>
-               </font>
-              </property>
-              <property name="focusPolicy">
-               <enum>Qt::NoFocus</enum>
-              </property>
-              <property name="text">
-               <string>On</string>
-              </property>
-              <attribute name="buttonGroup">
-               <string notr="true">patientModelsViewButtonGroup</string>
-              </attribute>
-             </widget>
-            </item>
-            <item row="0" column="7" rowspan="2">
-             <widget class="QDoubleSpinBox" name="actualLeadOpacity">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="maximum">
-               <double>1.000000000000000</double>
-              </property>
-              <property name="singleStep">
-               <double>0.100000000000000</double>
-              </property>
-              <property name="value">
-               <double>1.000000000000000</double>
-              </property>
-             </widget>
-            </item>
-            <item row="1" column="3">
-             <widget class="QRadioButton" name="actualLead2DVisOff">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="minimumSize">
-               <size>
-                <width>55</width>
-                <height>0</height>
-               </size>
-              </property>
-              <property name="font">
-               <font>
-                <family>Arial</family>
-                <pointsize>11</pointsize>
-               </font>
-              </property>
-              <property name="styleSheet">
-               <string notr="true"/>
-              </property>
-              <property name="text">
-               <string>Off</string>
-              </property>
-              <attribute name="buttonGroup">
-               <string notr="true">patientModelsViewButtonGroup</string>
-              </attribute>
-             </widget>
-            </item>
            </layout>
           </widget>
          </item>
+         <item row="2" column="0">
+          <widget class="Line" name="line_28">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+          </widget>
+         </item>
          <item row="1" column="0">
-          <widget class="QWidget" name="widget_2" native="true">
-           <layout class="QGridLayout" name="gridLayout_4">
+          <widget class="QWidget" name="widget_11" native="true">
+           <layout class="QGridLayout" name="gridLayout_45">
             <property name="topMargin">
              <number>0</number>
             </property>
@@ -3486,8 +3955,24 @@
             <property name="verticalSpacing">
              <number>0</number>
             </property>
-            <item row="0" column="1">
-             <widget class="QRadioButton" name="plannedLead3DVisOn">
+            <item row="1" column="2">
+             <spacer name="horizontalSpacer_60">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="sizeType">
+               <enum>QSizePolicy::Fixed</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>10</width>
+                <height>20</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+            <item row="1" column="3">
+             <widget class="QRadioButton" name="intraMERActivity2DVisOff">
               <property name="sizePolicy">
                <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                 <horstretch>0</horstretch>
@@ -3506,101 +3991,19 @@
                 <pointsize>11</pointsize>
                </font>
               </property>
-              <property name="focusPolicy">
-               <enum>Qt::NoFocus</enum>
+              <property name="styleSheet">
+               <string notr="true"/>
               </property>
               <property name="text">
-               <string>On</string>
+               <string>Off</string>
               </property>
               <attribute name="buttonGroup">
                <string notr="true">patientModelsViewButtonGroup</string>
               </attribute>
              </widget>
             </item>
-            <item row="1" column="4">
-             <spacer name="horizontalSpacer_34">
-              <property name="orientation">
-               <enum>Qt::Horizontal</enum>
-              </property>
-              <property name="sizeType">
-               <enum>QSizePolicy::Fixed</enum>
-              </property>
-              <property name="sizeHint" stdset="0">
-               <size>
-                <width>10</width>
-                <height>20</height>
-               </size>
-              </property>
-             </spacer>
-            </item>
-            <item row="0" column="0" rowspan="2">
-             <widget class="QLabel" name="label_2">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="minimumSize">
-               <size>
-                <width>100</width>
-                <height>0</height>
-               </size>
-              </property>
-              <property name="font">
-               <font>
-                <family>Arial</family>
-                <pointsize>11</pointsize>
-               </font>
-              </property>
-              <property name="text">
-               <string>Planned</string>
-              </property>
-              <property name="alignment">
-               <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-              </property>
-              <property name="indent">
-               <number>10</number>
-              </property>
-             </widget>
-            </item>
-            <item row="0" column="7" rowspan="2">
-             <widget class="QDoubleSpinBox" name="plannedLeadOpacity">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="maximum">
-               <double>1.000000000000000</double>
-              </property>
-              <property name="singleStep">
-               <double>0.100000000000000</double>
-              </property>
-              <property name="value">
-               <double>1.000000000000000</double>
-              </property>
-             </widget>
-            </item>
-            <item row="1" column="2">
-             <spacer name="horizontalSpacer_6">
-              <property name="orientation">
-               <enum>Qt::Horizontal</enum>
-              </property>
-              <property name="sizeType">
-               <enum>QSizePolicy::Fixed</enum>
-              </property>
-              <property name="sizeHint" stdset="0">
-               <size>
-                <width>10</width>
-                <height>20</height>
-               </size>
-              </property>
-             </spacer>
-            </item>
             <item row="0" column="3">
-             <widget class="QRadioButton" name="plannedLead2DVisOn">
+             <widget class="QRadioButton" name="intraMERActivity2DVisOn">
               <property name="sizePolicy">
                <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                 <horstretch>0</horstretch>
@@ -3631,7 +4034,7 @@
              </widget>
             </item>
             <item row="1" column="1">
-             <widget class="QRadioButton" name="plannedLead3DVisOff">
+             <widget class="QRadioButton" name="intraMERActivity3DVisOff">
               <property name="sizePolicy">
                <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                 <horstretch>0</horstretch>
@@ -3661,8 +4064,8 @@
               </attribute>
              </widget>
             </item>
-            <item row="1" column="3">
-             <widget class="QRadioButton" name="plannedLead2DVisOff">
+            <item row="0" column="1">
+             <widget class="QRadioButton" name="intraMERActivity3DVisOn">
               <property name="sizePolicy">
                <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                 <horstretch>0</horstretch>
@@ -3681,11 +4084,11 @@
                 <pointsize>11</pointsize>
                </font>
               </property>
-              <property name="styleSheet">
-               <string notr="true"/>
+              <property name="focusPolicy">
+               <enum>Qt::NoFocus</enum>
               </property>
               <property name="text">
-               <string>Off</string>
+               <string>On</string>
               </property>
               <attribute name="buttonGroup">
                <string notr="true">patientModelsViewButtonGroup</string>
@@ -3693,7 +4096,26 @@
              </widget>
             </item>
             <item row="0" column="6" rowspan="2">
-             <widget class="ctkColorPickerButton" name="plannedLeadVisColor">
+             <widget class="QDoubleSpinBox" name="intraMERActivityOpacity">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="maximum">
+               <double>1.000000000000000</double>
+              </property>
+              <property name="singleStep">
+               <double>0.100000000000000</double>
+              </property>
+              <property name="value">
+               <double>1.000000000000000</double>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="5" rowspan="2">
+             <widget class="ctkColorPickerButton" name="intraMERActivityVisColor">
               <property name="minimumSize">
                <size>
                 <width>35</width>
@@ -3708,54 +4130,8 @@
               </attribute>
              </widget>
             </item>
-           </layout>
-          </widget>
-         </item>
-         <item row="3" column="0">
-          <widget class="QWidget" name="widget_14" native="true">
-           <layout class="QGridLayout" name="gridLayout_23">
-            <property name="topMargin">
-             <number>0</number>
-            </property>
-            <property name="bottomMargin">
-             <number>0</number>
-            </property>
-            <property name="verticalSpacing">
-             <number>0</number>
-            </property>
-            <item row="1" column="3">
-             <widget class="QRadioButton" name="intraLead2DVisOff">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="minimumSize">
-               <size>
-                <width>55</width>
-                <height>0</height>
-               </size>
-              </property>
-              <property name="font">
-               <font>
-                <family>Arial</family>
-                <pointsize>11</pointsize>
-               </font>
-              </property>
-              <property name="styleSheet">
-               <string notr="true"/>
-              </property>
-              <property name="text">
-               <string>Off</string>
-              </property>
-              <attribute name="buttonGroup">
-               <string notr="true">patientModelsViewButtonGroup</string>
-              </attribute>
-             </widget>
-            </item>
-            <item row="1" column="2">
-             <spacer name="horizontalSpacer_13">
+            <item row="1" column="4">
+             <spacer name="horizontalSpacer_119">
               <property name="orientation">
                <enum>Qt::Horizontal</enum>
               </property>
@@ -3770,70 +4146,8 @@
               </property>
              </spacer>
             </item>
-            <item row="0" column="1">
-             <widget class="QRadioButton" name="intraLead3DVisOn">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="minimumSize">
-               <size>
-                <width>55</width>
-                <height>0</height>
-               </size>
-              </property>
-              <property name="font">
-               <font>
-                <family>Arial</family>
-                <pointsize>11</pointsize>
-               </font>
-              </property>
-              <property name="focusPolicy">
-               <enum>Qt::NoFocus</enum>
-              </property>
-              <property name="text">
-               <string>On</string>
-              </property>
-              <attribute name="buttonGroup">
-               <string notr="true">patientModelsViewButtonGroup</string>
-              </attribute>
-             </widget>
-            </item>
-            <item row="0" column="3">
-             <widget class="QRadioButton" name="intraLead2DVisOn">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="minimumSize">
-               <size>
-                <width>55</width>
-                <height>0</height>
-               </size>
-              </property>
-              <property name="font">
-               <font>
-                <family>Arial</family>
-                <pointsize>11</pointsize>
-               </font>
-              </property>
-              <property name="focusPolicy">
-               <enum>Qt::NoFocus</enum>
-              </property>
-              <property name="text">
-               <string>On</string>
-              </property>
-              <attribute name="buttonGroup">
-               <string notr="true">patientModelsViewButtonGroup</string>
-              </attribute>
-             </widget>
-            </item>
             <item row="0" column="0" rowspan="2">
-             <widget class="QLabel" name="label_8">
+             <widget class="QLabel" name="label_53">
               <property name="sizePolicy">
                <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
                 <horstretch>0</horstretch>
@@ -3863,108 +4177,12 @@
               </property>
              </widget>
             </item>
-            <item row="1" column="4">
-             <spacer name="horizontalSpacer_40">
-              <property name="orientation">
-               <enum>Qt::Horizontal</enum>
-              </property>
-              <property name="sizeType">
-               <enum>QSizePolicy::Fixed</enum>
-              </property>
-              <property name="sizeHint" stdset="0">
-               <size>
-                <width>10</width>
-                <height>20</height>
-               </size>
-              </property>
-             </spacer>
-            </item>
-            <item row="0" column="5" rowspan="2">
-             <widget class="ctkColorPickerButton" name="intraLeadVisColor">
-              <property name="minimumSize">
-               <size>
-                <width>35</width>
-                <height>0</height>
-               </size>
-              </property>
-              <property name="displayColorName">
-               <bool>false</bool>
-              </property>
-              <attribute name="buttonGroup">
-               <string notr="true">colorPickerButtonGroup</string>
-              </attribute>
-             </widget>
-            </item>
-            <item row="1" column="1">
-             <widget class="QRadioButton" name="intraLead3DVisOff">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="minimumSize">
-               <size>
-                <width>55</width>
-                <height>0</height>
-               </size>
-              </property>
-              <property name="font">
-               <font>
-                <family>Arial</family>
-                <pointsize>11</pointsize>
-               </font>
-              </property>
-              <property name="focusPolicy">
-               <enum>Qt::NoFocus</enum>
-              </property>
-              <property name="text">
-               <string>Off</string>
-              </property>
-              <attribute name="buttonGroup">
-               <string notr="true">patientModelsViewButtonGroup</string>
-              </attribute>
-             </widget>
-            </item>
-            <item row="0" column="6" rowspan="2">
-             <widget class="QDoubleSpinBox" name="intraLeadOpacity">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="maximum">
-               <double>1.000000000000000</double>
-              </property>
-              <property name="singleStep">
-               <double>0.100000000000000</double>
-              </property>
-              <property name="value">
-               <double>1.000000000000000</double>
-              </property>
-             </widget>
-            </item>
            </layout>
           </widget>
          </item>
-         <item row="4" column="0">
-          <widget class="Line" name="line_10">
-           <property name="orientation">
-            <enum>Qt::Horizontal</enum>
-           </property>
-          </widget>
-         </item>
-         <item row="2" column="0">
-          <widget class="Line" name="line_9">
-           <property name="orientation">
-            <enum>Qt::Horizontal</enum>
-           </property>
-          </widget>
-         </item>
          <item row="0" column="0">
-          <widget class="QWidget" name="widget_4" native="true">
-           <layout class="QGridLayout" name="gridLayout_49">
+          <widget class="QWidget" name="widget_17" native="true">
+           <layout class="QGridLayout" name="gridLayout_52">
             <property name="topMargin">
              <number>0</number>
             </property>
@@ -3975,7 +4193,7 @@
              <number>0</number>
             </property>
             <item row="0" column="1">
-             <widget class="QLabel" name="label_34">
+             <widget class="QLabel" name="label_40">
               <property name="sizePolicy">
                <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
                 <horstretch>0</horstretch>
@@ -3997,7 +4215,7 @@
              </widget>
             </item>
             <item row="0" column="2">
-             <widget class="QLabel" name="label_35">
+             <widget class="QLabel" name="label_43">
               <property name="sizePolicy">
                <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
                 <horstretch>0</horstretch>
@@ -4019,7 +4237,7 @@
              </widget>
             </item>
             <item row="0" column="3">
-             <widget class="QLabel" name="label_47">
+             <widget class="QLabel" name="label_74">
               <property name="sizePolicy">
                <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
                 <horstretch>0</horstretch>
@@ -4041,7 +4259,7 @@
              </widget>
             </item>
             <item row="0" column="4">
-             <widget class="QLabel" name="label_49">
+             <widget class="QLabel" name="label_78">
               <property name="sizePolicy">
                <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
                 <horstretch>0</horstretch>
@@ -4063,7 +4281,7 @@
              </widget>
             </item>
             <item row="1" column="1">
-             <widget class="Line" name="line_31">
+             <widget class="Line" name="line_41">
               <property name="sizePolicy">
                <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                 <horstretch>0</horstretch>
@@ -4085,7 +4303,7 @@
              </widget>
             </item>
             <item row="1" column="2">
-             <widget class="Line" name="line_29">
+             <widget class="Line" name="line_42">
               <property name="minimumSize">
                <size>
                 <width>65</width>
@@ -4101,7 +4319,7 @@
              </widget>
             </item>
             <item row="1" column="3">
-             <widget class="Line" name="line_30">
+             <widget class="Line" name="line_43">
               <property name="sizePolicy">
                <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                 <horstretch>0</horstretch>
@@ -4123,7 +4341,7 @@
              </widget>
             </item>
             <item row="1" column="4">
-             <widget class="Line" name="line_32">
+             <widget class="Line" name="line_44">
               <property name="minimumSize">
                <size>
                 <width>55</width>
@@ -4139,7 +4357,7 @@
              </widget>
             </item>
             <item row="0" column="0">
-             <spacer name="horizontalSpacer_5">
+             <spacer name="horizontalSpacer_23">
               <property name="orientation">
                <enum>Qt::Horizontal</enum>
               </property>
@@ -4160,7 +4378,7 @@
         </layout>
        </widget>
       </item>
-      <item row="6" column="0" alignment="Qt::AlignHCenter">
+      <item row="5" column="0">
        <widget class="QGroupBox" name="VTAVisWig">
         <property name="font">
          <font>
@@ -4631,275 +4849,50 @@
         </layout>
        </widget>
       </item>
-      <item row="1" column="0" alignment="Qt::AlignHCenter">
-       <widget class="QGroupBox" name="plannedLeadVisWig">
-        <property name="title">
-         <string>All Models</string>
+     </layout>
+    </widget>
+   </item>
+   <item row="2" column="0" alignment="Qt::AlignHCenter">
+    <widget class="QGroupBox" name="sortSceneDataGB">
+     <property name="enabled">
+      <bool>false</bool>
+     </property>
+     <property name="font">
+      <font>
+       <family>Arial</family>
+       <pointsize>11</pointsize>
+      </font>
+     </property>
+     <property name="title">
+      <string>Sort Scene Data</string>
+     </property>
+     <layout class="QGridLayout" name="gridLayout_24">
+      <property name="topMargin">
+       <number>20</number>
+      </property>
+      <item row="0" column="0">
+       <widget class="QPushButton" name="sortSceneDataButton">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
         </property>
-        <layout class="QGridLayout" name="gridLayout_3">
-         <property name="horizontalSpacing">
-          <number>6</number>
-         </property>
-         <property name="verticalSpacing">
-          <number>0</number>
-         </property>
-         <item row="2" column="3" rowspan="2">
-          <widget class="QDoubleSpinBox" name="allPatientModelsOpacity">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="maximum">
-            <double>1.000000000000000</double>
-           </property>
-           <property name="singleStep">
-            <double>0.100000000000000</double>
-           </property>
-           <property name="value">
-            <double>1.000000000000000</double>
-           </property>
-          </widget>
-         </item>
-         <item row="2" column="2">
-          <widget class="QPushButton" name="allPatientModels2DOn">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="minimumSize">
-            <size>
-             <width>50</width>
-             <height>0</height>
-            </size>
-           </property>
-           <property name="text">
-            <string>On</string>
-           </property>
-           <attribute name="buttonGroup">
-            <string notr="true">allModelsButtonGroup</string>
-           </attribute>
-          </widget>
-         </item>
-         <item row="3" column="2">
-          <widget class="QPushButton" name="allPatientModels2DOff">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="minimumSize">
-            <size>
-             <width>50</width>
-             <height>0</height>
-            </size>
-           </property>
-           <property name="text">
-            <string>Off</string>
-           </property>
-           <attribute name="buttonGroup">
-            <string notr="true">allModelsButtonGroup</string>
-           </attribute>
-          </widget>
-         </item>
-         <item row="2" column="1">
-          <widget class="QPushButton" name="allPatientModels3DOn">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="minimumSize">
-            <size>
-             <width>50</width>
-             <height>0</height>
-            </size>
-           </property>
-           <property name="text">
-            <string>On</string>
-           </property>
-           <attribute name="buttonGroup">
-            <string notr="true">allModelsButtonGroup</string>
-           </attribute>
-          </widget>
-         </item>
-         <item row="3" column="1">
-          <widget class="QPushButton" name="allPatientModels3DOff">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="minimumSize">
-            <size>
-             <width>50</width>
-             <height>0</height>
-            </size>
-           </property>
-           <property name="text">
-            <string>Off</string>
-           </property>
-           <attribute name="buttonGroup">
-            <string notr="true">allModelsButtonGroup</string>
-           </attribute>
-          </widget>
-         </item>
-         <item row="2" column="0">
-          <widget class="QLabel" name="label_41">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="minimumSize">
-            <size>
-             <width>110</width>
-             <height>0</height>
-            </size>
-           </property>
-           <property name="font">
-            <font>
-             <family>Arial</family>
-             <pointsize>12</pointsize>
-             <weight>75</weight>
-             <bold>true</bold>
-            </font>
-           </property>
-           <property name="text">
-            <string/>
-           </property>
-           <property name="indent">
-            <number>10</number>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="0" colspan="4">
-          <widget class="QWidget" name="widget_19" native="true">
-           <layout class="QGridLayout" name="gridLayout_54">
-            <property name="topMargin">
-             <number>0</number>
-            </property>
-            <property name="bottomMargin">
-             <number>0</number>
-            </property>
-            <property name="verticalSpacing">
-             <number>0</number>
-            </property>
-            <item row="0" column="3">
-             <widget class="QLabel" name="label_83">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="minimumSize">
-               <size>
-                <width>80</width>
-                <height>0</height>
-               </size>
-              </property>
-              <property name="text">
-               <string>Opacity</string>
-              </property>
-              <property name="alignment">
-               <set>Qt::AlignBottom|Qt::AlignHCenter</set>
-              </property>
-             </widget>
-            </item>
-            <item row="0" column="2">
-             <widget class="QLabel" name="label_46">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="minimumSize">
-               <size>
-                <width>80</width>
-                <height>0</height>
-               </size>
-              </property>
-              <property name="text">
-               <string>2D</string>
-              </property>
-              <property name="alignment">
-               <set>Qt::AlignBottom|Qt::AlignHCenter</set>
-              </property>
-             </widget>
-            </item>
-            <item row="0" column="1">
-             <widget class="QLabel" name="label_45">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="minimumSize">
-               <size>
-                <width>80</width>
-                <height>0</height>
-               </size>
-              </property>
-              <property name="text">
-               <string>3D</string>
-              </property>
-              <property name="alignment">
-               <set>Qt::AlignBottom|Qt::AlignHCenter</set>
-              </property>
-             </widget>
-            </item>
-            <item row="0" column="0">
-             <spacer name="horizontalSpacer_25">
-              <property name="orientation">
-               <enum>Qt::Horizontal</enum>
-              </property>
-              <property name="sizeType">
-               <enum>QSizePolicy::Fixed</enum>
-              </property>
-              <property name="sizeHint" stdset="0">
-               <size>
-                <width>105</width>
-                <height>20</height>
-               </size>
-              </property>
-             </spacer>
-            </item>
-           </layout>
-          </widget>
-         </item>
-         <item row="3" column="0">
-          <spacer name="horizontalSpacer_26">
-           <property name="orientation">
-            <enum>Qt::Horizontal</enum>
-           </property>
-           <property name="sizeType">
-            <enum>QSizePolicy::Fixed</enum>
-           </property>
-           <property name="sizeHint" stdset="0">
-            <size>
-             <width>105</width>
-             <height>0</height>
-            </size>
-           </property>
-          </spacer>
-         </item>
-        </layout>
+        <property name="minimumSize">
+         <size>
+          <width>70</width>
+          <height>0</height>
+         </size>
+        </property>
+        <property name="text">
+         <string>Sort</string>
+        </property>
        </widget>
       </item>
      </layout>
     </widget>
    </item>
-   <item row="2" column="0" colspan="2" alignment="Qt::AlignHCenter">
+   <item row="4" column="0" alignment="Qt::AlignHCenter">
     <widget class="QGroupBox" name="planNameGB">
      <property name="font">
       <font>
@@ -4927,7 +4920,7 @@
      </layout>
     </widget>
    </item>
-   <item row="0" column="0" colspan="2" alignment="Qt::AlignHCenter">
+   <item row="1" column="0" alignment="Qt::AlignHCenter">
     <widget class="QGroupBox" name="groupBox">
      <property name="font">
       <font>
@@ -5021,6 +5014,22 @@
      </layout>
     </widget>
    </item>
+   <item row="8" column="0">
+    <spacer name="verticalSpacer_3">
+     <property name="orientation">
+      <enum>Qt::Vertical</enum>
+     </property>
+     <property name="sizeType">
+      <enum>QSizePolicy::Fixed</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>20</width>
+       <height>20</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
   </layout>
  </widget>
  <customwidgets>
@@ -5050,17 +5059,17 @@
  <resources/>
  <connections/>
  <buttongroups>
-  <buttongroup name="allModelsButtonGroup"/>
-  <buttongroup name="templateViewButtonGroup"/>
   <buttongroup name="patientModelsViewButtonGroup">
    <property name="exclusive">
     <bool>false</bool>
    </property>
   </buttongroup>
+  <buttongroup name="allModelsButtonGroup"/>
   <buttongroup name="colorPickerButtonGroup">
    <property name="exclusive">
     <bool>false</bool>
    </property>
   </buttongroup>
+  <buttongroup name="templateViewButtonGroup"/>
  </buttongroups>
 </ui>

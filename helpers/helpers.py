@@ -3562,6 +3562,7 @@ def createModelBox(model_name, modelNameDict, modelWig_dict):
 		modelLabel = qt.QLabel(modelNameDict[model_name]['sub'])
 		modelLabel.setFont(fontSettings)
 		modelLabel.setAlignment(qt.Qt.AlignLeft)
+		modelLabel.setTextInteractionFlags(qt.Qt.TextSelectableByMouse)
 
 	fontSettings = qt.QFont("font-size: 10pt;font-family: Arial")
 	fontSettings.setBold(False)
@@ -3619,6 +3620,8 @@ def createModelBox(model_name, modelNameDict, modelWig_dict):
 	modelLabel = qt.QLabel(modelNameDict[model_name]['sub']+'  ')
 	modelLabel.setFont(qt.QFont("font-size: 10pt;font-family: Arial"))
 	modelLabel.setAlignment(qt.Qt.AlignVCenter | qt.Qt.AlignRight)
+	modelLabel.setTextInteractionFlags(qt.Qt.TextSelectableByMouse)
+	modelLabel.setCursor(qt.Qt.IBeamCursor)
 	modelLabel.setFixedWidth(180)
 	modelGridLayout.addWidget(modelLabel,0,0,2,1)
 		

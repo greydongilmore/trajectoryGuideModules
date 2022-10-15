@@ -127,6 +127,8 @@ class dataViewWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 		
 		fontSettings = qt.QFont(groupboxStyleTitle)
 		fontSettings.setBold(False)
+		self.ui.planModelsGB.setFont(fontSettings)
+		self.ui.planModelsGB.setStyleSheet(ctkCollapsibleGroupBoxStyle + f"color: {self.text_color}" + '}' + ctkCollapsibleGroupBoxTitle + f"color: {self.text_color}" + '}')
 		self.ui.templateModelsVisGB.setFont(fontSettings)
 		self.ui.templateModelsVisGB.setStyleSheet(ctkCollapsibleGroupBoxStyle + f"color: {self.text_color}" + '}' + ctkCollapsibleGroupBoxTitle + f"color: {self.text_color}" + '}')
 		self.ui.templateModelsVisGB.collapsed = 1

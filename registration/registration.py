@@ -1578,8 +1578,6 @@ class registrationLogic(ScriptedLoadableModuleLogic):
 					"-v"
 				])
 
-				
-
 			elif self.regAlgo['regAlgo'] == 'antsRegistration':
 
 				rigidMetric = self.regAlgo['parameters']['metric']
@@ -1710,8 +1708,7 @@ class registrationLogic(ScriptedLoadableModuleLogic):
 			cnt += 1
 			#ep=self.startReg(reg_cmd, logText, self.regAlgo)
 			ep=self.run_command(reg_cmd)
-			#self.logProcessOutput(ep)
-			
+						
 			if 'acq-' in ivol[0].GetName().lower():
 				acq_str=[x for x in ivol[0].GetName().split('_') if 'acq' in x][0]
 				if 'frame' in acq_str.lower():
