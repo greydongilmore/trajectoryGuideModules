@@ -2809,7 +2809,17 @@ def plotLead(entry,target,origin,model_parameters):
 	bottomTop = np.empty([0, 6])
 	contactFile = []
 	midContactList=[]
+	contact_spacing_cnt=0
 	for iContact in range(0, e_specs['num_groups']):
+		if isinstance(e_specs['contact_spacing'],list):
+			if contact_spacing_cnt == e_specs['num_groups']-1:
+				contact_spacing = e_specs['contact_spacing'][-1]
+			else:
+				contact_spacing = e_specs['contact_spacing'][contact_spacing_cnt]
+				contact_spacing_cnt+=1
+		else:
+			contact_spacing = e_specs['contact_spacing']
+
 		bottomTop = np.append(bottomTop, (np.hstack((
 			np.array([[target[0] + NormVec[0] * start], 
 				[target[1] + NormVec[1] * start], 
@@ -2972,7 +2982,7 @@ def plotLead(entry,target,origin,model_parameters):
 				vtkModelBuilder.add_to_scene()
 		
 		start += e_specs['contact_size']
-		start += e_specs['contact_spacing']
+		start += contact_spacing
 
 	if model_parameters['data_dir'] is not None:
 		csvfile = os.path.join(model_parameters['data_dir'], 'summaries', 'contact_coordinates.csv')

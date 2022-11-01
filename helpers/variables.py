@@ -101,7 +101,7 @@ RD10RSP03 = {
 		'lead_shift':1.5,
 		'lead_tail': 15,
 		'contact_size': 2.29,
-		'contact_spacing': 0.71,
+		'contact_spacing': [0.71,0.71,0.71,0.71,0.71,0.71,0.71,0.71,0.71],
 		'diameter': 0.86,
 		'electrode_1': [1,2,3,4,5,6,7,8,9,10],
 		'electrode_2': [1,2,3,4,5,6,7,8,9,10],
@@ -118,7 +118,7 @@ RD10RSP04 = {
 		'lead_shift':1.5,
 		'lead_tail': 15,
 		'contact_size': 2.29,
-		'contact_spacing': 1.71,
+		'contact_spacing': [1.71,1.71,1.71,1.71,1.71,1.71,1.71,1.71,1.71],
 		'diameter': 0.86,
 		'electrode_1': [1,2,3,4,5,6,7,8,9,10],
 		'electrode_2': [1,2,3,4,5,6,7,8,9,10],
@@ -135,7 +135,7 @@ RD10RSP05 = {
 		'lead_shift':1.5,
 		'lead_tail': 15,
 		'contact_size': 2.29,
-		'contact_spacing': 2.71,
+		'contact_spacing': [2.71,2.71,2.71,2.71,2.71,2.71,2.71,2.71,2.71],
 		'diameter': 0.86,
 		'electrode_1': [1,2,3,4,5,6,7,8,9,10],
 		'electrode_2': [1,2,3,4,5,6,7,8,9,10],
@@ -152,7 +152,7 @@ RD10RSP06 = {
 		'lead_shift':1.5,
 		'lead_tail': 15,
 		'contact_size': 2.29,
-		'contact_spacing': 3.71,
+		'contact_spacing':[3.71,3.71,3.71,3.71,3.71,3.71,3.71,3.71,3.71],
 		'diameter': 0.86,
 		'electrode_1': [1,2,3,4,5,6,7,8,9,10],
 		'electrode_2': [1,2,3,4,5,6,7,8,9,10],
@@ -169,7 +169,7 @@ RD10RSP07 = {
 		'lead_shift':1.5,
 		'lead_tail': 15,
 		'contact_size': 2.29,
-		'contact_spacing': 4.71,
+		'contact_spacing': [4.71,4.71,4.71,4.71,4.71,4.71,4.71,4.71,4.71],
 		'diameter': 0.86,
 		'electrode_1': [1,2,3,4,5,6,7,8,9,10],
 		'electrode_2': [1,2,3,4,5,6,7,8,9,10],
@@ -186,7 +186,7 @@ MM16DSP05 = {
 		'lead_shift':1.5,
 		'lead_tail': 15,
 		'contact_size': 2.29,
-		'contact_spacing': 2.71,
+		'contact_spacing': [2.71,2.71,2.71,2.71,2.71,2.71,2.71,2.71,2.71],
 		'diameter': 1.3,
 		'electrode_1': [1,2,3,4,5,6,7,8],
 		'electrode_2': [1,2,3,4,5,6,7,8],
@@ -195,6 +195,23 @@ MM16DSP05 = {
 	 }
 	 
 electrodeModels['MM16D-SP05X'] = MM16DSP05
+
+BF09RSP51X = {
+		'num_groups': 9,
+		'num_contacts': 9,
+		'encapsultation': 0,
+		'lead_shift':1.5,
+		'lead_tail': 15,
+		'contact_size': 1.6,
+		'contact_spacing': [1.4,2.71,2.71,2.71,2.71,2.71,2.71,2.71],
+		'diameter': 1.3,
+		'electrode_1': [1,2,3,4,5,6,7,8],
+		'electrode_2': [1,2,3,4,5,6,7,8],
+		'contact_label':['','','','','','','', ''],
+		'filename': 'bf09rsp51x'
+	 }
+	 
+electrodeModels['BF09R-SP51X'] = BF09RSP51X
 
 microelectrodeModels = {
 		'probes':{
