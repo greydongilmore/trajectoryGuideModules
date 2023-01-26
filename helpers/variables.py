@@ -56,9 +56,44 @@ medtronic_3389 = {
 		'electrode_1': [0,1,2,3],
 		'electrode_2': [8,9,10,11],
 		'contact_label':['','','',''],
+		'lead_type': 'linear',
 		'filename': '3389'
 	 }
 electrodeModels['Medtronic 3389'] = medtronic_3389
+
+medtronic_33005 = {
+		'num_groups': 4,
+		'num_contacts': 8,
+		'encapsultation': 1.0,
+		'lead_shift': 1.0,
+		'lead_tail': 15,
+		'contact_size': 1.5,
+		'contact_spacing': 0.5,
+		'diameter': 1.36,
+		'electrode_1': [0,1,2,3,4,5,6,7],
+		'electrode_2': [8,9,10,11,12,13,14,15],
+		'contact_label':['','','',''],
+		'lead_type': 'directional',
+		'filename': '33005'
+	 }
+electrodeModels['Medtronic 33005'] = medtronic_33005
+
+medtronic_33015 = {
+		'num_groups': 4,
+		'num_contacts': 8,
+		'encapsultation': 1.0,
+		'lead_shift':1.0,
+		'lead_tail': 15,
+		'contact_size': 1.5,
+		'contact_spacing': 1.5,
+		'diameter': 1.36,
+		'electrode_1': [0,1,2,3,4,5,6,7],
+		'electrode_2': [8,9,10,11,12,13,14,15],
+		'contact_label':['','','',''],
+		'lead_type': 'directional',
+		'filename': '33015'
+	 }
+electrodeModels['Medtronic 33015'] = medtronic_33015
 
 bsci_directional = {
 		'num_groups': 4,
@@ -72,6 +107,7 @@ bsci_directional = {
 		'electrode_1': [1,2,3,4,5,6,7,8],
 		'electrode_2': [9,10,11,12,13,14,15,16],
 		'contact_label':['','seg ','seg ','seg ','seg ','seg ','seg ', ''],
+		'lead_type': 'directional',
 		'filename': 'directional'
 	 }
 electrodeModels['B.Sci. directional'] = bsci_directional
@@ -88,6 +124,7 @@ bsci_nondirectional = {
 		'electrode_1': [1,2,3,4,5,6,7,8],
 		'electrode_2': [9,10,11,12,13,14,15,16],
 		'contact_label':['','','','','','','', ''],
+		'lead_type': 'linear',
 		'filename': 'nondirectional'
 	 }
 
@@ -97,7 +134,7 @@ electrodeModels['B.Sci. non-directional'] = bsci_nondirectional
 RD10RSP03 = {
 		'num_groups': 10,
 		'num_contacts': 10,
-		'encapsultation': 0,
+		'encapsultation': 1.0,
 		'lead_shift':1.5,
 		'lead_tail': 15,
 		'contact_size': 2.29,
@@ -106,6 +143,7 @@ RD10RSP03 = {
 		'electrode_1': [1,2,3,4,5,6,7,8,9,10],
 		'electrode_2': [1,2,3,4,5,6,7,8,9,10],
 		'contact_label':['','','','','','','', ''],
+		'lead_type': 'linear',
 		'filename': 'rd10rsp03'
 	 }
 	 
@@ -114,7 +152,7 @@ electrodeModels['RD10R-SP03X'] = RD10RSP03
 RD10RSP04 = {
 		'num_groups': 10,
 		'num_contacts': 10,
-		'encapsultation': 0,
+		'encapsultation': 1.0,
 		'lead_shift':1.5,
 		'lead_tail': 15,
 		'contact_size': 2.29,
@@ -123,6 +161,7 @@ RD10RSP04 = {
 		'electrode_1': [1,2,3,4,5,6,7,8,9,10],
 		'electrode_2': [1,2,3,4,5,6,7,8,9,10],
 		'contact_label':['','','','','','','', ''],
+		'lead_type': 'linear',
 		'filename': 'rd10rsp04'
 	 }
 	 
@@ -131,7 +170,7 @@ electrodeModels['RD10R-SP04X'] = RD10RSP04
 RD10RSP05 = {
 		'num_groups': 10,
 		'num_contacts': 10,
-		'encapsultation': 0,
+		'encapsultation': 1.0,
 		'lead_shift':1.5,
 		'lead_tail': 15,
 		'contact_size': 2.29,
@@ -140,6 +179,7 @@ RD10RSP05 = {
 		'electrode_1': [1,2,3,4,5,6,7,8,9,10],
 		'electrode_2': [1,2,3,4,5,6,7,8,9,10],
 		'contact_label':['','','','','','','', ''],
+		'lead_type': 'linear',
 		'filename': 'rd10rsp05'
 	 }
 	 
@@ -148,7 +188,7 @@ electrodeModels['RD10R-SP05X'] = RD10RSP05
 RD10RSP06 = {
 		'num_groups': 10,
 		'num_contacts': 10,
-		'encapsultation': 0,
+		'encapsultation': 1.0,
 		'lead_shift':1.5,
 		'lead_tail': 15,
 		'contact_size': 2.29,
@@ -157,6 +197,7 @@ RD10RSP06 = {
 		'electrode_1': [1,2,3,4,5,6,7,8,9,10],
 		'electrode_2': [1,2,3,4,5,6,7,8,9,10],
 		'contact_label':['','','','','','','', ''],
+		'lead_type': 'linear',
 		'filename': 'rd10rsp06'
 	 }
 	 
@@ -165,7 +206,7 @@ electrodeModels['RD10R-SP06X'] = RD10RSP06
 RD10RSP07 = {
 		'num_groups': 10,
 		'num_contacts': 10,
-		'encapsultation': 0,
+		'encapsultation': 1.0,
 		'lead_shift':1.5,
 		'lead_tail': 15,
 		'contact_size': 2.29,
@@ -174,6 +215,7 @@ RD10RSP07 = {
 		'electrode_1': [1,2,3,4,5,6,7,8,9,10],
 		'electrode_2': [1,2,3,4,5,6,7,8,9,10],
 		'contact_label':['','','','','','','', ''],
+		'lead_type': 'linear',
 		'filename': 'rd10rsp07'
 	 }
 	 
@@ -182,7 +224,7 @@ electrodeModels['RD10R-SP07X'] = RD10RSP07
 MM16DSP05 = {
 		'num_groups': 8,
 		'num_contacts': 8,
-		'encapsultation': 0,
+		'encapsultation': 1.5,
 		'lead_shift':1.5,
 		'lead_tail': 15,
 		'contact_size': 2.29,
@@ -191,6 +233,7 @@ MM16DSP05 = {
 		'electrode_1': [1,2,3,4,5,6,7,8],
 		'electrode_2': [1,2,3,4,5,6,7,8],
 		'contact_label':['','','','','','','', ''],
+		'lead_type': 'linear',
 		'filename': 'mm16dsp05'
 	 }
 	 
@@ -199,19 +242,111 @@ electrodeModels['MM16D-SP05X'] = MM16DSP05
 BF09RSP51X = {
 		'num_groups': 9,
 		'num_contacts': 9,
-		'encapsultation': 0,
+		'encapsultation': 1.5,
 		'lead_shift':1.5,
 		'lead_tail': 15,
 		'contact_size': 1.6,
-		'contact_spacing': [1.4,2.71,2.71,2.71,2.71,2.71,2.71,2.71],
+		'contact_spacing': [1.4, 3.4, 3.4, 3.4, 3.4, 3.4, 3.4, 3.4],
 		'diameter': 1.3,
 		'electrode_1': [1,2,3,4,5,6,7,8],
 		'electrode_2': [1,2,3,4,5,6,7,8],
 		'contact_label':['','','','','','','', ''],
+		'lead_type': 'linear',
 		'filename': 'bf09rsp51x'
 	 }
 	 
 electrodeModels['BF09R-SP51X'] = BF09RSP51X
+
+D0805AM = {
+		'num_groups': 5,
+		'num_contacts': 5,
+		'encapsultation': 0,
+		'lead_shift':0,
+		'lead_tail': 15,
+		'contact_size': 2.0,
+		'contact_spacing': [1.5, 1.5, 1.5, 1.5],
+		'diameter': 0.8,
+		'electrode_1': [1,2,3,4,5],
+		'electrode_2': [1,2,3,4,5],
+		'contact_label':['','','','',''],
+		'lead_type': 'linear',
+		'filename': 'd0805am'
+	 }
+
+electrodeModels['D08-05AM'] = D0805AM
+
+D0808AM = {
+		'num_groups': 8,
+		'num_contacts': 8,
+		'encapsultation': 0,
+		'lead_shift':0,
+		'lead_tail': 15,
+		'contact_size': 2.0,
+		'contact_spacing': [1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5],
+		'diameter': 0.8,
+		'electrode_1': [1,2,3,4,5,6,7,8],
+		'electrode_2': [1,2,3,4,5,6,7,8],
+		'contact_label':['','','','','','','',''],
+		'lead_type': 'linear',
+		'filename': 'd0808am'
+	 }
+
+electrodeModels['D08-08AM'] = D0808AM
+
+D0810AM = {
+		'num_groups': 10,
+		'num_contacts': 10,
+		'encapsultation': 0,
+		'lead_shift':0,
+		'lead_tail': 15,
+		'contact_size': 2.0,
+		'contact_spacing': [1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5],
+		'diameter': 0.8,
+		'electrode_1': [1,2,3,4,5,6,7,8,9,10],
+		'electrode_2': [1,2,3,4,5,6,7,8,9,10],
+		'contact_label':['','','','','','','','','',''],
+		'lead_type': 'linear',
+		'filename': 'd0810am'
+	 }
+
+electrodeModels['D08-10AM'] = D0810AM
+
+D0812AM = {
+		'num_groups': 12,
+		'num_contacts': 12,
+		'encapsultation': 0,
+		'lead_shift':0,
+		'lead_tail': 15,
+		'contact_size': 2.0,
+		'contact_spacing': [1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5],
+		'diameter': 0.8,
+		'electrode_1': [1,2,3,4,5,6,7,8,9,10,11,12],
+		'electrode_2': [1,2,3,4,5,6,7,8,9,10,11,12],
+		'contact_label':['','','','','','','','','','','',''],
+		'lead_type': 'linear',
+		'filename': 'd0812am'
+	 }
+
+electrodeModels['D08-12AM'] = D0812AM
+
+D0815AM = {
+		'num_groups': 15,
+		'num_contacts': 15,
+		'encapsultation': 0,
+		'lead_shift':0,
+		'lead_tail': 15,
+		'contact_size': 2.0,
+		'contact_spacing': [1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5],
+		'diameter': 0.8,
+		'electrode_1': [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15],
+		'electrode_2': [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15],
+		'contact_label':['','','','','','','','','','','','','','',''],
+		'lead_type': 'linear',
+		'filename': 'd0815am'
+	 }
+
+electrodeModels['D08-15AM'] = D0815AM
+
 
 microelectrodeModels = {
 		'probes':{

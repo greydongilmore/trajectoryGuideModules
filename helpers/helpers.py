@@ -2802,7 +2802,7 @@ def plotLead(entry,target,origin,model_parameters):
 		vtkModelBuilder.add_to_scene()
 
 	#### this will be updated within the loop so need to assign to variable.
-	start = e_specs['encapsultation']
+	start = e_specs['encapsultation']-e_specs['lead_shift']
 	contact_diameter = e_specs['diameter']+.05
 
 	#### build each contact in the electrode
@@ -2846,10 +2846,10 @@ def plotLead(entry,target,origin,model_parameters):
 
 		midContact = bottomTop[iContact, :3] + (bottomTop[iContact, 3:] - bottomTop[iContact, :3]) / 2
 		midContactList.append(midContact)
-
+		print(e_specs['lead_type'].lower())
 		contactFile.append([model_parameters['plan_name'], model_parameters['type'], str(iContact + 1), midContact[0] * -1, midContact[1] * -1, midContact[2]])
-		if any(x.lower() in model_parameters['elecUsed'].lower() for x in ('bsci_directional','b.sci. directional')):
-			if iContact == 0:
+		if e_specs['lead_type'].lower() == 'directional':
+			if iContact == 0 and e_specs['encapsultation'] == 0:
 				vtkModelBuilder = vtkModelBuilderClass()
 				vtkModelBuilder.coords = bottomTop[iContact, :]
 				vtkModelBuilder.tube_radius = contact_diameter

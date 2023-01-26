@@ -404,7 +404,7 @@ class registrationWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 				self.ui.antsParametersGB.collapsed = 1
 				self.ui.antsQuickParametersGB.collapsed = 1
 				self.ui.greedyParametersGB.collapsed = 1
-		elif 'ants' in button.name:
+		elif 'antsAlgo' in button.name:
 			if 'Template' in button.name:
 				self.ui.niftyRegParametersTemplateGB.collapsed = 1
 				self.ui.fslParametersTemplateGB.collapsed = 1
@@ -919,6 +919,8 @@ class registrationWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 					'iterations': self.ui.greedyIterations.text if not templateParams else self.ui.greedyIterationsTemplate.text,
 					'dof':  DOF[self.ui.greedyDOFCB.currentText] if not templateParams else None,
 					'metric': metric_params[self.ui.greedyMetricCB.currentText] if not templateParams else metric_params[self.ui.greedyMetricTemplateCB.currentText],
+					'gradient_sigma':  self.ui.greedyGradientSigmaTemplate.text if templateParams else None,
+					'warp_sigma':  self.ui.greedyWarpSigmaTemplate.text if templateParams else None,
 				}
 			}
 		elif regAlgorithm.startswith('antsAlgo'):
@@ -1934,12 +1936,12 @@ class registrationLogic(ScriptedLoadableModuleLogic):
 				synGradientStep = '0.1,3,0'
 				synMetric = 'MI'
 				synMetricParams = '1,32'
-				#synConvergence = "[ 200x50x10x0,1e-6,10 ]"
-				synConvergence = "[ 100x100x70x50,1e-6,10 ]"
-				#synShrinkFactors = "4x4x2x1"
-				synShrinkFactors = '12x6x4x2x1'
-				#synSmoothingSigmas = "2x2x1x1vox"
-				synSmoothingSigmas = '6x3x2x1x0vox'
+				synConvergence = "[ 200x50x10x0,1e-6,10 ]"
+				#synConvergence = "[ 100x100x70x50,1e-6,10 ]"
+				synShrinkFactors = "4x4x2x1"
+				#synShrinkFactors = '12x6x4x2x1'
+				synSmoothingSigmas = "2x2x1x1vox"
+				#synSmoothingSigmas = '6x3x2x1x0vox'
 
 				
 				tx='Rigid'
@@ -2049,7 +2051,8 @@ class registrationLogic(ScriptedLoadableModuleLogic):
 					f'-it "{resultTransformPath}_coregmatrix.txt"',
 					f'-o "{resultTransformPath}_coreg1Warp.nii.gz"',
 					f'-oinv "{resultTransformPath}_coreg1InverseWarp.nii.gz"',
-					f"-n {self.regAlgo['regAlgoTemplateParams']['parameters']['iterations']}"
+					f"-n {self.regAlgo['regAlgoTemplateParams']['parameters']['iterations']}",
+					f"-s {self.regAlgo['regAlgoTemplateParams']['parameters']['gradient_sigma']} {self.regAlgo['regAlgoTemplateParams']['parameters']['warp_sigma']}",
 				])
 
 				warp_cmd = ' '.join([
