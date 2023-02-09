@@ -347,6 +347,23 @@ D0815AM = {
 
 electrodeModels['D08-15AM'] = D0815AM
 
+D0818AM = {
+		'num_groups': 18,
+		'num_contacts': 18,
+		'encapsultation': 0,
+		'lead_shift':0,
+		'lead_tail': 18,
+		'contact_size': 2.0,
+		'contact_spacing': [1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5],
+		'diameter': 0.8,
+		'electrode_1': [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18],
+		'electrode_2': [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18],
+		'contact_label':['','','','','','','','','','','','','','','','','',''],
+		'lead_type': 'linear',
+		'filename': 'd0818am'
+	 }
+
+electrodeModels['D08-18AM'] = D0818AM
 
 microelectrodeModels = {
 		'probes':{
