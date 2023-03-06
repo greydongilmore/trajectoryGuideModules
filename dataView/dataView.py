@@ -20,6 +20,7 @@ createModelBox, sorted_nicely, addCustomLayouts, sortSceneData
 from helpers.variables import coordSys, slicerLayout, groupboxStyle, ctkCollapsibleGroupBoxStyle,\
 ctkCollapsibleGroupBoxTitle, groupboxStyleTitle, fontSettingTitle, defaultTemplateSpace, module_dictionary
 
+
 #
 # dataView
 #
@@ -95,8 +96,10 @@ class dataViewWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 		default_template_path = os.path.join(self._parameterNode.GetParameter('trajectoryGuidePath'), 'resources', 'ext_libs', 'space')
 
 		templateSpaces = [x.split('tpl-')[(-1)] for x in os.listdir(default_template_path) if os.path.isdir(os.path.join(default_template_path, x))]
+		self.ui.templateSpaceCB.blockSignals(1)
 		self.ui.templateSpaceCB.addItems(templateSpaces)
-		self.ui.templateSpaceCB.setCurrentIndex(self.ui.templateSpaceCB.findText(defaultTemplateSpace))
+		#self.ui.templateSpaceCB.setCurrentIndex(self.ui.templateSpaceCB.findText(defaultTemplateSpace))
+		self.ui.templateSpaceCB.blockSignals(0)
 		
 		self.ui.plannedLeadVisColor.setColor(qt.QColor(rgbToHex(self.modelColors['plannedLeadColor'])))
 		self.ui.intraLeadVisColor.setColor(qt.QColor(rgbToHex(self.modelColors['intraLeadColor'])))
@@ -168,7 +171,8 @@ class dataViewWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 		self.ui.allPatientModelsOpacity.valueChanged.connect(lambda : self.onAllModelOpacityChange(self.ui.allPatientModelsOpacity))
 		self.ui.allTemplateModelsOpacity.valueChanged.connect(lambda : self.onAllModelOpacityChange(self.ui.allTemplateModelsOpacity))
 
-		self.ui.templateSpaceCB.connect('currentIndexChanged(int)', self.setupModelWigets)
+		self.ui.templateSpaceCB.connect('currentIndexChanged(int)', self.onSelectTemplate)
+		self.ui.templateAtlasCB.connect('currentIndexChanged(int)', self.setupModelWigets)
 		self.ui.allModelsButtonGroup.connect('buttonClicked(QAbstractButton*)', self.onAllModelsGroupButton)
 		self.ui.templateViewButtonGroup.connect('buttonClicked(QAbstractButton*)', self.onTemplateViewGroupButton)
 		
@@ -179,8 +183,10 @@ class dataViewWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 			if os.path.exists(os.path.join(self._parameterNode.GetParameter('derivFolder'),'space')):
 
 				templateSpaces = [x.split('_to-')[-1].split('_xfm')[0].split('_')[0] for x in os.listdir(os.path.join(self._parameterNode.GetParameter('derivFolder'), 'space')) if any(x.endswith(y) for y in ('xfm.h5','xfm.nii.gz'))]
+				self.ui.templateSpaceCB.blockSignals(1)
 				self.ui.templateSpaceCB.clear()
 				self.ui.templateSpaceCB.addItems(list(set(templateSpaces)))
+				self.ui.templateSpaceCB.blockSignals(0)
 
 		self.logic.addCustomLayouts()
 
@@ -299,23 +305,37 @@ class dataViewWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 		if currentModule != moduleName:
 			slicer.util.moduleSelector().selectModule(moduleName)
 
+	def onSelectTemplate(self):
+
+		space = self.ui.templateSpaceCB.currentText
+		
+		if self.active and space != 'Select template':
+			self.ui.templateAtlasCB.clear()
+			atlas_path = os.path.join(self._parameterNode.GetParameter('trajectoryGuidePath'), 'resources', 'ext_libs', 'space', 'tpl-' + space, 'atlases')
+			templateAtlases = [x for x in os.listdir(atlas_path) if os.path.isdir(os.path.join(atlas_path, x))]
+			self.ui.templateAtlasCB.blockSignals(1)
+			self.ui.templateAtlasCB.addItems(templateAtlases)
+			self.ui.templateAtlasCB.blockSignals(0)
+
 	def setupModelWigets(self):
 
 		space = self.ui.templateSpaceCB.currentText
+		atlasActive = self.ui.templateAtlasCB.currentText
 
-		if self.active and space != 'Select template':
-		
-			self.templateModelNames = np.unique([x.split('_desc-')[(-1)].split('.vtk')[0] for x in os.listdir(os.path.join(self._parameterNode.GetParameter('trajectoryGuidePath'), 'resources', 'ext_libs', 'space', 'tpl-' + space, 'active_models')) if x.endswith('vtk')])
+		if self.active and space != 'Select template' and atlasActive != 'Select atlas':
 			
-			with open(os.path.join(self._parameterNode.GetParameter('trajectoryGuidePath'), 'resources', 'ext_libs', 'space', 'tpl-' + space, 'active_models', 'template_model_colors.json')) as (settings_file):
-				templateModelColors = json.load(settings_file)
-
+			
+			templateModelNames_temp = np.unique([x.split('_desc-')[(-1)].split('.vtk')[0] for x in os.listdir(os.path.join(self._parameterNode.GetParameter('trajectoryGuidePath'), 'resources', 'ext_libs', 'space', 'tpl-' + space, 'atlases', atlasActive)) if x.endswith('vtk')])
+			
 			with open(os.path.join(self._parameterNode.GetParameter('trajectoryGuidePath'), 'resources', 'ext_libs', 'space', 'template_model_dictionary.json')) as (name_file):
-				templateModelNameDict= json.load(name_file)
+				self.templateModelNameDict= json.load(name_file)
 
+			self.templateModelNames=[]
 			modelWig_dict={}
-			for modelName in self.templateModelNames:
-				modelWig_dict = createModelBox(modelName, templateModelNameDict, modelWig_dict)
+			for modelName in templateModelNames_temp:
+				modelWig_dict,model_found = createModelBox(modelName, self.templateModelNameDict, modelWig_dict)
+				if model_found:
+					self.templateModelNames.append(modelName)
 			
 			new_models = self.uiWidget.findChild(qt.QWidget,'new_models')
 			modelGridLayout = self.uiWidget.findChild(qt.QWidget,'new_models').layout()
@@ -355,8 +375,13 @@ class dataViewWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 					
 					opacitySliders_dict[iwig[0] + 'ModelOpacity']=iwig[1].findChild(qt.QDoubleSpinBox, f'{iwig[0]}ModelOpacity')
 
+					model_color='#c8c8eb'
+					for atlas in list(self.templateModelNameDict):
+						if iwig[0] in list(self.templateModelNameDict[atlas]):
+							model_color=self.templateModelNameDict[atlas][iwig[0]]['color']
+
 					colorPickers_dict[iwig[0] + 'ModelVisColor']=iwig[1].findChild(ctk.ctkColorPickerButton,f'{iwig[0]}ModelVisColor')
-					colorPickers_dict[iwig[0] + 'ModelVisColor'].setColor(qt.QColor(templateModelColors[iwig[0]]['color']))
+					colorPickers_dict[iwig[0] + 'ModelVisColor'].setColor(qt.QColor(model_color))
 
 					bntCnt +=5
 					if wigCnt < len(modelWig_dict[ititle]):
@@ -383,8 +408,9 @@ class dataViewWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
 		if 'TemplateModel' in button.name:
 			space=self.ui.templateSpaceCB.currentText
+			atlasActive=self.ui.templateAtlasCB.currentText
 
-			self.templateModelNames=np.unique([x.split('_desc-')[-1].split('.vtk')[0] for x in os.listdir(os.path.join(self._parameterNode.GetParameter('trajectoryGuidePath'), 'resources', 'ext_libs', 'space', 'tpl-' + space,  'active_models')) if x.endswith('vtk')])
+			self.templateModelNames=np.unique([x.split('_desc-')[-1].split('.vtk')[0] for x in os.listdir(os.path.join(self._parameterNode.GetParameter('trajectoryGuidePath'), 'resources', 'ext_libs', 'space', 'tpl-' + space,  'atlases', atlasActive)) if x.endswith('vtk')])
 
 			for modelName in self.templateModelNames:
 				for side in {'Left', 'Right'}:
@@ -473,11 +499,10 @@ class dataViewWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 		qt.QApplication.processEvents()
 
 		space = self.ui.templateSpaceCB.currentText
-		self.templateModelNames = np.unique([x.split('_desc-')[(-1)].split('.vtk')[0] for x in os.listdir(os.path.join(self._parameterNode.GetParameter('trajectoryGuidePath'), 'resources', 'ext_libs', 'space', 'tpl-' + space, 'active_models')) if x.endswith('vtk')])
+		atlasActive = self.ui.templateAtlasCB.currentText
+		self.templateModelNames = np.unique([x.split('_desc-')[(-1)].split('.vtk')[0] for x in os.listdir(os.path.join(self._parameterNode.GetParameter('trajectoryGuidePath'), 'resources', 'ext_libs', 'space', 'tpl-' + space, 'atlases', atlasActive)) if x.endswith('vtk')])
 		
 		if button.text == 'Yes':
-			with open(os.path.join(self._parameterNode.GetParameter('trajectoryGuidePath'), 'resources', 'ext_libs', 'space', 'tpl-' + space, 'active_models', 'template_model_colors.json')) as (settings_file):
-				templateModelColors = json.load(settings_file)
 			
 			templateTransformInverse=True
 
@@ -539,14 +564,21 @@ class dataViewWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 					node.SetAndObserveTransformNodeID(templateTransform.GetID())
 
 			for modelName in self.templateModelNames:
+				model_color='#c8c8eb'
+				model_vis=False
+				for atlas in list(self.templateModelNameDict):
+					if modelName in list(self.templateModelNameDict[atlas]):
+						model_color=self.templateModelNameDict[atlas][modelName]['color']
+						model_vis=self.templateModelNameDict[atlas][modelName]['visible']
+
 				for side in {'Right', 'Left'}:
 					model_name = f"tpl-{space}_*hemi-{side[0].lower()}_desc-{modelName}.vtk"
-					model_filename=glob.glob(os.path.join(self._parameterNode.GetParameter('trajectoryGuidePath'), 'resources', 'ext_libs', 'space', 'tpl-' + space, 'active_models', model_name))
+					model_filename=glob.glob(os.path.join(self._parameterNode.GetParameter('trajectoryGuidePath'), 'resources', 'ext_libs', 'space', 'tpl-' + space, 'atlases', atlasActive, model_name))
 					if model_filename:
 						vtkModelBuilder = vtkModelBuilderClass()
 						vtkModelBuilder.filename = model_filename[0]
-						vtkModelBuilder.model_color = templateModelColors[(f"{modelName}")]['color']
-						vtkModelBuilder.model_visibility = templateModelColors[(f"{modelName}")]['visible']
+						vtkModelBuilder.model_color = model_color
+						vtkModelBuilder.model_visibility = model_vis
 						model = vtkModelBuilder.add_to_scene(True)
 						model.GetDisplayNode().SetFrontfaceCulling(0)
 						model.GetDisplayNode().SetBackfaceCulling(0)
@@ -556,11 +588,11 @@ class dataViewWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 						model.AddDefaultStorageNode()
 						model.GetStorageNode().SetCoordinateSystem(coordSys)
 						model.GetDisplayNode().SetSliceIntersectionThickness(3)
-
+						print(model_filename)
 						if templateTransform:
 							model.SetAndObserveTransformNodeID(templateTransform.GetID())
 
-						if templateModelColors[(f"{modelName}")]['visible']:
+						if model_vis:
 							model.GetDisplayNode().Visibility3DOn()
 							model.GetDisplayNode().Visibility2DOn()
 							self.uiWidget.findChild(qt.QCheckBox, modelName + 'Model' + '3D' + 'Vis' + side).setChecked(True)
@@ -605,6 +637,9 @@ class dataViewWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 			if len(slicer.util.getNodes('*frame_rotation_reverse*')) > 0:
 				slicer.mrmlScene.RemoveNode(list(slicer.util.getNodes('*frame_rotation_reverse*').values())[0])
 
+			self.ui.templateSpaceCB.setCurrentIndex(-1)
+			self.ui.templateAtlasCB.setCurrentIndex(-1)
+
 			layoutManager = slicer.app.layoutManager()
 			self.dataViewVolume = layoutManager.sliceWidget('Red').sliceLogic().GetSliceCompositeNode().GetBackgroundVolumeID()
 			applicationLogic = slicer.app.applicationLogic()
@@ -620,9 +655,11 @@ class dataViewWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
 		if 'TemplateModels' in button.name:
 			space = self.ui.templateSpaceCB.currentText
+			atlasActive = self.ui.templateAtlasCB.currentText
+
 			planName = 'tpl-' + self.ui.templateSpaceCB.currentText
-			templateModelNames = np.unique([x.split('_desc-')[(-1)].split('.vtk')[0] for x in os.listdir(os.path.join(self._parameterNode.GetParameter('trajectoryGuidePath'), 'resources', 'ext_libs', 'space', 'tpl-' + space, 'active_models')) if x.endswith('vtk')])
-			for modelName in templateModelNames:
+			self.templateModelNames = np.unique([x.split('_desc-')[(-1)].split('.vtk')[0] for x in os.listdir(os.path.join(self._parameterNode.GetParameter('trajectoryGuidePath'), 'resources', 'ext_libs', 'space', 'tpl-' + space, 'atlases',atlasActive)) if x.endswith('vtk')])
+			for modelName in self.templateModelNames:
 				for side in {'Right', 'Left'}:
 					model_name = f"tpl-{space}_hemi-{side[0].lower()}_desc-{modelName}*"
 					self.uiWidget.findChild(qt.QDoubleSpinBox, modelName + 'ModelOpacity').setValue(button.value)
@@ -663,9 +700,10 @@ class dataViewWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 		planType = [x for x in ('planned', 'intra', 'actual', 'Model') if x in button.name][0]
 		if planType == 'Model':
 			space = self.ui.templateSpaceCB.currentText
+			atlasActive = self.ui.templateAtlasCB.currentText
 			planName = 'tpl-' + self.ui.templateSpaceCB.currentText
-			templateModelNames = np.unique([x.split('_desc-')[(-1)].split('.vtk')[0] for x in os.listdir(os.path.join(self._parameterNode.GetParameter('trajectoryGuidePath'), 'resources', 'ext_libs', 'space', 'tpl-' + space, 'active_models')) if x.endswith('vtk')])
-			descType = ['desc-' + x for x in templateModelNames if button.name.startswith(x)][0]
+			self.templateModelNames = np.unique([x.split('_desc-')[(-1)].split('.vtk')[0] for x in os.listdir(os.path.join(self._parameterNode.GetParameter('trajectoryGuidePath'), 'resources', 'ext_libs', 'space', 'tpl-' + space, 'atlases',atlasActive)) if x.endswith('vtk')])
+			descType = ['desc-' + x for x in self.templateModelNames if button.name.startswith(x)][0]
 			models = [x for x in slicer.util.getNodesByClass('vtkMRMLModelNode')]
 			for imodel in models:
 				if all([descType in imodel.GetName(), planName in imodel.GetName()]):
@@ -840,9 +878,11 @@ class dataViewWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 		:param button: QAbstractButton object
 		:type button: QAbstractButton
 		"""
-		print(button.name)
+		
 		space = self.ui.templateSpaceCB.currentText
-		self.templateModelNames = np.unique([x.split('_desc-')[(-1)].split('.vtk')[0] for x in os.listdir(os.path.join(self._parameterNode.GetParameter('trajectoryGuidePath'), 'resources', 'ext_libs', 'space', 'tpl-' + space, 'active_models')) if x.endswith('vtk')])
+		atlasActive= self.ui.templateAtlasCB.currentText
+
+		self.templateModelNames = np.unique([x.split('_desc-')[(-1)].split('.vtk')[0] for x in os.listdir(os.path.join(self._parameterNode.GetParameter('trajectoryGuidePath'), 'resources', 'ext_libs', 'space', 'tpl-' + space, 'atlases',atlasActive)) if x.endswith('vtk')])
 		viewType = [x for x in ('3D','2D','Color') if x in button.name][0]
 		objectType = [x for x in self.templateModelNames if button.name.startswith(x)][0]
 		

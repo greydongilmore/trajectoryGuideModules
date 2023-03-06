@@ -1,9 +1,8 @@
 
-import qt, ctk, slicer, vtk, numpy as np, pandas as pd,os, shutil, csv, json, sys, subprocess, platform, math, re, time
+import qt, ctk, slicer, vtk, numpy as np, os, shutil, csv, json, sys, subprocess, platform, math, re, time
 from .variables import electrodeModels, coordSys, slicerLayout, trajectoryGuideLayout, trajectoryGuideAxialLayout, slicerLayoutAxial,\
 microelectrodeModels
 from random import uniform
-from sklearn.decomposition import PCA
 
 cwd = os.path.dirname(os.path.realpath(__file__))
 sys.path.insert(1, os.path.dirname(cwd))
@@ -29,7 +28,7 @@ class warningBox(qt.QMessageBox):
 
 pip_upgrade=False
 try:
-	import pandas
+	import pandas as pd
 except:
 	if not pip_upgrade:
 		slicer.util.pip_install("pip --upgrade")
@@ -58,6 +57,7 @@ except:
 
 try:
 	import sklearn
+	from sklearn.decomposition import PCA
 except:
 	if not pip_upgrade:
 		slicer.util.pip_install("pip --upgrade")
@@ -1908,7 +1908,7 @@ def procrustes(X, Y, box_size, inputTransform, scaling=True, reflection='best'):
 	U,s,Vt = np.linalg.svd(A,full_matrices=False)
 	V = Vt.T
 	T = np.dot(V, U.T)
-	if reflection is not 'best':
+	if reflection != 'best':
 		# does the current solution use a reflection?
 		have_reflection = np.linalg.det(T) < 0
 		# if that's not what was specified, force another reflection
@@ -3563,92 +3563,100 @@ def sorted_nicely(l):
 
 def createModelBox(model_name, modelNameDict, modelWig_dict):
 	
-	if modelNameDict[model_name]['main'] not in list(modelWig_dict):
-		modelWig_dict[modelNameDict[model_name]['main']]=[]
-	
-	if modelNameDict[model_name]['sub'] !="":
-		fontSettings = qt.QFont("font-size: 11pt;font-family: Arial")
+	model_found=False
+	atlas_name=None
+	for atlas in list(modelNameDict):
+		if model_name in list(modelNameDict[atlas]):
+			model_found=True
+			atlas_name=atlas
+			if modelNameDict[atlas][model_name]['main'] not in list(modelWig_dict):
+				modelWig_dict[modelNameDict[atlas][model_name]['main']]=[]
+			
+			if modelNameDict[atlas][model_name]['sub'] !="":
+				fontSettings = qt.QFont("font-size: 11pt;font-family: Arial")
+				fontSettings.setBold(False)
+				modelLabel = qt.QLabel(modelNameDict[atlas][model_name]['sub'])
+				modelLabel.setFont(fontSettings)
+				modelLabel.setAlignment(qt.Qt.AlignLeft)
+				modelLabel.setTextInteractionFlags(qt.Qt.TextSelectableByMouse)
+			break
+
+	if model_found:
+		fontSettings = qt.QFont("font-size: 10pt;font-family: Arial")
 		fontSettings.setBold(False)
-		modelLabel = qt.QLabel(modelNameDict[model_name]['sub'])
-		modelLabel.setFont(fontSettings)
-		modelLabel.setAlignment(qt.Qt.AlignLeft)
+
+		left3DCB=qt.QCheckBox()
+		left3DCB.setText('Left')
+		left3DCB.setFont(fontSettings)
+		left3DCB.setObjectName(f'{model_name}Model3DVisLeft')
+		left3DCB.setChecked(False)
+		left3DCB.setAutoExclusive(False)
+		left3DCB.setFixedWidth(68)
+
+		left2DCB=qt.QCheckBox()
+		left2DCB.setText('Left')
+		left2DCB.setFont(fontSettings)
+		left2DCB.setObjectName(f'{model_name}Model2DVisLeft')
+		left2DCB.setChecked(False)
+		left2DCB.setAutoExclusive(False)
+		left2DCB.setFixedWidth(68)
+
+		right3DCB=qt.QCheckBox()
+		right3DCB.setText('Right')
+		right3DCB.setFont(fontSettings)
+		right3DCB.setObjectName(f'{model_name}Model3DVisRight')
+		right3DCB.setChecked(False)
+		right3DCB.setAutoExclusive(False)
+		right3DCB.setFixedWidth(68)
+
+		right2DCB=qt.QCheckBox()
+		right2DCB.setText('Right')
+		right2DCB.setFont(fontSettings)
+		right2DCB.setObjectName(f'{model_name}Model2DVisRight')
+		right2DCB.setChecked(False)
+		right2DCB.setAutoExclusive(False)
+		right2DCB.setFixedWidth(68)
+
+		modelColor = ctk.ctkColorPickerButton()
+		modelColor.setObjectName(f'{model_name}ModelVisColor')
+		modelColor.displayColorName = False
+		modelColor.setFixedWidth(38)
+
+		modelSB=qt.QDoubleSpinBox()
+		modelSB.setObjectName(f'{model_name}ModelOpacity')
+		modelSB.setFont(fontSettings)
+		modelSB.setMinimum(0)
+		modelSB.setMaximum(1.0)
+		modelSB.setSingleStep(0.1)
+		modelSB.setValue(1.0)
+		modelSB.setFixedWidth(58)
+
+		modelGridLayout = qt.QGridLayout()
+		modelGridLayout.setAlignment(qt.Qt.AlignHCenter)
+		#modelGridLayout.setSizePolicy(qt.QSizePolicy.MinimumExpanding)
+		#if modelNameDict[model_name]['sub'] !="":
+		modelLabel = qt.QLabel(modelNameDict[atlas_name][model_name]['sub']+'  ')
+		modelLabel.setFont(qt.QFont("font-size: 10pt;font-family: Arial"))
+		modelLabel.setAlignment(qt.Qt.AlignVCenter | qt.Qt.AlignRight)
 		modelLabel.setTextInteractionFlags(qt.Qt.TextSelectableByMouse)
+		modelLabel.setCursor(qt.Qt.IBeamCursor)
+		modelLabel.setFixedWidth(180)
+		modelGridLayout.addWidget(modelLabel,0,0,2,1)
+			
+		modelGridLayout.addWidget(left3DCB,0,1,1,1)
+		modelGridLayout.addWidget(left2DCB,0,2,1,1)
+		modelGridLayout.addWidget(right3DCB,1,1,1,1)
+		modelGridLayout.addWidget(right2DCB,1,2,1,1)
+		modelGridLayout.addWidget(modelColor,0,3,2,1)
+		modelGridLayout.addWidget(modelSB,0,4,2,1)
 
-	fontSettings = qt.QFont("font-size: 10pt;font-family: Arial")
-	fontSettings.setBold(False)
-
-	left3DCB=qt.QCheckBox()
-	left3DCB.setText('Left')
-	left3DCB.setFont(fontSettings)
-	left3DCB.setObjectName(f'{model_name}Model3DVisLeft')
-	left3DCB.setChecked(False)
-	left3DCB.setAutoExclusive(False)
-	left3DCB.setFixedWidth(68)
-
-	left2DCB=qt.QCheckBox()
-	left2DCB.setText('Left')
-	left2DCB.setFont(fontSettings)
-	left2DCB.setObjectName(f'{model_name}Model2DVisLeft')
-	left2DCB.setChecked(False)
-	left2DCB.setAutoExclusive(False)
-	left2DCB.setFixedWidth(68)
-
-	right3DCB=qt.QCheckBox()
-	right3DCB.setText('Right')
-	right3DCB.setFont(fontSettings)
-	right3DCB.setObjectName(f'{model_name}Model3DVisRight')
-	right3DCB.setChecked(False)
-	right3DCB.setAutoExclusive(False)
-	right3DCB.setFixedWidth(68)
-
-	right2DCB=qt.QCheckBox()
-	right2DCB.setText('Right')
-	right2DCB.setFont(fontSettings)
-	right2DCB.setObjectName(f'{model_name}Model2DVisRight')
-	right2DCB.setChecked(False)
-	right2DCB.setAutoExclusive(False)
-	right2DCB.setFixedWidth(68)
-
-	modelColor = ctk.ctkColorPickerButton()
-	modelColor.setObjectName(f'{model_name}ModelVisColor')
-	modelColor.displayColorName = False
-	modelColor.setFixedWidth(38)
-
-	modelSB=qt.QDoubleSpinBox()
-	modelSB.setObjectName(f'{model_name}ModelOpacity')
-	modelSB.setFont(fontSettings)
-	modelSB.setMinimum(0)
-	modelSB.setMaximum(1.0)
-	modelSB.setSingleStep(0.1)
-	modelSB.setValue(1.0)
-	modelSB.setFixedWidth(58)
-
-	modelGridLayout = qt.QGridLayout()
-	modelGridLayout.setAlignment(qt.Qt.AlignHCenter)
-	#modelGridLayout.setSizePolicy(qt.QSizePolicy.MinimumExpanding)
-	#if modelNameDict[model_name]['sub'] !="":
-	modelLabel = qt.QLabel(modelNameDict[model_name]['sub']+'  ')
-	modelLabel.setFont(qt.QFont("font-size: 10pt;font-family: Arial"))
-	modelLabel.setAlignment(qt.Qt.AlignVCenter | qt.Qt.AlignRight)
-	modelLabel.setTextInteractionFlags(qt.Qt.TextSelectableByMouse)
-	modelLabel.setCursor(qt.Qt.IBeamCursor)
-	modelLabel.setFixedWidth(180)
-	modelGridLayout.addWidget(modelLabel,0,0,2,1)
+		modelWig = qt.QWidget()
+		modelWig.setObjectName(f'{model_name}ModelWig')
+		modelWig.setLayout(modelGridLayout)
 		
-	modelGridLayout.addWidget(left3DCB,0,1,1,1)
-	modelGridLayout.addWidget(left2DCB,0,2,1,1)
-	modelGridLayout.addWidget(right3DCB,1,1,1,1)
-	modelGridLayout.addWidget(right2DCB,1,2,1,1)
-	modelGridLayout.addWidget(modelColor,0,3,2,1)
-	modelGridLayout.addWidget(modelSB,0,4,2,1)
+		modelWig_dict[modelNameDict[atlas_name][model_name]['main']].append([model_name,modelWig])
 
-	modelWig = qt.QWidget()
-	modelWig.setObjectName(f'{model_name}ModelWig')
-	modelWig.setLayout(modelGridLayout)
-	
-	modelWig_dict[modelNameDict[model_name]['main']].append([model_name,modelWig])
-
-	return modelWig_dict
+	return modelWig_dict,model_found
 
 
 def addCustomLayouts():
@@ -3912,3 +3920,5 @@ def sortSceneData():
 				shNode.SetItemParent(shNode.GetItemByDataNode(slicer.util.getNode(item)), periMERFolder)
 			elif 'ses-post' in item:
 				shNode.SetItemParent(shNode.GetItemByDataNode(slicer.util.getNode(item)), postMERFolder)
+
+
