@@ -35,6 +35,7 @@ class settingsPanelWidget(qt.QGroupBox, VTKObservationMixin):
 		self._loadUI()
 
 		self.orientationMark = False
+		self.SliceIntersectionVisibility = False
 
 		# Create logic class. Logic implements all computations that should be possible to run
 		# in batch mode, without a graphical user interface.
@@ -93,7 +94,7 @@ class settingsPanelWidget(qt.QGroupBox, VTKObservationMixin):
 		self.ui.linkViewsButton.connect('clicked(bool)', self.onLinkViewsButton)
 		self.ui.recenterButton.connect('clicked(bool)', self.onRecenterButton)
 		self.ui.crosshairThicknessSB.valueChanged.connect(self.onToggleCrosshairThickness)
-
+		self.ui.sliceIntersectionsCB.connect('stateChanged(int)', self.onToggleSliceIntersectionVisibility)
 		self.ui.orientationMarkerButton.clicked.connect(self.onToggleOrientationMarker)
 
 		self.volumeMenu.aboutToShow.connect(self.onVolumeButtonClick)
@@ -138,6 +139,7 @@ class settingsPanelWidget(qt.QGroupBox, VTKObservationMixin):
 		self.crossHairNode = slicer.mrmlScene.GetFirstNodeByClass('vtkMRMLCrosshairNode')
 		if self.crossHairNode.GetCrosshairMode() == 0:
 			self.crossHairNode.SetCrosshairMode(1)
+			self.crossHairNode.SetCrosshairThickness(self.ui.crosshairThicknessSB.value)
 			self.ui.crosshairToggleButton.setStyleSheet("background-color: green")
 		else:
 			self.crossHairNode.SetCrosshairMode(0)
@@ -243,22 +245,38 @@ class settingsPanelWidget(qt.QGroupBox, VTKObservationMixin):
 			for viewNode in viewNodes:
 				viewNode.SetOrientationMarkerType(slicer.vtkMRMLAbstractViewNode.OrientationMarkerTypeNone)
 	
+	def onToggleSliceIntersectionVisibility(self):
+		if not self.SliceIntersectionVisibility:
+			self.SliceIntersectionVisibility = True
+			self.ui.label_8.text="Intersections Thickness"
+			for nodes in slicer.util.getNodesByClass('vtkMRMLSliceCompositeNode'):
+				nodes.SetSliceIntersectionVisibility(1)
+			self.setIntersectionThickness(self.ui.crosshairThicknessSB.value)
+		else:
+			self.SliceIntersectionVisibility = False
+			self.ui.label_8.text="Crosshair Thickness"
+			for nodes in slicer.util.getNodesByClass('vtkMRMLSliceCompositeNode'):
+				nodes.SetSliceIntersectionVisibility(0)
+
+	def setIntersectionThickness(self, value):
+		layoutManager = slicer.app.layoutManager()
+		for sliceViewName in ['Red', 'Yellow', 'Green']:
+			sliceLogic = layoutManager.sliceWidget(sliceViewName).sliceLogic()
+			sliceDisplayNode = sliceLogic.GetSliceModelDisplayNode()
+			sliceDisplayNode.SetLineWidth(value)
+			sliceNode=slicer.util.getNode('vtkMRMLSliceCompositeNode' + sliceViewName)
+			sliceNode.Modified()
+
 	def onToggleCrosshairThickness(self, value):
 		self.crossHairNode = slicer.mrmlScene.GetFirstNodeByClass('vtkMRMLCrosshairNode')
 		if self.crossHairNode.GetCrosshairMode() == 1:
 			self.crossHairNode.SetCrosshairThickness(value)
-		else:
-			nodes = slicer.util.getNodesByClass('vtkMRMLSliceCompositeNode')
-			slice_intersection=[x.GetSliceIntersectionVisibility() for x in nodes]
 
-			if all(v == 1 for v in slice_intersection):
-				layoutManager = slicer.app.layoutManager()
-				for sliceViewName in ['Red', 'Yellow', 'Green']:
-					sliceLogic = layoutManager.sliceWidget(sliceViewName).sliceLogic()
-					sliceDisplayNode = sliceLogic.GetSliceModelDisplayNode()
-					sliceDisplayNode.SetLineWidth(value)
-					sliceNode=slicer.util.getNode('vtkMRMLSliceCompositeNode' + sliceViewName)
-					sliceNode.Modified()
+		nodes = slicer.util.getNodesByClass('vtkMRMLSliceCompositeNode')
+		slice_intersection=[x.GetSliceIntersectionVisibility() for x in nodes]
+
+		if all(v == 1 for v in slice_intersection):
+			self.setIntersectionThickness(value)
 
 	@vtk.calldata_type(vtk.VTK_OBJECT)
 	def onScalerVolumeNodeAdded(self, caller, event, calldata):
