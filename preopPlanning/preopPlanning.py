@@ -1167,7 +1167,7 @@ class preopPlanningWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 				if self.previousProbeEye != currentPlanName:
 					layoutManager.sliceWidget(settings['color']).sliceLogic().FitSliceToAll()
 					fov=layoutManager.sliceWidget(settings['color']).sliceLogic().GetSliceNode().GetFieldOfView()
-					layoutManager.sliceWidget(settings['color']).sliceLogic().GetSliceNode().SetFieldOfView(fov[0]/1.5,fov[1]/1.5,fov[2])
+					layoutManager.sliceWidget(settings['color']).sliceLogic().GetSliceNode().SetFieldOfView(fov[0]/2,fov[1]/2,fov[2])
 
 			#mouseTrack = SteeredPolyAffineRegistrationLogic(self.ui.MRMLSliderWidget)
 			#mouseTrack.run()
@@ -1176,7 +1176,7 @@ class preopPlanningWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 				self.probeEyeProcess(self.ui.MRMLSliderWidget.value)
 			else:
 				self.previousProbeEye=currentPlanName
-				self.probeEyeProcess(0)
+				self.probeEyeProcess(None)
 
 	def probeEyeProcess(self, newValue,mounting='lateral-right'):
 		
@@ -1210,7 +1210,7 @@ class preopPlanningWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 			ringDirection = [0, -1, 0]
 			arcDirection  = [-np.sin(np.deg2rad(ringAngle)), 0, np.cos(np.deg2rad(ringAngle))]
 
-		if newValue==0:
+		if newValue is None:
 			layoutManager = slicer.app.layoutManager()
 			self.ProbeEyeVolume = slicer.util.getNode(layoutManager.sliceWidget('Red').sliceLogic().GetSliceCompositeNode().GetBackgroundVolumeID())
 			self.ProbeEyeVolumeSpacing = self.ProbeEyeVolume.GetSpacing()
@@ -1219,7 +1219,7 @@ class preopPlanningWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 			self.ui.trajectoryLen.value = self.ProbeMagVec
 			self.ui.MRMLSliderWidget.minimum = -1 * (self.ProbeMagVec + 30)
 			self.ui.MRMLSliderWidget.maximum = 20
-			self.ui.MRMLSliderWidget.value = -1 * (self.ProbeMagVec-self.ProbeEyeVolumeSpacing[2])
+			self.ui.MRMLSliderWidget.value = -1 * (self.ProbeMagVec)
 			startVal = -1 *(self.ProbeMagVec-self.ProbeEyeVolumeSpacing[2])
 			self.ProbeEyeModelNewPoint = self.ProbeTargetPoint + startVal * self.ProbeNormVec
 

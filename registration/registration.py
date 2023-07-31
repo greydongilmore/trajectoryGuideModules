@@ -192,7 +192,7 @@ class registrationWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 		#self.ui.transformTypeTemplateCB.setCurrentIndex(self.ui.transformTypeTemplateCB.findText('Rigid+Affine+Syn'))
 
 		self.ui.fslParametersTemplateGB.collapsed = 1
-		self.ui.greedyParametersTemplateGB.collapsed = 1
+		self.ui.niftyRegParametersTemplateGB.collapsed = 1
 		self.ui.antsParametersTemplateGB.collapsed = 1
 		self.ui.antsSynParametersTemplateGB.collapsed = 1
 		
@@ -225,6 +225,7 @@ class registrationWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 		templateSpaces = [x.split('tpl-')[(-1)] for x in os.listdir(os.path.join(self._parameterNode.GetParameter('trajectoryGuidePath'), 'resources', 'ext_libs', 'space')) if os.path.isdir(os.path.join(self._parameterNode.GetParameter('trajectoryGuidePath'), 'resources', 'ext_libs', 'space', x))]
 		self.ui.templateSpaceCB.addItems(['None']+templateSpaces)
 		self.ui.templateSpaceCB.setCurrentIndex(self.ui.templateSpaceCB.findText('None'))
+		self.ui.templateSpaceCB.connect('currentIndexChanged(int)', self.onTemplateSpaceCB)
 
 		buttonIconSize=qt.QSize(36, 36)
 	
@@ -232,6 +233,13 @@ class registrationWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 		self.ui.compareVolumesButton.setIconSize(buttonIconSize)
 
 		self.logic._addCustomLayouts()
+
+	def onTemplateSpaceCB(self):
+		if self.ui.templateSpaceCB.currentText != 'Select template' and self.ui.templateSpaceCB.currentText != 'None':
+			templateVols = [x.split('_')[(-1)].split('.nii')[(0)] for x in os.listdir(os.path.join(self._parameterNode.GetParameter('trajectoryGuidePath'), 'resources', 'ext_libs', 'space',f"tpl-{self.ui.templateSpaceCB.currentText}",'templates')) if '.nii' in x]
+			self.ui.templateVolCB.clear()
+			self.ui.templateVolCB.addItems(['None']+sorted(templateVols))
+			self.ui.templateVolCB.setCurrentIndex(self.ui.templateVolCB.findText('None'))
 
 	def cleanup(self):
 		"""
@@ -594,7 +602,8 @@ class registrationWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 		
 		self.ui.referenceComboBox.clear()
 		self.ui.templateSpaceCB.setCurrentIndex(self.ui.templateSpaceCB.findText('None'))
-		
+		self.ui.templateVolCB.clear()
+
 		if self.referenceVolume is not None:
 			nodeName = os.path.basename(self.referenceVolume.GetStorageNode().GetFileName()).split('.nii')[0]
 			alignFname = os.path.join(self._parameterNode.GetParameter('derivFolder'), nodeName + '.nii.gz')
@@ -1030,6 +1039,8 @@ class registrationWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 		self.regAlgo['registerTemplate']=registerTemplate
 		self.regAlgo['templateSpace']=templateSpace
 		self.regAlgo['regAlgoTemplateParams']=regAlgoTemplate
+		if self.ui.templateVolCB.currentText != 'Select template volume' and self.ui.templateVolCB.currentText != 'None':
+			self.regAlgo['regAlgoTemplateParams']['tplSuffix']=self.ui.templateVolCB.currentText
 
 		if registerTemplate:
 			if os.path.exists(os.path.join( self._parameterNode.GetParameter('derivFolder'), 'space')):
@@ -1758,15 +1769,15 @@ class registrationLogic(ScriptedLoadableModuleLogic):
 					for i in range(len(lines)):
 						fid.write(lines[i])
 
-				node = slicer.util.loadTransform(transformNodeFilename)
+				resultTransformNode = slicer.util.loadTransform(transformNodeFilename)
 			
 			elif self.regAlgo['regAlgo'] in ('antsRegistration','antsRegistrationQuick'):
 
-				compositeNode = slicer.util.loadTransform(resultTransformPath + '_coregComposite.h5')
-				compositeNode.SetName(f"{os.path.basename(derivFolder).replace(' ', '_')}_desc-rigid_from-{transformName}_to-{fixedVolumeNode[0].GetName().split('_')[-1]}_xfm")
+				resultTransformNode = slicer.util.loadTransform(resultTransformPath + '_coregComposite.h5')
+				resultTransformNode.SetName(f"{os.path.basename(derivFolder).replace(' ', '_')}_desc-rigid_from-{transformName}_to-{fixedVolumeNode[0].GetName().split('_')[-1]}_xfm")
 
 				transformNodeFilenameNew = os.path.join(derivFolderTemp, f"{os.path.basename(derivFolder).replace(' ', '_')}_desc-rigid_from-{transformName}_to-{fixedVolumeNode[0].GetName().split('_')[-1]}_xfm.h5")
-				slicer.util.saveNode(compositeNode, transformNodeFilenameNew, {'useCompression': False})
+				slicer.util.saveNode(resultTransformNode, transformNodeFilenameNew, {'useCompression': False})
 
 				invCompositeNode = slicer.util.loadTransform(resultTransformPath + '_coregInverseComposite.h5')
 				invCompositeNode.SetName(f"{os.path.basename(derivFolder).replace(' ', '_')}_desc-rigid_from-{transformName}_to-{fixedVolumeNode[0].GetName().split('_')[-1]}_xfm")
@@ -1779,6 +1790,15 @@ class registrationLogic(ScriptedLoadableModuleLogic):
 			if not self.abortRequested:
 				loadedOutputVolumeNode = []
 				loadedOutputVolumeNode = slicer.util.loadVolume(outputVolume+'.nii.gz')
+
+				if resultTransformNode is not None:
+					matrixFromWorld = vtk.vtkMatrix4x4()
+					slicer.vtkMRMLTransformNode.GetMatrixTransformBetweenNodes(resultTransformNode, None, matrixFromWorld)
+					outMatrix=np.zeros((4,4))
+					for row in range(4):
+						for col in range(4):
+							outMatrix[row,col]=matrixFromWorld.GetElement(row, col)
+
 				slicer.util.getNode(loadedOutputVolumeNode.GetID()).SetName(ivol[0].GetName() + '_coreg')
 				if loadedOutputVolumeNode:
 					if fixedVolumeNode[0].GetTransformNodeID() is not None:
@@ -1788,13 +1808,14 @@ class registrationLogic(ScriptedLoadableModuleLogic):
 					self.addLog('Failed load of output volume: ' + outputVolume + '\n')
 
 		if self.regAlgo['registerTemplate']:
-			self.ref_template = glob.glob(os.path.normpath(os.path.join(self.scriptPath, 'resources', 'ext_libs', 'space', 'tpl-' + self.regAlgo['templateSpace'], 'templates','*_T1w.nii.gz')))
+			tplSuffix=self.regAlgo['regAlgoTemplateParams']['tplSuffix']
+			self.ref_template = glob.glob(os.path.normpath(os.path.join(self.scriptPath, 'resources', 'ext_libs', 'space', 'tpl-' + self.regAlgo['templateSpace'], 'templates',f"*{tplSuffix}.nii.gz")))
 			
 			if self.ref_template:
 				self.ref_template = self.ref_template[0]
 
 			resultTransformPath = os.path.normpath(os.path.join(outputDir, f"{os.path.basename(derivFolder).replace(' ', '_')}_desc-affine_from-subject_to-{self.regAlgo['templateSpace']}"))
-			outputVolume = os.path.normpath(os.path.join(outputDir, f"{os.path.basename(derivFolder).replace(' ', '_')}_space-{self.regAlgo['templateSpace']}_T1w_coreg"))
+			outputVolume = os.path.normpath(os.path.join(outputDir, f"{os.path.basename(derivFolder).replace(' ', '_')}_space-{self.regAlgo['templateSpace']}_{tplSuffix}_coreg"))
 			
 			if self.regAlgo['regAlgoTemplateParams']['regAlgo'] == 'flirt':
 

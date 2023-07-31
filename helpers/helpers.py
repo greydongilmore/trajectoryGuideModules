@@ -349,6 +349,9 @@ class vtkModelBuilderClass:
 			node.GetDisplayNode().VisibilityOff()
 		if '_lead' in node.GetName():
 			node.SetAttribute('ProbeEye', '1')
+			node.GetDisplayNode().SetSliceIntersectionThickness(2)
+		if '_contact' in node.GetName():
+			node.GetDisplayNode().SetSliceIntersectionThickness(2)
 		if 'ses-intra' in node.GetName():
 			if '_lead' in node.GetName():
 				node.SetAttribute('PlanTrack', '1')

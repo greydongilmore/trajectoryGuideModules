@@ -760,8 +760,8 @@ class dataImportLogic(ScriptedLoadableModuleLogic):
 						task_name = [x for x in os.path.basename(ifile).split('_') if 'task' in x]
 						ses_name = [x for x in os.path.basename(ifile).split('_') if 'ses' in x]
 						if task_name and ses_name:
-							plan_name = task_name[0].split('-')[1]
-							phase_name = ses_name[0].split('-')[1]
+							plan_name = '-'.join(task_name[0].split('-')[1:]) #this handles cases with a '-' in the plan name
+							phase_name = '-'.join(ses_name[0].split('-')[1:])
 
 							model_parameters = {
 								'plan_name': plan_name,

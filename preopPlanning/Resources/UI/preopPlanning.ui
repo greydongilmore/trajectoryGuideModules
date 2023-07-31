@@ -2053,10 +2053,13 @@
             </font>
            </property>
            <property name="singleStep">
-            <double>0.500000000000000</double>
+            <double>0.100000000000000</double>
            </property>
            <property name="minimum">
-            <double>0.000000000000000</double>
+            <double>-99.989999999999995</double>
+           </property>
+           <property name="tracking">
+            <bool>true</bool>
            </property>
            <property name="spinBoxVisible">
             <bool>true</bool>
@@ -2064,8 +2067,11 @@
            <property name="popupSlider">
             <bool>false</bool>
            </property>
+           <property name="invertedAppearance">
+            <bool>false</bool>
+           </property>
            <property name="invertedControls">
-            <bool>true</bool>
+            <bool>false</bool>
            </property>
           </widget>
          </item>
@@ -4165,9 +4171,9 @@
  <resources/>
  <connections/>
  <buttongroups>
-  <buttongroup name="planShowMERTracksButtonGroup"/>
-  <buttongroup name="originPointButtonGroup"/>
   <buttongroup name="merOrientationButtonGroup"/>
   <buttongroup name="planShowLeadButtonGroup"/>
+  <buttongroup name="originPointButtonGroup"/>
+  <buttongroup name="planShowMERTracksButtonGroup"/>
  </buttongroups>
 </ui>
