@@ -95,7 +95,7 @@ class dataViewWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
 		default_template_path = os.path.join(self._parameterNode.GetParameter('trajectoryGuidePath'), 'resources', 'ext_libs', 'space')
 
-		templateSpaces = [x.split('tpl-')[(-1)] for x in os.listdir(default_template_path) if os.path.isdir(os.path.join(default_template_path, x))]
+		templateSpaces = sorted([x.split('tpl-')[(-1)] for x in os.listdir(default_template_path) if os.path.isdir(os.path.join(default_template_path, x))])
 		self.ui.templateSpaceCB.blockSignals(1)
 		self.ui.templateSpaceCB.addItems(templateSpaces)
 		#self.ui.templateSpaceCB.setCurrentIndex(self.ui.templateSpaceCB.findText(defaultTemplateSpace))
@@ -185,7 +185,7 @@ class dataViewWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 				templateSpaces = [x.split('_to-')[-1].split('_xfm')[0].split('_')[0] for x in os.listdir(os.path.join(self._parameterNode.GetParameter('derivFolder'), 'space')) if any(x.endswith(y) for y in ('xfm.h5','xfm.nii.gz'))]
 				self.ui.templateSpaceCB.blockSignals(1)
 				self.ui.templateSpaceCB.clear()
-				self.ui.templateSpaceCB.addItems(list(set(templateSpaces)))
+				self.ui.templateSpaceCB.addItems(sorted(list(set(templateSpaces))))
 				self.ui.templateSpaceCB.blockSignals(0)
 
 		self.logic.addCustomLayouts()
