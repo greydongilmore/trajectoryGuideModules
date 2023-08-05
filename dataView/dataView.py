@@ -114,7 +114,7 @@ class dataViewWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 		self.ui.actualMERActivityVisColor.setColor(qt.QColor(rgbToHex(self.modelColors['actualMERActivityColor'])))
 		self.ui.actualVTAVisColor.setColor(qt.QColor(rgbToHex(self.modelColors['actualVTAColor'])))
 		
-		self.setupModelWigets()
+		#self.setupModelWigets()
 
 		self.text_color = slicer.util.findChild(slicer.util.mainWindow(), 'DialogToolBar').children()[3].palette.buttonText().color().name()
 		fontSettings = qt.QFont(fontSettingTitle)
@@ -309,7 +309,7 @@ class dataViewWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
 		space = self.ui.templateSpaceCB.currentText
 		
-		if self.active and space != 'Select template':
+		if self.active and space != 'Select template' and space != '':
 			self.ui.templateAtlasCB.clear()
 			atlas_path = os.path.join(self._parameterNode.GetParameter('trajectoryGuidePath'), 'resources', 'ext_libs', 'space', 'tpl-' + space, 'atlases')
 			templateAtlases = [x for x in os.listdir(atlas_path) if os.path.isdir(os.path.join(atlas_path, x))]
@@ -322,12 +322,12 @@ class dataViewWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 		space = self.ui.templateSpaceCB.currentText
 		atlasActive = self.ui.templateAtlasCB.currentText
 
-		if self.active and space != 'Select template' and atlasActive != 'Select atlas':
+		if self.active and space != 'Select template' and atlasActive != 'Select atlas' and space != '':
 			
 			
 			templateModelNames_temp = np.unique([x.split('_desc-')[(-1)].split('.vtk')[0] for x in os.listdir(os.path.join(self._parameterNode.GetParameter('trajectoryGuidePath'), 'resources', 'ext_libs', 'space', 'tpl-' + space, 'atlases', atlasActive)) if x.endswith('vtk')])
 			
-			with open(os.path.join(self._parameterNode.GetParameter('trajectoryGuidePath'), 'resources', 'ext_libs', 'space', 'template_model_dictionary.json')) as (name_file):
+			with open(os.path.join(self._parameterNode.GetParameter('trajectoryGuidePath'), 'resources', 'ext_libs', 'space', f'tpl-{space}', 'atlases', atlasActive, f'tpl-{space}_atl-{atlasActive}_model_colors.json')) as (name_file):
 				self.templateModelNameDict= json.load(name_file)
 
 			self.templateModelNames=[]
@@ -376,9 +376,8 @@ class dataViewWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 					opacitySliders_dict[iwig[0] + 'ModelOpacity']=iwig[1].findChild(qt.QDoubleSpinBox, f'{iwig[0]}ModelOpacity')
 
 					model_color='#c8c8eb'
-					for atlas in list(self.templateModelNameDict):
-						if iwig[0] in list(self.templateModelNameDict[atlas]):
-							model_color=self.templateModelNameDict[atlas][iwig[0]]['color']
+					if iwig[0] in list(self.templateModelNameDict):
+						model_color=self.templateModelNameDict[iwig[0]]['color']
 
 					colorPickers_dict[iwig[0] + 'ModelVisColor']=iwig[1].findChild(ctk.ctkColorPickerButton,f'{iwig[0]}ModelVisColor')
 					colorPickers_dict[iwig[0] + 'ModelVisColor'].setColor(qt.QColor(model_color))
@@ -566,42 +565,40 @@ class dataViewWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 			for modelName in self.templateModelNames:
 				model_color='#c8c8eb'
 				model_vis=False
-				for atlas in list(self.templateModelNameDict):
-					if modelName in list(self.templateModelNameDict[atlas]):
-						model_color=self.templateModelNameDict[atlas][modelName]['color']
-						model_vis=self.templateModelNameDict[atlas][modelName]['visible']
+				
+				if modelName in list(self.templateModelNameDict):
+					for side in {'Right', 'Left'}:
+						model_name = f"tpl-{space}_*hemi-{side[0].lower()}_desc-{modelName}.vtk"
+						model_filename=glob.glob(os.path.join(self._parameterNode.GetParameter('trajectoryGuidePath'), 'resources', 'ext_libs', 'space', 'tpl-' + space, 'atlases', atlasActive, model_name))
+						if model_filename:
+							vtkModelBuilder = vtkModelBuilderClass()
+							vtkModelBuilder.filename = model_filename[0]
+							vtkModelBuilder.model_color = self.templateModelNameDict[modelName]['color']
+							vtkModelBuilder.model_visibility = self.templateModelNameDict[modelName]['visible']
+							model = vtkModelBuilder.add_to_scene(True)
+							model.GetDisplayNode().SetFrontfaceCulling(0)
+							model.GetDisplayNode().SetBackfaceCulling(0)
+							model.GetDisplayNode().VisibilityOn()
+							model.GetDisplayNode().SetAmbient(0.3)
+							model.GetDisplayNode().SetDiffuse(1.0)
+							model.GetDisplayNode().ScalarVisibilityOff()
+							model.AddDefaultStorageNode()
+							model.GetStorageNode().SetCoordinateSystem(coordSys)
+							model.GetDisplayNode().SetSliceIntersectionThickness(3)
+							
+							if templateTransform:
+								model.SetAndObserveTransformNodeID(templateTransform.GetID())
 
-				for side in {'Right', 'Left'}:
-					model_name = f"tpl-{space}_*hemi-{side[0].lower()}_desc-{modelName}.vtk"
-					model_filename=glob.glob(os.path.join(self._parameterNode.GetParameter('trajectoryGuidePath'), 'resources', 'ext_libs', 'space', 'tpl-' + space, 'atlases', atlasActive, model_name))
-					if model_filename:
-						vtkModelBuilder = vtkModelBuilderClass()
-						vtkModelBuilder.filename = model_filename[0]
-						vtkModelBuilder.model_color = model_color
-						vtkModelBuilder.model_visibility = model_vis
-						model = vtkModelBuilder.add_to_scene(True)
-						model.GetDisplayNode().SetFrontfaceCulling(0)
-						model.GetDisplayNode().SetBackfaceCulling(0)
-						model.GetDisplayNode().VisibilityOn()
-						model.GetDisplayNode().SetAmbient(0.3)
-						model.GetDisplayNode().SetDiffuse(1.0)
-						model.AddDefaultStorageNode()
-						model.GetStorageNode().SetCoordinateSystem(coordSys)
-						model.GetDisplayNode().SetSliceIntersectionThickness(3)
-						print(model_filename)
-						if templateTransform:
-							model.SetAndObserveTransformNodeID(templateTransform.GetID())
-
-						if model_vis:
-							model.GetDisplayNode().Visibility3DOn()
-							model.GetDisplayNode().Visibility2DOn()
-							self.uiWidget.findChild(qt.QCheckBox, modelName + 'Model' + '3D' + 'Vis' + side).setChecked(True)
-							self.uiWidget.findChild(qt.QCheckBox, modelName + 'Model' + '2D' + 'Vis' + side).setChecked(True)
-						else:
-							model.GetDisplayNode().Visibility3DOff()
-							model.GetDisplayNode().Visibility2DOff()
-							self.uiWidget.findChild(qt.QCheckBox, modelName + 'Model' + '3D' + 'Vis' + side).setChecked(False)
-							self.uiWidget.findChild(qt.QCheckBox, modelName + 'Model' + '2D' + 'Vis' + side).setChecked(False)
+							if self.templateModelNameDict[modelName]['visible']:
+								model.GetDisplayNode().Visibility3DOn()
+								model.GetDisplayNode().Visibility2DOn()
+								self.uiWidget.findChild(qt.QCheckBox, modelName + 'Model' + '3D' + 'Vis' + side).setChecked(True)
+								self.uiWidget.findChild(qt.QCheckBox, modelName + 'Model' + '2D' + 'Vis' + side).setChecked(True)
+							else:
+								model.GetDisplayNode().Visibility3DOff()
+								model.GetDisplayNode().Visibility2DOff()
+								self.uiWidget.findChild(qt.QCheckBox, modelName + 'Model' + '3D' + 'Vis' + side).setChecked(False)
+								self.uiWidget.findChild(qt.QCheckBox, modelName + 'Model' + '2D' + 'Vis' + side).setChecked(False)
 						
 
 			layoutManager = slicer.app.layoutManager()

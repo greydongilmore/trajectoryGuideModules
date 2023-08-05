@@ -341,7 +341,7 @@ class vtkModelBuilderClass:
 			node.GetModelDisplayNode().SetColor(self.model_color)
 			node.GetModelDisplayNode().SetSelectedColor(self.model_color)
 		if self.model_visibility is not None:
-			node.GetModelDisplayNode().SetSliceIntersectionVisibility(self.model_visibility)
+			node.GetModelDisplayNode().SetVisibility2D(self.model_visibility)
 			node.GetModelDisplayNode().SetSliceIntersectionOpacity(3)
 			node.GetDisplayNode().Visibility2DOn()
 		if [x for x in {'entry_target', 'midline', 'electrode'} if x in node.GetName()]:
@@ -3063,7 +3063,7 @@ def plotMicroelectrode(coords, alpha, beta, model_parameters):
 	node.GetModelDisplayNode().SetColor(model_parameters['model_col'])
 	node.GetModelDisplayNode().SetSelectedColor(model_parameters['model_col'])
 	node.GetDisplayNode().SetSliceIntersectionThickness(1)
-	node.GetModelDisplayNode().SetSliceIntersectionVisibility(1)
+	node.GetModelDisplayNode().SetVisibility2D(1)
 
 	rotAng = 0
 	if 'label-center' in os.path.basename(model_parameters['mer_filename']):
@@ -3352,7 +3352,7 @@ class VTAModelBuilderClass:
 
 		node.GetModelDisplayNode().SetColor(self.elspec['model_col'])
 		node.GetModelDisplayNode().SetSelectedColor(self.elspec['model_col'])
-		node.GetModelDisplayNode().SetSliceIntersectionVisibility(self.elspec['model_vis'])
+		node.GetModelDisplayNode().SetVisibility2D(self.elspec['model_vis'])
 		node.GetModelDisplayNode().SetSliceIntersectionOpacity(1)
 		node.GetDisplayNode().SetOpacity(0.8)
 		
@@ -3569,22 +3569,18 @@ def sorted_nicely(l):
 def createModelBox(model_name, modelNameDict, modelWig_dict):
 	
 	model_found=False
-	atlas_name=None
-	for atlas in list(modelNameDict):
-		if model_name in list(modelNameDict[atlas]):
-			model_found=True
-			atlas_name=atlas
-			if modelNameDict[atlas][model_name]['main'] not in list(modelWig_dict):
-				modelWig_dict[modelNameDict[atlas][model_name]['main']]=[]
-			
-			if modelNameDict[atlas][model_name]['sub'] !="":
-				fontSettings = qt.QFont("font-size: 11pt;font-family: Arial")
-				fontSettings.setBold(False)
-				modelLabel = qt.QLabel(modelNameDict[atlas][model_name]['sub'])
-				modelLabel.setFont(fontSettings)
-				modelLabel.setAlignment(qt.Qt.AlignLeft)
-				modelLabel.setTextInteractionFlags(qt.Qt.TextSelectableByMouse)
-			break
+	if model_name in list(modelNameDict):
+		model_found=True
+		if modelNameDict[model_name]['main'] not in list(modelWig_dict):
+			modelWig_dict[modelNameDict[model_name]['main']]=[]
+		
+		if modelNameDict[model_name]['sub'] !="":
+			fontSettings = qt.QFont("font-size: 11pt;font-family: Arial")
+			fontSettings.setBold(False)
+			modelLabel = qt.QLabel(modelNameDict[model_name]['sub'])
+			modelLabel.setFont(fontSettings)
+			modelLabel.setAlignment(qt.Qt.AlignLeft)
+			modelLabel.setTextInteractionFlags(qt.Qt.TextSelectableByMouse)
 
 	if model_found:
 		fontSettings = qt.QFont("font-size: 10pt;font-family: Arial")
@@ -3640,7 +3636,7 @@ def createModelBox(model_name, modelNameDict, modelWig_dict):
 		modelGridLayout.setAlignment(qt.Qt.AlignHCenter)
 		#modelGridLayout.setSizePolicy(qt.QSizePolicy.MinimumExpanding)
 		#if modelNameDict[model_name]['sub'] !="":
-		modelLabel = qt.QLabel(modelNameDict[atlas_name][model_name]['sub']+'  ')
+		modelLabel = qt.QLabel(modelNameDict[model_name]['sub']+'  ')
 		modelLabel.setFont(qt.QFont("font-size: 10pt;font-family: Arial"))
 		modelLabel.setAlignment(qt.Qt.AlignVCenter | qt.Qt.AlignRight)
 		modelLabel.setTextInteractionFlags(qt.Qt.TextSelectableByMouse)
@@ -3659,7 +3655,7 @@ def createModelBox(model_name, modelNameDict, modelWig_dict):
 		modelWig.setObjectName(f'{model_name}ModelWig')
 		modelWig.setLayout(modelGridLayout)
 		
-		modelWig_dict[modelNameDict[atlas_name][model_name]['main']].append([model_name,modelWig])
+		modelWig_dict[modelNameDict[model_name]['main']].append([model_name,modelWig])
 
 	return modelWig_dict,model_found
 
