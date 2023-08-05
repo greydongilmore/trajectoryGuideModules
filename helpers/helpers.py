@@ -2308,7 +2308,7 @@ def frame_angles(Xt, Xe):
 
 def getFrameRotation():
 
-	if len(slicer.util.getNodes('*frame_rotation*')) == 0:
+	if len(slicer.util.getNodes('*frame_rotation*')) == 0 and len(slicer.util.getNodes('*acpc*'))>0:
 		ac = getPointCoords('acpc', 'ac', world=True)
 		pc = getPointCoords('acpc', 'pc', world=True)
 		mid = getPointCoords('midline', 'mid1', world=True)
@@ -2357,8 +2357,10 @@ def getFrameRotation():
 		frameRotationMatrix.SetElement(2, 2, riiprime[2][2])
 
 		frameRotation.SetMatrixTransformToParent(frameRotationMatrix)
-	else:
+	elif len(slicer.util.getNodes('*frame_rotation*')) >0:
 		frameRotation=slicer.util.getNode('frame_rotation')
+	else:
+		frameRotation=None
 
 	return frameRotation
 

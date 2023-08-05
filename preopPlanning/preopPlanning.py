@@ -536,7 +536,7 @@ class preopPlanningWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 			crosshairSpinboxACPC = list([self.ui.CrosshairCoordsPlanningX.value, self.ui.CrosshairCoordsPlanningY.value, self.ui.CrosshairCoordsPlanningZ.value])
 			fiducialMarkupsWorld = getPointCoords((self.ui.planName.currentText + '_line-pre'), '_'.join([self.ui.planName.currentText, fiducialPoint]), node_type='vtkMRMLMarkupsLineNode')
 			
-			self.frameRotationNode = getFrameRotation()
+			
 
 			#### true if a markups line does not exists for the current plan (one or no point is defined,need two points to make the line)
 			if np.array_equal(adjustPrecision(fiducialMarkupsWorld), adjustPrecision(np.array([0.0] * 3))):
@@ -547,148 +547,132 @@ class preopPlanningWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 			else:
 				fiducialSpinboxACPC = np.array([self.ui.planTargetX.value, self.ui.planTargetY.value, self.ui.planTargetZ.value])
 
-			#### true if fiducial point does not exists yet
-			if np.array_equal(adjustPrecision(fiducialMarkupsWorld), adjustPrecision(np.array([0.0]*3))):
-				#### true if entry/target plan spinboxes are being used to add the point
-				if not np.array_equal(adjustPrecision(fiducialSpinboxACPC), adjustPrecision(np.array([0.0]*3))):
-					print("one")
-					fiducialPointRAS = np.array(fiducialSpinboxACPC)
-				else:
-					print("two")
-					#### the user is using the crosshair distance from origin spinboxes to add the point
-					if fiducialPoint == 'entry':
-						self.ui.planEntryX.value = crosshairSpinboxACPC[0]
-						self.ui.planEntryY.value = crosshairSpinboxACPC[1]
-						self.ui.planEntryZ.value = crosshairSpinboxACPC[2]
+			self.frameRotationNode = getFrameRotation()
+			if self.frameRotationNode is not None:
+				#### true if fiducial point does not exists yet
+				if np.array_equal(adjustPrecision(fiducialMarkupsWorld), adjustPrecision(np.array([0.0]*3))):
+					#### true if entry/target plan spinboxes are being used to add the point
+					if not np.array_equal(adjustPrecision(fiducialSpinboxACPC), adjustPrecision(np.array([0.0]*3))):
+						print("one")
+						fiducialPointRAS = np.array(fiducialSpinboxACPC)
 					else:
-						self.ui.planTargetX.value = crosshairSpinboxACPC[0]
-						self.ui.planTargetY.value = crosshairSpinboxACPC[1]
-						self.ui.planTargetZ.value = crosshairSpinboxACPC[2]
+						print("two")
+						#### the user is using the crosshair distance from origin spinboxes to add the point
+						if fiducialPoint == 'entry':
+							self.ui.planEntryX.value = crosshairSpinboxACPC[0]
+							self.ui.planEntryY.value = crosshairSpinboxACPC[1]
+							self.ui.planEntryZ.value = crosshairSpinboxACPC[2]
+						else:
+							self.ui.planTargetX.value = crosshairSpinboxACPC[0]
+							self.ui.planTargetY.value = crosshairSpinboxACPC[1]
+							self.ui.planTargetZ.value = crosshairSpinboxACPC[2]
 
-					fiducialPointRAS=crosshairSpinboxACPC
-				
-				#### need to transform the point into world space by adding the origin and applying frame rotation
-				originCoordsCross=applyTransformToPoints(self.frameRotationNode, fiducialPointRAS, reverse=True)
+						fiducialPointRAS=crosshairSpinboxACPC
+					
+					#### need to transform the point into world space by adding the origin and applying frame rotation
+					originCoordsCross=applyTransformToPoints(self.frameRotationNode, fiducialPointRAS, reverse=True)
 
-				ACPCToRAS = np.array([
-					[ 1, 0, 0,originPointWorld[0]],
-					[ 0, 1, 0,originPointWorld[1]],
-					[ 0, 0, 1,originPointWorld[2]],
-					[ 0, 0, 0,   1]
-				])
+					ACPCToRAS = np.array([
+						[ 1, 0, 0,originPointWorld[0]],
+						[ 0, 1, 0,originPointWorld[1]],
+						[ 0, 0, 1,originPointWorld[2]],
+						[ 0, 0, 0,   1]
+					])
 
-				originCoordsCross=np.dot(ACPCToRAS, np.append(originCoordsCross,1))[:3]
-				
-				fiducialNode = getMarkupsNode(fiducialPoint, 'vtkMRMLMarkupsFiducialNode')
-				n = fiducialNode.AddControlPointWorld(vtk.vtkVector3d(originCoordsCross[0], originCoordsCross[1], originCoordsCross[2]))
-				fiducialNode.SetNthControlPointLabel(n, fiducialPoint)
-				fiducialNode.SetNthControlPointLocked(n, True)
+					originCoordsCross=np.dot(ACPCToRAS, np.append(originCoordsCross,1))[:3]
+					
+					fiducialNode = getMarkupsNode(fiducialPoint, 'vtkMRMLMarkupsFiducialNode')
+					n = fiducialNode.AddControlPointWorld(vtk.vtkVector3d(originCoordsCross[0], originCoordsCross[1], originCoordsCross[2]))
+					fiducialNode.SetNthControlPointLabel(n, fiducialPoint)
+					fiducialNode.SetNthControlPointLocked(n, True)
 
-			else:
-				fiducialSpinboxWorld=applyTransformToPoints(self.frameRotationNode, fiducialSpinboxACPC.copy(), reverse=True)+originPointWorld.copy()
+				else:
+					fiducialSpinboxWorld=applyTransformToPoints(self.frameRotationNode, fiducialSpinboxACPC.copy(), reverse=True)+originPointWorld.copy()
 
-				#### true if the entry/target plan spinboxes are equal to the point coordinates in the markups
-				#### need to check if crosshair spinboxes are different
-				if np.array_equal(adjustPrecision(fiducialSpinboxWorld), adjustPrecision(np.array(fiducialMarkupsWorld))):
-					print("three")
-					#### true if the crosshair distance from origin spinboxes are not zero, meaning user is updating using them
-					if not np.array_equal(adjustPrecision(np.array(crosshairSpinboxACPC)), adjustPrecision(np.array([0.0] * 3))):
-						#### true if the crosshair distance from origin spinboxes are not equal to the entry/target plan spinboxes
-						if not np.array_equal(adjustPrecision(np.array(crosshairSpinboxACPC)), adjustPrecision(fiducialSpinboxACPC)):
-							print("four")
-							#### the user pressed "Set Entry" after changing the crosshair spinbox values
-							if fiducialPoint == 'entry':
-								self.ui.planEntryX.value = crosshairSpinboxACPC[0]
-								self.ui.planEntryY.value = crosshairSpinboxACPC[1]
-								self.ui.planEntryZ.value = crosshairSpinboxACPC[2]
-							elif fiducialPoint == 'target':
-								self.ui.planTargetX.value = crosshairSpinboxACPC[0]
-								self.ui.planTargetY.value = crosshairSpinboxACPC[1]
-								self.ui.planTargetZ.value = crosshairSpinboxACPC[2]
+					#### true if the entry/target plan spinboxes are equal to the point coordinates in the markups
+					#### need to check if crosshair spinboxes are different
+					if np.array_equal(adjustPrecision(fiducialSpinboxWorld), adjustPrecision(np.array(fiducialMarkupsWorld))):
+						print("three")
+						#### true if the crosshair distance from origin spinboxes are not zero, meaning user is updating using them
+						if not np.array_equal(adjustPrecision(np.array(crosshairSpinboxACPC)), adjustPrecision(np.array([0.0] * 3))):
+							#### true if the crosshair distance from origin spinboxes are not equal to the entry/target plan spinboxes
+							if not np.array_equal(adjustPrecision(np.array(crosshairSpinboxACPC)), adjustPrecision(fiducialSpinboxACPC)):
+								print("four")
+								#### the user pressed "Set Entry" after changing the crosshair spinbox values
+								if fiducialPoint == 'entry':
+									self.ui.planEntryX.value = crosshairSpinboxACPC[0]
+									self.ui.planEntryY.value = crosshairSpinboxACPC[1]
+									self.ui.planEntryZ.value = crosshairSpinboxACPC[2]
+								elif fiducialPoint == 'target':
+									self.ui.planTargetX.value = crosshairSpinboxACPC[0]
+									self.ui.planTargetY.value = crosshairSpinboxACPC[1]
+									self.ui.planTargetZ.value = crosshairSpinboxACPC[2]
 
-							#### need to transform the coordinates to world space by adding the origin and applying frame rotation
+								#### need to transform the coordinates to world space by adding the origin and applying frame rotation
+								crosshairSpinboxWorld=applyTransformToPoints(self.frameRotationNode, crosshairSpinboxACPC, reverse=True)+originPointWorld.copy()
+
+								lineNode = getMarkupsNode((self.ui.planName.currentText + '_line-pre'), node_type='vtkMRMLMarkupsLineNode')
+								if lineNode is not None:
+									nodePresent = False
+									for ifid in range(lineNode.GetNumberOfControlPoints()):
+										if fiducialPoint in lineNode.GetNthControlPointLabel(ifid):
+											lineNode.SetNthControlPointPositionWorld(ifid, crosshairSpinboxWorld[0], crosshairSpinboxWorld[1], crosshairSpinboxWorld[2])
+											lineNode.SetNthControlPointLocked(ifid, True)
+											nodePresent = True
+
+									if not nodePresent:
+										n = lineNode.AddControlPointWorld(vtk.vtkVector3d(crosshairSpinboxWorld[0], crosshairSpinboxWorld[1], crosshairSpinboxWorld[2]))
+										lineNode.SetNthControlPointLabel(n, nodelabel)
+										lineNode.SetNthControlPointLocked(n, True)
+								else:
+									fiducialNode = getMarkupsNode(fiducialPoint, 'vtkMRMLMarkupsFiducialNode')
+									nodePresent = False
+									for ifid in range(fiducialNode.GetNumberOfControlPoints()):
+										if fiducialPoint in fiducialNode.GetNthControlPointLabel(ifid):
+											fiducialNode.SetNthControlPointPositionWorld(ifid, crosshairSpinboxWorld[0], crosshairSpinboxWorld[1], crosshairSpinboxWorld[2])
+											nodePresent = True
+
+									if not nodePresent:
+										n = fiducialNode.AddControlPointWorld(vtk.vtkVector3d(crosshairSpinboxWorld[0], crosshairSpinboxWorld[1], crosshairSpinboxWorld[2]))
+										fiducialNode.SetNthControlPointLabel(n, nodelabel)
+										fiducialNode.SetNthControlPointLocked(n, True)				
+					else:
+						#### need to bring the markups coordinates into distance from origin to compare with spinbox values
+						fiducialMarkupsACPC=fiducialMarkupsWorld.copy()-originPointWorld.copy()
+						fiducialMarkupsACPC=applyTransformToPoints(self.frameRotationNode, fiducialMarkupsACPC, reverse=False)
+
+						# if the user updates the plan entry/target spin boxes then these values will differ from 
+						# the coordinates of the current fiducial for this point.
+						if not np.array_equal(adjustPrecision(fiducialMarkupsACPC), adjustPrecision(fiducialSpinboxACPC)):
+							print("five")
+							fiducialSpinboxWorld=applyTransformToPoints(self.frameRotationNode, fiducialSpinboxACPC, reverse=True)+originPointWorld.copy()
+
+							fiducialNode = getMarkupsNode(fiducialPoint, 'vtkMRMLMarkupsFiducialNode')
+							fiducialNode.RemoveAllControlPoints()
+
+							n = fiducialNode.AddControlPointWorld(vtk.vtkVector3d(fiducialSpinboxWorld[0], fiducialSpinboxWorld[1], fiducialSpinboxWorld[2]))
+							fiducialNode.SetNthControlPointLabel(n, fiducialPoint)
+							fiducialNode.SetNthControlPointLocked(n, True)
+						elif not np.array_equal(adjustPrecision(fiducialMarkupsACPC), adjustPrecision(crosshairSpinboxACPC)):
+							print("six")
 							crosshairSpinboxWorld=applyTransformToPoints(self.frameRotationNode, crosshairSpinboxACPC, reverse=True)+originPointWorld.copy()
 
-							lineNode = getMarkupsNode((self.ui.planName.currentText + '_line-pre'), node_type='vtkMRMLMarkupsLineNode')
-							if lineNode is not None:
-								nodePresent = False
-								for ifid in range(lineNode.GetNumberOfControlPoints()):
-									if fiducialPoint in lineNode.GetNthControlPointLabel(ifid):
-										lineNode.SetNthControlPointPositionWorld(ifid, crosshairSpinboxWorld[0], crosshairSpinboxWorld[1], crosshairSpinboxWorld[2])
-										lineNode.SetNthControlPointLocked(ifid, True)
-										nodePresent = True
+							fiducialNode = getMarkupsNode(fiducialPoint, 'vtkMRMLMarkupsFiducialNode')
+							fiducialNode.RemoveAllControlPoints()
 
-								if not nodePresent:
-									n = lineNode.AddControlPointWorld(vtk.vtkVector3d(crosshairSpinboxWorld[0], crosshairSpinboxWorld[1], crosshairSpinboxWorld[2]))
-									lineNode.SetNthControlPointLabel(n, nodelabel)
-									lineNode.SetNthControlPointLocked(n, True)
-							else:
-								fiducialNode = getMarkupsNode(fiducialPoint, 'vtkMRMLMarkupsFiducialNode')
-								nodePresent = False
-								for ifid in range(fiducialNode.GetNumberOfControlPoints()):
-									if fiducialPoint in fiducialNode.GetNthControlPointLabel(ifid):
-										fiducialNode.SetNthControlPointPositionWorld(ifid, crosshairSpinboxWorld[0], crosshairSpinboxWorld[1], crosshairSpinboxWorld[2])
-										nodePresent = True
-
-								if not nodePresent:
-									n = fiducialNode.AddControlPointWorld(vtk.vtkVector3d(crosshairSpinboxWorld[0], crosshairSpinboxWorld[1], crosshairSpinboxWorld[2]))
-									fiducialNode.SetNthControlPointLabel(n, nodelabel)
-									fiducialNode.SetNthControlPointLocked(n, True)				
-				else:
-					#### need to bring the markups coordinates into distance from origin to compare with spinbox values
-					fiducialMarkupsACPC=fiducialMarkupsWorld.copy()-originPointWorld.copy()
-					fiducialMarkupsACPC=applyTransformToPoints(self.frameRotationNode, fiducialMarkupsACPC, reverse=False)
-
-					# if the user updates the plan entry/target spin boxes then these values will differ from 
-					# the coordinates of the current fiducial for this point.
-					if not np.array_equal(adjustPrecision(fiducialMarkupsACPC), adjustPrecision(fiducialSpinboxACPC)):
-						print("five")
-						fiducialSpinboxWorld=applyTransformToPoints(self.frameRotationNode, fiducialSpinboxACPC, reverse=True)+originPointWorld.copy()
-
-						fiducialNode = getMarkupsNode(fiducialPoint, 'vtkMRMLMarkupsFiducialNode')
-						fiducialNode.RemoveAllControlPoints()
-
-						n = fiducialNode.AddControlPointWorld(vtk.vtkVector3d(fiducialSpinboxWorld[0], fiducialSpinboxWorld[1], fiducialSpinboxWorld[2]))
-						fiducialNode.SetNthControlPointLabel(n, fiducialPoint)
-						fiducialNode.SetNthControlPointLocked(n, True)
-					elif not np.array_equal(adjustPrecision(fiducialMarkupsACPC), adjustPrecision(crosshairSpinboxACPC)):
-						print("six")
-						crosshairSpinboxWorld=applyTransformToPoints(self.frameRotationNode, crosshairSpinboxACPC, reverse=True)+originPointWorld.copy()
-
-						fiducialNode = getMarkupsNode(fiducialPoint, 'vtkMRMLMarkupsFiducialNode')
-						fiducialNode.RemoveAllControlPoints()
-
-						n = fiducialNode.AddControlPointWorld(vtk.vtkVector3d(crosshairSpinboxWorld[0], crosshairSpinboxWorld[1], crosshairSpinboxWorld[2]))
-						fiducialNode.SetNthControlPointLabel(n, fiducialPoint)
-						fiducialNode.SetNthControlPointLocked(n, True)
-					else:
-						print("seven")
-						if fiducialPoint == 'entry':
-							self.ui.planEntryX.value = fiducialMarkupsACPC[0]
-							self.ui.planEntryY.value = fiducialMarkupsACPC[1]
-							self.ui.planEntryZ.value = fiducialMarkupsACPC[2]
+							n = fiducialNode.AddControlPointWorld(vtk.vtkVector3d(crosshairSpinboxWorld[0], crosshairSpinboxWorld[1], crosshairSpinboxWorld[2]))
+							fiducialNode.SetNthControlPointLabel(n, fiducialPoint)
+							fiducialNode.SetNthControlPointLocked(n, True)
 						else:
-							self.ui.planTargetX.value = fiducialMarkupsACPC[0]
-							self.ui.planTargetY.value = fiducialMarkupsACPC[1]
-							self.ui.planTargetZ.value = fiducialMarkupsACPC[2]
-
-			#if fiducialPoint == 'entry':
-			#	if self.ui.planEntryX.value != self.ui.CrosshairCoordsPlanningX.value: self.ui.CrosshairCoordsPlanningX.value = self.ui.planEntryX.value
-			#	if self.ui.planEntryY.value != self.ui.CrosshairCoordsPlanningY.value: self.ui.CrosshairCoordsPlanningY.value = self.ui.planEntryY.value
-			#	if self.ui.planEntryZ.value != self.ui.CrosshairCoordsPlanningZ.value: self.ui.CrosshairCoordsPlanningZ.value = self.ui.planEntryZ.value
-			#else:
-			#	if self.ui.planTargetX.value != self.ui.CrosshairCoordsPlanningX.value: self.ui.CrosshairCoordsPlanningX.value = self.ui.planTargetX.value
-			#	if self.ui.planTargetY.value != self.ui.CrosshairCoordsPlanningY.value: self.ui.CrosshairCoordsPlanningY.value = self.ui.planTargetY.value
-			#	if self.ui.planTargetZ.value != self.ui.CrosshairCoordsPlanningZ.value: self.ui.CrosshairCoordsPlanningZ.value = self.ui.planTargetZ.value
-#
-			#self.onUpdateCrosshairPlanning(True)
-
-			#oppositePointCoords = getPointCoords((self.ui.planName.currentText + '_line'), oppositePoint, node_type='vtkMRMLMarkupsLineNode')
-			#if np.array_equal(adjustPrecision(oppositePointCoords), adjustPrecision(np.array([0.0] * 3))):
-			#	oppositePointCoords = getPointCoords(oppositePoint, oppositePoint)
-#
-#			#if not np.array_equal(adjustPrecision(oppositePointCoords), adjustPrecision(np.array([0.0] * 3))):
-			#	self.convertFiducialNodesToLine(fiducialPoint, oppositePoint, self.ui.planName.currentText + '_line')
+							print("seven")
+							if fiducialPoint == 'entry':
+								self.ui.planEntryX.value = fiducialMarkupsACPC[0]
+								self.ui.planEntryY.value = fiducialMarkupsACPC[1]
+								self.ui.planEntryZ.value = fiducialMarkupsACPC[2]
+							else:
+								self.ui.planTargetX.value = fiducialMarkupsACPC[0]
+								self.ui.planTargetY.value = fiducialMarkupsACPC[1]
+								self.ui.planTargetZ.value = fiducialMarkupsACPC[2]
 
 	def onOriginPointButtonGroup(self, button):
 		"""
@@ -944,30 +928,30 @@ class preopPlanningWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 					planPointsPresent=False
 					if 'pre' in list(surgical_data['trajectories'][planName]):
 						self.frameRotationNode = getFrameRotation()
+						if self.frameRotationNode is not None:
+							if surgical_data['trajectories'][planName]['pre']['entry']:
+								entryP = np.array(surgical_data['trajectories'][planName]['pre']['entry']) - origin_point
+								entryRAS=applyTransformToPoints(self.frameRotationNode, entryP, reverse=False)
+
+								if self.ui.planEntryX.value != entryRAS[0]:
+									self.ui.planEntryX.value = entryRAS[0]
+								if self.ui.planEntryY.value != entryRAS[1]:
+									self.ui.planEntryY.value = entryRAS[1]
+								if self.ui.planEntryZ.value != entryRAS[2]:
+									self.ui.planEntryZ.value = entryRAS[2]
+								planPointsPresent=True
 						
-						if surgical_data['trajectories'][planName]['pre']['entry']:
-							entryP = np.array(surgical_data['trajectories'][planName]['pre']['entry']) - origin_point
-							entryRAS=applyTransformToPoints(self.frameRotationNode, entryP, reverse=False)
+							if surgical_data['trajectories'][planName]['pre']['target']:
+								targetP = np.array(surgical_data['trajectories'][planName]['pre']['target']) - origin_point
+								targetRAS=applyTransformToPoints(self.frameRotationNode, targetP, reverse=False)
 
-							if self.ui.planEntryX.value != entryRAS[0]:
-								self.ui.planEntryX.value = entryRAS[0]
-							if self.ui.planEntryY.value != entryRAS[1]:
-								self.ui.planEntryY.value = entryRAS[1]
-							if self.ui.planEntryZ.value != entryRAS[2]:
-								self.ui.planEntryZ.value = entryRAS[2]
-							planPointsPresent=True
-					
-						if surgical_data['trajectories'][planName]['pre']['target']:
-							targetP = np.array(surgical_data['trajectories'][planName]['pre']['target']) - origin_point
-							targetRAS=applyTransformToPoints(self.frameRotationNode, targetP, reverse=False)
-
-							if self.ui.planTargetX.value != targetRAS[0]:
-								self.ui.planTargetX.value = targetRAS[0]
-							if self.ui.planTargetY.value != targetRAS[1]:
-								self.ui.planTargetY.value = targetRAS[1]
-							if self.ui.planTargetZ.value != targetRAS[2]:
-								self.ui.planTargetZ.value = targetRAS[2]
-							planPointsPresent=True
+								if self.ui.planTargetX.value != targetRAS[0]:
+									self.ui.planTargetX.value = targetRAS[0]
+								if self.ui.planTargetY.value != targetRAS[1]:
+									self.ui.planTargetY.value = targetRAS[1]
+								if self.ui.planTargetZ.value != targetRAS[2]:
+									self.ui.planTargetZ.value = targetRAS[2]
+								planPointsPresent=True
 
 					if planPointsPresent:
 						
@@ -1095,6 +1079,8 @@ class preopPlanningWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 			models = [x for x in slicer.util.getNodesByClass('vtkMRMLModelNode') if not slicer.vtkMRMLSliceLogic.IsSliceModelNode(x)]
 			for imodel in models:
 				imodel.GetModelDisplayNode().SetSliceIntersectionVisibility(0)
+				imodel.GetModelDisplayNode().SetSliceDisplayMode(0)
+				imodel.GetModelDisplayNode().SetSliceIntersectionOpacity(1.0)
 
 			for iLine in slicer.util.getNodesByClass('vtkMRMLMarkupsLineNode'):
 				if planName in iLine.GetName():
@@ -1114,8 +1100,13 @@ class preopPlanningWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 			for imodel in models:
 				if planName in imodel.GetName():
 					imodel.GetModelDisplayNode().SetSliceIntersectionVisibility(1)
+					if self.ui.showAsProjectionCB.isChecked():
+						imodel.GetModelDisplayNode().SetSliceDisplayMode(1)
+						imodel.GetModelDisplayNode().SetSliceIntersectionOpacity(0.2)
 				else:
 					imodel.GetModelDisplayNode().SetSliceIntersectionVisibility(0)
+					imodel.GetModelDisplayNode().SetSliceDisplayMode(0)
+					imodel.GetModelDisplayNode().SetSliceIntersectionOpacity(1.0)
 
 			for iLine in slicer.util.getNodesByClass('vtkMRMLMarkupsLineNode'):
 				iLine.GetDisplayNode().SetVisibility(0)
@@ -1167,7 +1158,10 @@ class preopPlanningWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 				if self.previousProbeEye != currentPlanName:
 					layoutManager.sliceWidget(settings['color']).sliceLogic().FitSliceToAll()
 					fov=layoutManager.sliceWidget(settings['color']).sliceLogic().GetSliceNode().GetFieldOfView()
-					layoutManager.sliceWidget(settings['color']).sliceLogic().GetSliceNode().SetFieldOfView(fov[0]/2,fov[1]/2,fov[2])
+					if settings['color'] == 'Red':
+						layoutManager.sliceWidget(settings['color']).sliceLogic().GetSliceNode().SetFieldOfView(fov[0]/6,fov[1]/6,fov[2])
+					else:
+						layoutManager.sliceWidget(settings['color']).sliceLogic().GetSliceNode().SetFieldOfView(fov[0]/1.5,fov[1]/1.5,fov[2])
 
 			#mouseTrack = SteeredPolyAffineRegistrationLogic(self.ui.MRMLSliderWidget)
 			#mouseTrack.run()
@@ -1219,7 +1213,7 @@ class preopPlanningWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 			self.ui.trajectoryLen.value = self.ProbeMagVec
 			self.ui.MRMLSliderWidget.minimum = -1 * (self.ProbeMagVec + 30)
 			self.ui.MRMLSliderWidget.maximum = 20
-			self.ui.MRMLSliderWidget.value = -1 * (self.ProbeMagVec)
+			self.ui.MRMLSliderWidget.value = -1 * (self.ProbeMagVec-self.ProbeEyeVolumeSpacing[2])
 			startVal = -1 *(self.ProbeMagVec-self.ProbeEyeVolumeSpacing[2])
 			self.ProbeEyeModelNewPoint = self.ProbeTargetPoint + startVal * self.ProbeNormVec
 
@@ -1308,26 +1302,26 @@ class preopPlanningWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 			if np.array_equal(adjustPrecision(crossHairRAS), adjustPrecision(self.crossHairLastPosition[0])):
 
 				crossHairRAS = np.array(self.crosshairNode.GetCrosshairRAS())
-
-				self.frameRotationNode = getFrameRotation()
-
 				origin_point_coords=getPointCoords('acpc', self.originPoint, world=True)
 
-				frameToRAS = np.array([
-					[ 1, 0, 0, -origin_point_coords[0]],
-					[ 0, 1, 0, -origin_point_coords[1]],
-					[ 0, 0, 1, -origin_point_coords[2]],
-					[ 0, 0, 0,   1]
-				])
+				if not np.array_equal(adjustPrecision(origin_point_coords), adjustPrecision(np.array([0.0] * 3))):
+					self.frameRotationNode = getFrameRotation()
+					if self.frameRotationNode is not None:
+						frameToRAS = np.array([
+							[ 1, 0, 0, -origin_point_coords[0]],
+							[ 0, 1, 0, -origin_point_coords[1]],
+							[ 0, 0, 1, -origin_point_coords[2]],
+							[ 0, 0, 0,   1]
+						])
 
-				crossHairACPC=np.dot(frameToRAS, np.append(crossHairRAS,1))[:3]
-				crossHairACPC=applyTransformToPoints(self.frameRotationNode, crossHairACPC, reverse=False)
+						crossHairACPC=np.dot(frameToRAS, np.append(crossHairRAS,1))[:3]
+						crossHairACPC=applyTransformToPoints(self.frameRotationNode, crossHairACPC, reverse=False)
 
-				self.lastOriginCoords = crossHairACPC.copy()
-				
-				self.ui.CrosshairCoordsPlanningX.value = crossHairACPC[0]
-				self.ui.CrosshairCoordsPlanningY.value = crossHairACPC[1]
-				self.ui.CrosshairCoordsPlanningZ.value = crossHairACPC[2]
+						self.lastOriginCoords = crossHairACPC.copy()
+						
+						self.ui.CrosshairCoordsPlanningX.value = crossHairACPC[0]
+						self.ui.CrosshairCoordsPlanningY.value = crossHairACPC[1]
+						self.ui.CrosshairCoordsPlanningZ.value = crossHairACPC[2]
 				
 				if self._parameterNode.GetParameter('frame_system'):
 					fc = getFrameCenter(self._parameterNode.GetParameter('frame_system'))
@@ -1359,27 +1353,28 @@ class preopPlanningWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 		"""
 
 		coordsACPC = np.array([self.ui.CrosshairCoordsPlanningX.value, self.ui.CrosshairCoordsPlanningY.value, self.ui.CrosshairCoordsPlanningZ.value])
-
-		self.frameRotationNode = getFrameRotation()
-
 		originRAS=getPointCoords('acpc', self.originPoint, world=True)
-		coordsRAS=applyTransformToPoints(self.frameRotationNode, coordsACPC, reverse=True)
 
-		ACPCToRAS = np.array([
-			[ 1, 0, 0,originRAS[0]],
-			[ 0, 1, 0,originRAS[1]],
-			[ 0, 0, 1,originRAS[2]],
-			[ 0, 0, 0,   1]
-		])
+		if not np.array_equal(adjustPrecision(originRAS), adjustPrecision(np.array([0.0] * 3))):
+			if self.frameRotationNode is not None:
+				coordsRAS=applyTransformToPoints(self.frameRotationNode, coordsACPC, reverse=True)
 
-		coordsRAS=np.dot(ACPCToRAS, np.append(coordsRAS,1))[:3]
-		
-		self.crosshairNode.SetCrosshairRAS(vtk.vtkVector3d(coordsRAS[0], coordsRAS[1], coordsRAS[2]))
-		sliceNodes = slicer.util.getNodesByClass('vtkMRMLSliceNode')
-		for islice in sliceNodes:
-			islice.JumpSlice(coordsRAS[0], coordsRAS[1], coordsRAS[2])
-		
+				ACPCToRAS = np.array([
+					[ 1, 0, 0,originRAS[0]],
+					[ 0, 1, 0,originRAS[1]],
+					[ 0, 0, 1,originRAS[2]],
+					[ 0, 0, 0,   1]
+				])
+
+				coordsRAS=np.dot(ACPCToRAS, np.append(coordsRAS,1))[:3]
+				
+				self.crosshairNode.SetCrosshairRAS(vtk.vtkVector3d(coordsRAS[0], coordsRAS[1], coordsRAS[2]))
+				sliceNodes = slicer.util.getNodesByClass('vtkMRMLSliceNode')
+				for islice in sliceNodes:
+					islice.JumpSlice(coordsRAS[0], coordsRAS[1], coordsRAS[2])
+			
 		if self._parameterNode.GetParameter('frame_system'):
+			self.frameRotationNode = getFrameRotation()
 			fc = getFrameCenter(self._parameterNode.GetParameter('frame_system'))
 			
 			if 'leksell' in self._parameterNode.GetParameter('frame_system'):
@@ -1412,56 +1407,55 @@ class preopPlanningWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 			coordsFrame = np.array([self.ui.frameCoordsPlanningX.value, self.ui.frameCoordsPlanningY.value, self.ui.frameCoordsPlanningZ.value])
 
 			self.frameRotationNode = getFrameRotation()
-			originRAS=getPointCoords('acpc', self.originPoint, world=True)
+			if self.frameRotationNode is not None:
+				fc = getFrameCenter(self._parameterNode.GetParameter('frame_system'))
 
-			fc = getFrameCenter(self._parameterNode.GetParameter('frame_system'))
+				if 'leksell' in self._parameterNode.GetParameter('frame_system'):
+					
+					RASToFrame = np.array([
+						[ 1, 0, 0, fc[0]],
+						[ 0, 1, 0, fc[1]],
+						[ 0, 0, 1, fc[2]],
+						[ 0, 0, 0,   1]
+					])
+					coordsFrame=np.dot(RASToFrame, np.append(coordsFrame,1))[:3]
 
-			if 'leksell' in self._parameterNode.GetParameter('frame_system'):
+					frameToRAS = np.array([
+						[ -1, 0, 0, 100],
+						[ 0, 1, 0, -100],
+						[ 0, 0, -1, 100],
+						[ 0, 0, 0,   1]
+					])
+					coordsRAS=np.dot(frameToRAS, np.append(coordsFrame,1))[:3]
+				else:
+					frameToRAS = np.array([
+						[ 1, 0, 0, fc[0]],
+						[ 0, 1, 0, fc[1]],
+						[ 0, 0, 1, fc[2]],
+						[ 0, 0, 0,   1]
+					])
+					coordsRAS=np.dot(frameToRAS, np.append(coordsFrame,1))[:3]
+
+				self.crosshairNode.SetCrosshairRAS(vtk.vtkVector3d(coordsRAS[0], coordsRAS[1], coordsRAS[2]))
+				sliceNodes = slicer.util.getNodesByClass('vtkMRMLSliceNode')
+				for islice in sliceNodes:
+					islice.JumpSlice(coordsRAS[0], coordsRAS[1], coordsRAS[2])
 				
-				RASToFrame = np.array([
-					[ 1, 0, 0, fc[0]],
-					[ 0, 1, 0, fc[1]],
-					[ 0, 0, 1, fc[2]],
-					[ 0, 0, 0,   1]
-				])
-				coordsFrame=np.dot(RASToFrame, np.append(coordsFrame,1))[:3]
+				originRAS=getPointCoords('acpc', self.originPoint, world=True)
+				if not np.array_equal(adjustPrecision(originRAS), adjustPrecision(np.array([0.0] * 3))):
+					frameToACPC = np.array([
+						[ 1, 0, 0, -originRAS[0]],
+						[ 0, 1, 0, -originRAS[1]],
+						[ 0, 0, 1, -originRAS[2]],
+						[ 0, 0, 0,   1]
+					])
 
-				frameToRAS = np.array([
-					[ -1, 0, 0, 100],
-					[ 0, 1, 0, -100],
-					[ 0, 0, -1, 100],
-					[ 0, 0, 0,   1]
-				])
-				coordsRAS=np.dot(frameToRAS, np.append(coordsFrame,1))[:3]
-			else:
-				frameToRAS = np.array([
-					[ 1, 0, 0, fc[0]],
-					[ 0, 1, 0, fc[1]],
-					[ 0, 0, 1, fc[2]],
-					[ 0, 0, 0,   1]
-				])
-				coordsRAS=np.dot(frameToRAS, np.append(coordsFrame,1))[:3]
+					coordsACPC=np.dot(frameToACPC, np.append(coordsRAS,1))[:3]
+					coordsACPC=applyTransformToPoints(self.frameRotationNode, coordsACPC, reverse=False)
 
-			self.crosshairNode.SetCrosshairRAS(vtk.vtkVector3d(coordsRAS[0], coordsRAS[1], coordsRAS[2]))
-			sliceNodes = slicer.util.getNodesByClass('vtkMRMLSliceNode')
-			for islice in sliceNodes:
-				islice.JumpSlice(coordsRAS[0], coordsRAS[1], coordsRAS[2])
-			
-			originRAS=getPointCoords('acpc', self.originPoint, world=True)
-
-			frameToACPC = np.array([
-				[ 1, 0, 0, -originRAS[0]],
-				[ 0, 1, 0, -originRAS[1]],
-				[ 0, 0, 1, -originRAS[2]],
-				[ 0, 0, 0,   1]
-			])
-
-			coordsACPC=np.dot(frameToACPC, np.append(coordsRAS,1))[:3]
-			coordsACPC=applyTransformToPoints(self.frameRotationNode, coordsACPC, reverse=False)
-
-			self.ui.CrosshairCoordsPlanningX.value = coordsACPC[0]
-			self.ui.CrosshairCoordsPlanningY.value = coordsACPC[1]
-			self.ui.CrosshairCoordsPlanningZ.value = coordsACPC[2]
+					self.ui.CrosshairCoordsPlanningX.value = coordsACPC[0]
+					self.ui.CrosshairCoordsPlanningY.value = coordsACPC[1]
+					self.ui.CrosshairCoordsPlanningZ.value = coordsACPC[2]
 
 	def onMEROrientationButtonGroup(self, button):
 		"""
