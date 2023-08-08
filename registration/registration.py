@@ -1240,7 +1240,7 @@ class registrationLogic(ScriptedLoadableModuleLogic):
 			self.niftyBinDir = os.path.join(self.scriptPath, 'resources', 'ext_libs', 'niftyReg', 'linux', 'bin')
 			self.niftyExe = 'reg_aladin'
 			
-			self.greedyBinDir = os.path.join(self.scriptPath, 'resources', 'ext_libs', 'greedy', 'linux')
+			self.greedyBinDir = os.path.join(self.scriptPath, 'resources', 'ext_libs', 'greedy','linux')
 			self.greedyExe = 'greedy'
 
 			self.c3dBinDir = os.path.join(self.scriptPath, 'resources', 'ext_libs', 'c3d')
@@ -1269,10 +1269,10 @@ class registrationLogic(ScriptedLoadableModuleLogic):
 			self.niftyBinDir = os.path.join(self.scriptPath, 'resources', 'ext_libs', 'niftyReg', 'osX', 'bin')
 			self.niftyExe = 'reg_aladin'
 			
-			self.greedyBinDir = os.path.join(self.scriptPath, 'resources', 'ext_libs', 'greedy')
-			self.greedyExe = 'greedy.glnxa64'
+			self.greedyBinDir = os.path.join(self.scriptPath, 'resources', 'ext_libs', 'greedy','macos')
+			self.greedyExe = 'greedy'
 
-			self.c3dBinDir = os.path.join(self.scriptPath, 'resources', 'ext_libs', 'c3d')
+			self.c3dBinDir = os.path.join(self.scriptPath, 'resources', 'ext_libs', 'c3d','macos')
 			self.c3dExe = 'c3d_affine_tool'
 
 	def getParameterNode(self, replace=False):

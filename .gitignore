@@ -13,3 +13,7 @@ resources/ext_libs/greedy-1.2.0/bin/greedy.exe
 resources/settings/trajectoryGuide_settings.json
 resources/ext_libs/space
 resources/ext_libs/space.zip
+.DS_Store
+resources/.DS_Store
+resources/ext_libs/.DS_Store
+resources/.DS_Store
