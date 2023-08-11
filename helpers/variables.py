@@ -40,6 +40,7 @@ medtronic_3387 = {
 		'electrode_1': [0,1,2,3],
 		'electrode_2': [8,9,10,11],
 		'contact_label':['','','',''],
+		'lead_type': 'linear',
 		'filename': '3387'
 	 }
 electrodeModels['Medtronic 3387'] = medtronic_3387
