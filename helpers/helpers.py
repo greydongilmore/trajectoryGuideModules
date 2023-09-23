@@ -2793,7 +2793,7 @@ def plotLead(entry,target,origin,model_parameters):
 
 	vtkModelBuilder = vtkModelBuilderClass()
 	vtkModelBuilder.coords = np.hstack((np.array(lead_start), lead_end))
-	vtkModelBuilder.tube_radius = e_specs['diameter']
+	vtkModelBuilder.tube_radius = e_specs['diameter']/2
 	vtkModelBuilder.tube_thickness = 0.2
 	if model_parameters['data_dir'] is not None:
 		vtkModelBuilder.filename = os.path.join(model_parameters['data_dir'], model_parameters['lead_fileN'])
@@ -2808,7 +2808,7 @@ def plotLead(entry,target,origin,model_parameters):
 
 	#### this will be updated within the loop so need to assign to variable.
 	start = e_specs['encapsultation']-e_specs['lead_shift']
-	contact_diameter = e_specs['diameter']+.05
+	contact_diameter = (e_specs['diameter']/2)+.05
 
 	#### build each contact in the electrode
 	bottomTop = np.empty([0, 6])
@@ -3587,41 +3587,41 @@ def createModelBox(model_name, modelNameDict, modelWig_dict):
 		fontSettings.setBold(False)
 
 		left3DCB=qt.QCheckBox()
-		left3DCB.setText('Left')
+		left3DCB.setText('L')
 		left3DCB.setFont(fontSettings)
 		left3DCB.setObjectName(f'{model_name}Model3DVisLeft')
 		left3DCB.setChecked(False)
 		left3DCB.setAutoExclusive(False)
-		left3DCB.setFixedWidth(68)
+		left3DCB.setFixedWidth(30)
 
 		left2DCB=qt.QCheckBox()
-		left2DCB.setText('Left')
+		left2DCB.setText('L')
 		left2DCB.setFont(fontSettings)
 		left2DCB.setObjectName(f'{model_name}Model2DVisLeft')
 		left2DCB.setChecked(False)
 		left2DCB.setAutoExclusive(False)
-		left2DCB.setFixedWidth(68)
+		left2DCB.setFixedWidth(30)
 
 		right3DCB=qt.QCheckBox()
-		right3DCB.setText('Right')
+		right3DCB.setText('R')
 		right3DCB.setFont(fontSettings)
 		right3DCB.setObjectName(f'{model_name}Model3DVisRight')
 		right3DCB.setChecked(False)
 		right3DCB.setAutoExclusive(False)
-		right3DCB.setFixedWidth(68)
+		right3DCB.setFixedWidth(30)
 
 		right2DCB=qt.QCheckBox()
-		right2DCB.setText('Right')
+		right2DCB.setText('R')
 		right2DCB.setFont(fontSettings)
 		right2DCB.setObjectName(f'{model_name}Model2DVisRight')
 		right2DCB.setChecked(False)
 		right2DCB.setAutoExclusive(False)
-		right2DCB.setFixedWidth(68)
+		right2DCB.setFixedWidth(30)
 
 		modelColor = ctk.ctkColorPickerButton()
 		modelColor.setObjectName(f'{model_name}ModelVisColor')
 		modelColor.displayColorName = False
-		modelColor.setFixedWidth(38)
+		modelColor.setFixedWidth(60)
 
 		modelSB=qt.QDoubleSpinBox()
 		modelSB.setObjectName(f'{model_name}ModelOpacity')
@@ -3630,26 +3630,27 @@ def createModelBox(model_name, modelNameDict, modelWig_dict):
 		modelSB.setMaximum(1.0)
 		modelSB.setSingleStep(0.1)
 		modelSB.setValue(1.0)
-		modelSB.setFixedWidth(58)
+		modelSB.setFixedWidth(60)
 
 		modelGridLayout = qt.QGridLayout()
-		modelGridLayout.setAlignment(qt.Qt.AlignHCenter)
-		#modelGridLayout.setSizePolicy(qt.QSizePolicy.MinimumExpanding)
-		#if modelNameDict[model_name]['sub'] !="":
+		#modelGridLayout.setAlignment(qt.Qt.AlignHCenter)
+		modelGridLayout.setMargin(0)
+		
 		modelLabel = qt.QLabel(modelNameDict[model_name]['sub']+'  ')
 		modelLabel.setFont(qt.QFont("font-size: 10pt;font-family: Arial"))
 		modelLabel.setAlignment(qt.Qt.AlignVCenter | qt.Qt.AlignRight)
 		modelLabel.setTextInteractionFlags(qt.Qt.TextSelectableByMouse)
 		modelLabel.setCursor(qt.Qt.IBeamCursor)
 		modelLabel.setFixedWidth(180)
+		modelLabel.setSizePolicy(qt.QSizePolicy.MinimumExpanding,qt.QSizePolicy.Preferred)
 		modelGridLayout.addWidget(modelLabel,0,0,2,1)
 			
 		modelGridLayout.addWidget(left3DCB,0,1,1,1)
 		modelGridLayout.addWidget(left2DCB,0,2,1,1)
 		modelGridLayout.addWidget(right3DCB,1,1,1,1)
 		modelGridLayout.addWidget(right2DCB,1,2,1,1)
-		modelGridLayout.addWidget(modelColor,0,3,2,1)
-		modelGridLayout.addWidget(modelSB,0,4,2,1)
+		modelGridLayout.addWidget(modelColor,0,3,1,1)
+		modelGridLayout.addWidget(modelSB,1,3,1,1)
 
 		modelWig = qt.QWidget()
 		modelWig.setObjectName(f'{model_name}ModelWig')

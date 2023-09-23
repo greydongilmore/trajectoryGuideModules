@@ -308,8 +308,17 @@ class dataViewWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 	def onSelectTemplate(self):
 
 		space = self.ui.templateSpaceCB.currentText
+		atlas = self.ui.templateAtlasCB.currentText
 		
+		
+
+		
+
 		if self.active and space != 'Select template' and space != '':
+			if atlas != '':
+				self.uiWidget.findChild(qt.QRadioButton, 'templateViewNo').setChecked(True)
+			
+			
 			self.ui.templateAtlasCB.clear()
 			atlas_path = os.path.join(self._parameterNode.GetParameter('trajectoryGuidePath'), 'resources', 'ext_libs', 'space', 'tpl-' + space, 'atlases')
 			templateAtlases = [x for x in os.listdir(atlas_path) if os.path.isdir(os.path.join(atlas_path, x))]
@@ -360,7 +369,7 @@ class dataViewWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 				modelGridLayout.addWidget(mainLabel,cnt,0,1,2)
 				titleLine = qt.QFrame()
 				titleLine.setFrameShape(qt.QFrame.HLine)
-				titleLine.setFixedWidth(435)
+				titleLine.setFixedWidth(320)
 				modelGridLayout.addWidget(titleLine,cnt+1,0,1,2)
 				cnt += 2
 				wigCnt=1
