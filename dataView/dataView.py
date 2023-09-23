@@ -310,16 +310,20 @@ class dataViewWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 		space = self.ui.templateSpaceCB.currentText
 		atlas = self.ui.templateAtlasCB.currentText
 		
-		
-
-		
-
 		if self.active and space != 'Select template' and space != '':
 			if atlas != '':
 				self.uiWidget.findChild(qt.QRadioButton, 'templateViewNo').setChecked(True)
+				self.ui.templateAtlasCB.blockSignals(1)
+				self.ui.templateAtlasCB.clear()
+				self.ui.templateAtlasCB.blockSignals(0)
+
+				modelGridLayout = self.uiWidget.findChild(qt.QWidget,'new_models').layout()
+				for i in reversed(range(modelGridLayout.count())):
+					modelGridLayout.itemAt(i).widget().setParent(None)
+
+				#mainLabel=qt.QLabel('')
+				#modelGridLayout.addWidget(mainLabel,0,0,1,1)
 			
-			
-			self.ui.templateAtlasCB.clear()
 			atlas_path = os.path.join(self._parameterNode.GetParameter('trajectoryGuidePath'), 'resources', 'ext_libs', 'space', 'tpl-' + space, 'atlases')
 			templateAtlases = [x for x in os.listdir(atlas_path) if os.path.isdir(os.path.join(atlas_path, x))]
 			self.ui.templateAtlasCB.blockSignals(1)
@@ -369,7 +373,7 @@ class dataViewWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 				modelGridLayout.addWidget(mainLabel,cnt,0,1,2)
 				titleLine = qt.QFrame()
 				titleLine.setFrameShape(qt.QFrame.HLine)
-				titleLine.setFixedWidth(320)
+				titleLine.setFixedWidth(340)
 				modelGridLayout.addWidget(titleLine,cnt+1,0,1,2)
 				cnt += 2
 				wigCnt=1
