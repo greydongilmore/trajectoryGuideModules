@@ -2769,7 +2769,7 @@ def plotLead(entry,target,origin,model_parameters):
 	#### remove any pre-existing vtk models of the same name
 	nodes = [x for x in slicer.util.getNodesByClass('vtkMRMLModelNode') if not slicer.vtkMRMLSliceLogic.IsSliceModelNode(x)]
 	for inodes in nodes:
-		if os.path.split(model_parameters['lead_fileN'])[(-1)].split('type-')[0] in inodes.GetName() and '_lead' in inodes.GetName():
+		if os.path.split(model_parameters['lead_fileN'])[(-1)].split('type-')[0] in inodes.GetName() and any(x in inodes.GetName() for x in ('_lead','_contact')):
 			filepath = slicer.util.getNode(inodes.GetID()).GetStorageNode().GetFileName()
 			slicer.mrmlScene.RemoveNode(slicer.util.getNode(inodes.GetID()))
 			if model_parameters['data_dir'] is not None and filepath is not None:
