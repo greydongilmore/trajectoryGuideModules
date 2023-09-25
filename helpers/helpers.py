@@ -2794,7 +2794,7 @@ def plotLead(entry,target,origin,model_parameters):
 	vtkModelBuilder = vtkModelBuilderClass()
 	vtkModelBuilder.coords = np.hstack((np.array(lead_start), lead_end))
 	vtkModelBuilder.tube_radius = e_specs['diameter']/2
-	vtkModelBuilder.tube_thickness = 0.2
+	vtkModelBuilder.tube_thickness = e_specs['lead_thickness']
 	if model_parameters['data_dir'] is not None:
 		vtkModelBuilder.filename = os.path.join(model_parameters['data_dir'], model_parameters['lead_fileN'])
 	else:
@@ -2808,7 +2808,7 @@ def plotLead(entry,target,origin,model_parameters):
 
 	#### this will be updated within the loop so need to assign to variable.
 	start = e_specs['encapsultation']-e_specs['lead_shift']
-	contact_diameter = (e_specs['diameter']/2)+.05
+	contact_diameter = (e_specs['diameter']/2)+e_specs['contact_inflate']
 
 	#### build each contact in the electrode
 	bottomTop = np.empty([0, 6])
@@ -2858,7 +2858,7 @@ def plotLead(entry,target,origin,model_parameters):
 				vtkModelBuilder = vtkModelBuilderClass()
 				vtkModelBuilder.coords = bottomTop[iContact, :]
 				vtkModelBuilder.tube_radius = contact_diameter
-				vtkModelBuilder.tube_thickness = 0.3
+				vtkModelBuilder.tube_thickness = e_specs['contact_thickness']
 				vtkModelBuilder.electrodeLen = e_specs['contact_size']
 				vtkModelBuilder.filename = filen
 				vtkModelBuilder.nodeName = os.path.splitext(base_name)[0]
@@ -2901,7 +2901,7 @@ def plotLead(entry,target,origin,model_parameters):
 				vtkModelBuilder = vtkModelBuilderClass()
 				vtkModelBuilder.coords = bottomTop[iContact, :]
 				vtkModelBuilder.tube_radius = contact_diameter
-				vtkModelBuilder.tube_thickness = 0.3
+				vtkModelBuilder.tube_thickness = e_specs['contact_thickness']
 				vtkModelBuilder.plane = plane
 				if model_parameters['data_dir'] is not None:
 					vtkModelBuilder.filename = os.path.join(model_parameters['data_dir'], base_name1)
@@ -2924,7 +2924,7 @@ def plotLead(entry,target,origin,model_parameters):
 				vtkModelBuilder = vtkModelBuilderClass()
 				vtkModelBuilder.coords = bottomTop[iContact, :]
 				vtkModelBuilder.tube_radius = contact_diameter
-				vtkModelBuilder.tube_thickness = 0.3
+				vtkModelBuilder.tube_thickness = e_specs['contact_thickness']
 				vtkModelBuilder.plane = plane
 				if model_parameters['data_dir'] is not None:
 					vtkModelBuilder.filename = os.path.join(model_parameters['data_dir'], base_name2)
@@ -2946,7 +2946,7 @@ def plotLead(entry,target,origin,model_parameters):
 				vtkModelBuilder = vtkModelBuilderClass()
 				vtkModelBuilder.coords = bottomTop[iContact, :]
 				vtkModelBuilder.tube_radius = contact_diameter
-				vtkModelBuilder.tube_thickness = 0.3
+				vtkModelBuilder.tube_thickness = e_specs['contact_thickness']
 				vtkModelBuilder.plane = plane
 				if model_parameters['data_dir'] is not None:
 					vtkModelBuilder.filename = os.path.join(model_parameters['data_dir'], base_name3)
@@ -2963,7 +2963,7 @@ def plotLead(entry,target,origin,model_parameters):
 				vtkModelBuilder = vtkModelBuilderClass()
 				vtkModelBuilder.coords = bottomTop[iContact, :]
 				vtkModelBuilder.tube_radius = contact_diameter
-				vtkModelBuilder.tube_thickness = 0.3
+				vtkModelBuilder.tube_thickness = e_specs['contact_thickness']
 				vtkModelBuilder.filename = filen
 				vtkModelBuilder.nodeName = os.path.splitext(base_name)[0]
 				vtkModelBuilder.model_color = model_parameters['contact_col']
@@ -2976,7 +2976,7 @@ def plotLead(entry,target,origin,model_parameters):
 			vtkModelBuilder = vtkModelBuilderClass()
 			vtkModelBuilder.coords = bottomTop[iContact, :]
 			vtkModelBuilder.tube_radius = contact_diameter
-			vtkModelBuilder.tube_thickness = 0.3
+			vtkModelBuilder.tube_thickness = e_specs['contact_thickness']
 			vtkModelBuilder.filename = filen
 			vtkModelBuilder.nodeName = os.path.splitext(base_name)[0]
 			vtkModelBuilder.model_color = model_parameters['contact_col']
