@@ -1142,7 +1142,7 @@ class preopPlanningWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 					imodel.GetModelDisplayNode().SetSliceIntersectionVisibility(1)
 					if self.ui.showAsProjectionCB.isChecked():
 						imodel.GetModelDisplayNode().SetSliceDisplayMode(1)
-						imodel.GetModelDisplayNode().SetSliceIntersectionOpacity(0.2)
+						imodel.GetModelDisplayNode().SetSliceIntersectionOpacity(1.0)
 				else:
 					imodel.GetModelDisplayNode().SetSliceIntersectionVisibility(0)
 					imodel.GetModelDisplayNode().SetSliceDisplayMode(0)
