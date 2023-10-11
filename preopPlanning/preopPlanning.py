@@ -216,10 +216,22 @@ class preopPlanningWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 		self.ui.MRMLSliderWidget.connect('valueChanged(double)', self.onSpinBoxValueChanged)
 		self.ui.saveViewButton.connect('clicked(bool)', self.onSaveViewButton)
 
+		self.ui.probeModelOpacity.valueChanged.connect(lambda : self.onProbeModelOpacityChange(self.ui.probeModelOpacity))
+
 		# Make sure parameter node is initialized (needed for module reload)
 		self.initializeParameterNode()
 
 		self.logic.addCustomLayouts()
+
+	def onProbeModelOpacityChange(self, button):
+		if self.ui.probeEyeModelCBox.currentNode() is not None:
+			currentModel = self.ui.probeEyeModelCBox.currentNode()
+			if currentModel.GetNodeTagName() == 'Model':
+				[x.GetDisplayNode().SetOpacity(button.value) for x in list(slicer.util.getNodes('_'.join(currentModel.GetName().split('_')[:-1])+'*').values())]
+				[x.GetDisplayNode().SetSliceIntersectionOpacity(button.value) for x in list(slicer.util.getNodes('_'.join(currentModel.GetName().split('_')[:-1])+'*').values())]
+			elif currentModel.GetNodeTagName() == 'MarkupsLine':
+				currentModel.GetDisplayNode().SetOpacity(button.value)
+				currentModel.GetModelDisplayNode().SetSliceIntersectionOpacity(button.value)
 
 	def onSaveViewButton(self):
 		"""
@@ -1118,17 +1130,17 @@ class preopPlanningWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
 			models = [x for x in slicer.util.getNodesByClass('vtkMRMLModelNode') if not slicer.vtkMRMLSliceLogic.IsSliceModelNode(x)]
 			for imodel in models:
-				imodel.GetModelDisplayNode().SetSliceIntersectionVisibility(0)
+				imodel.GetModelDisplayNode().SetVisibility2D(0)
 				imodel.GetModelDisplayNode().SetSliceDisplayMode(0)
 				imodel.GetModelDisplayNode().SetSliceIntersectionOpacity(1.0)
 
 			for iLine in slicer.util.getNodesByClass('vtkMRMLMarkupsLineNode'):
 				if planName in iLine.GetName():
 					iLine.GetDisplayNode().SetVisibility(1)
-					iLine.GetDisplayNode().SetSliceIntersectionVisibility(1)
+					iLine.GetDisplayNode().SetVisibility2D(1)
 				else:
 					iLine.GetDisplayNode().SetVisibility(0)
-					iLine.GetDisplayNode().SetSliceIntersectionVisibility(0)
+					iLine.GetDisplayNode().SetVisibility2D(0)
 
 			for iMarkups in slicer.util.getNodesByClass('vtkMRMLMarkupsFiducialNode'):
 				if '_contacts' in iMarkups.GetName():
@@ -1139,18 +1151,18 @@ class preopPlanningWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 			models = [x for x in slicer.util.getNodesByClass('vtkMRMLModelNode') if not slicer.vtkMRMLSliceLogic.IsSliceModelNode(x)]
 			for imodel in models:
 				if planName in imodel.GetName():
-					imodel.GetModelDisplayNode().SetSliceIntersectionVisibility(1)
+					imodel.GetModelDisplayNode().SetVisibility2D(1)
 					if self.ui.showAsProjectionCB.isChecked():
 						imodel.GetModelDisplayNode().SetSliceDisplayMode(1)
-						imodel.GetModelDisplayNode().SetSliceIntersectionOpacity(0.2)
+						imodel.GetModelDisplayNode().SetSliceIntersectionOpacity(1.0)
 				else:
-					imodel.GetModelDisplayNode().SetSliceIntersectionVisibility(0)
+					imodel.GetModelDisplayNode().SetVisibility2D(0)
 					imodel.GetModelDisplayNode().SetSliceDisplayMode(0)
 					imodel.GetModelDisplayNode().SetSliceIntersectionOpacity(1.0)
 
 			for iLine in slicer.util.getNodesByClass('vtkMRMLMarkupsLineNode'):
 				iLine.GetDisplayNode().SetVisibility(0)
-				iLine.GetDisplayNode().SetSliceIntersectionVisibility(0)
+				iLine.GetDisplayNode().SetVisibility2D(0)
 
 			for iMarkups in slicer.util.getNodesByClass('vtkMRMLMarkupsFiducialNode'):
 				if (planName + '_contacts') in iMarkups.GetName():
@@ -1312,12 +1324,12 @@ class preopPlanningWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 			
 			models = [x for x in slicer.util.getNodesByClass('vtkMRMLModelNode') if not slicer.vtkMRMLSliceLogic.IsSliceModelNode(x)]
 			for imodel in models:
-				imodel.GetModelDisplayNode().SetSliceIntersectionVisibility(1)
+				imodel.GetModelDisplayNode().SetVisibility2D(1)
 
 			for iLine in slicer.util.getNodesByClass('vtkMRMLMarkupsLineNode'):
 				if '_line' in iLine.GetName():
 					iLine.GetDisplayNode().SetVisibility(1)
-					iLine.GetDisplayNode().SetSliceIntersectionVisibility(1)
+					iLine.GetDisplayNode().SetVisibility2D(1)
 
 			for iMarkups in slicer.util.getNodesByClass('vtkMRMLMarkupsFiducialNode'):
 				if '_contacts' in iMarkups.GetName():

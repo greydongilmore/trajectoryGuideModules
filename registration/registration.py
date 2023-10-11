@@ -2053,7 +2053,7 @@ class registrationLogic(ScriptedLoadableModuleLogic):
 					f'-res "{outputVolume}.nii.gz"',
 					'-speeeeed'
 				])
-
+			
 			elif self.regAlgo['regAlgoTemplateParams']['regAlgo'] == 'greedy':
 
 				affine_cmd = ' '.join([
