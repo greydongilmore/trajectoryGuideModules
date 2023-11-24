@@ -1198,8 +1198,8 @@ class preopPlanningWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
 			# Settings
 			redSettings = {'color':'Red','node':slicer.util.getNode('vtkMRMLSliceNodeRed'),'mode':6, 'angle':90 ,'flip':True}
-			yellowSettings = {'color':'Yellow','node':slicer.util.getNode('vtkMRMLSliceNodeYellow'),'mode':5,'angle':0, 'flip':False}
-			greenSettings = {'color':'Green','node':slicer.util.getNode('vtkMRMLSliceNodeGreen'),'mode':4,'angle':0, 'flip':False}
+			yellowSettings = {'color':'Yellow','node':slicer.util.getNode('vtkMRMLSliceNodeYellow'),'mode':5,'angle':180, 'flip':False}
+			greenSettings = {'color':'Green','node':slicer.util.getNode('vtkMRMLSliceNodeGreen'),'mode':4,'angle':180, 'flip':False}
 
 			layoutManager=slicer.app.layoutManager()
 			for settings in [redSettings, yellowSettings, greenSettings]:
@@ -1224,7 +1224,7 @@ class preopPlanningWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 				self.previousProbeEye=currentPlanName
 				self.probeEyeProcess(None)
 
-	def probeEyeProcess(self, newValue,mounting='lateral-right'):
+	def probeEyeProcess(self, newValue):
 		
 		self.probeEyeModel = self.ui.probeEyeModelCBox.currentNode()
 		
@@ -1236,8 +1236,8 @@ class preopPlanningWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 		self.ProbeEntryPoint = getPointCoords((planName + '_line-pre'), planName + '_entry', node_type='vtkMRMLMarkupsLineNode')
 		self.ProbeTargetPoint = getPointCoords((planName + '_line-pre'), planName + '_target', node_type='vtkMRMLMarkupsLineNode')
 		
-		
-
+		mounting=self.ui.frameMountCB.currentText
+		print(mounting)
 		if newValue is None:
 			layoutManager = slicer.app.layoutManager()
 			self.ProbeEyeVolume = slicer.util.getNode(layoutManager.sliceWidget('Red').sliceLogic().GetSliceCompositeNode().GetBackgroundVolumeID())
@@ -1247,8 +1247,8 @@ class preopPlanningWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 			self.ui.trajectoryLen.value = self.ProbeMagVec
 			self.ui.MRMLSliderWidget.minimum = -1 * (self.ProbeMagVec + 30)
 			self.ui.MRMLSliderWidget.maximum = 20
-			self.ui.MRMLSliderWidget.value = -1 * (self.ProbeMagVec-self.ProbeEyeVolumeSpacing[2])
-			startVal = -1 *(self.ProbeMagVec-self.ProbeEyeVolumeSpacing[2])
+			self.ui.MRMLSliderWidget.value = 0
+			startVal = 0.0
 			self.ProbeEyeModelNewPoint = self.ProbeTargetPoint + startVal * self.ProbeNormVec
 
 			#self.redSliceNode=slicer.util.getNode('vtkMRMLSliceNodeRed')
@@ -1274,35 +1274,39 @@ class preopPlanningWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 		vtkTransform = vtk.vtkTransform()
 		vtkTransform.Translate(self.ProbeEyeModelNewPoint)
 
-		arcAngle, ringAngle = frame_angles(self.ProbeEntryPoint,self.ProbeTargetPoint)
+		arcAngle, ringAngle = frame_angles(self.ProbeTargetPoint,self.ProbeEntryPoint)
 		print(arcAngle, ringAngle)
 		# Get ring and arc directions
 		if mounting == 'lateral-right':
-			initDirection = [0, 1, 0]
-			ringDirection = [1, 0, 0]
-			
-			if arcAngle>90:
-				arcDirection =  [0, -np.sin(np.deg2rad(ringAngle)), np.cos(np.deg2rad(ringAngle))]
-				vtkTransform.RotateWXYZ(arcAngle, arcDirection[0], arcDirection[1], arcDirection[2])
-				vtkTransform.RotateWXYZ(ringAngle, ringDirection[0], ringDirection[1], ringDirection[2])
-				vtkTransform.RotateWXYZ(90, initDirection[0], initDirection[1], initDirection[2])
-			else:
+			if arcAngle<45 and 180-ringAngle<45:
+				initDirection = [0, 1, 0]
+				ringDirection = [1, 0, 0]
 				arcDirection =  [0, np.sin(np.deg2rad(ringAngle)), -np.cos(np.deg2rad(ringAngle))]
 				vtkTransform.RotateWXYZ(arcAngle, arcDirection[0], arcDirection[1], arcDirection[2])
-				vtkTransform.RotateWXYZ(ringAngle, ringDirection[0], ringDirection[1], ringDirection[2])
-				vtkTransform.RotateWXYZ(90, initDirection[0], initDirection[1], initDirection[2])
+			else:
+				initDirection = [0, 1, 0]
+				ringDirection = [1, 0, 0]
+				arcDirection =  [0, -np.sin(np.deg2rad(ringAngle)), np.cos(np.deg2rad(ringAngle))]
+				vtkTransform.RotateWXYZ(arcAngle, arcDirection[0], arcDirection[1], arcDirection[2])
 		elif mounting == 'lateral-left':
 			initDirection = [0, -1, 0]
 			ringDirection = [-1, 0, 0]
 			arcDirection  = [0, np.sin(np.deg2rad(ringAngle)), np.cos(np.deg2rad(ringAngle))]
+			vtkTransform.RotateWXYZ(arcAngle, arcDirection[0], arcDirection[1], arcDirection[2])
 		elif mounting == 'sagittal-anterior':
 			initDirection = [-1, 0, 0]
 			ringDirection = [0, 1, 0]
 			arcDirection  = [np.sin(np.deg2rad(ringAngle)), 0, np.cos(np.deg2rad(ringAngle))]
+			vtkTransform.RotateWXYZ(arcAngle, arcDirection[0], arcDirection[1], arcDirection[2])
+
 		elif mounting == 'sagittal-posterior':
 			initDirection = [1, 0, 0]
 			ringDirection = [0, -1, 0]
 			arcDirection  = [-np.sin(np.deg2rad(ringAngle)), 0, np.cos(np.deg2rad(ringAngle))]
+			vtkTransform.RotateWXYZ(arcAngle, arcDirection[0], arcDirection[1], arcDirection[2])
+
+		vtkTransform.RotateWXYZ(ringAngle, ringDirection[0], ringDirection[1], ringDirection[2])
+		vtkTransform.RotateWXYZ(90, initDirection[0], initDirection[1], initDirection[2])
 
 		self.probeEyeTransformNode.SetAndObserveTransformToParent(vtkTransform)
 	

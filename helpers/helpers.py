@@ -871,7 +871,7 @@ class frameDetection:
 		return img_data
 
 	def frame_detect(self):
-		imethod=1
+		imethod=2
 		if imethod == 1:
 			img_data_kji = slicer.util.arrayFromVolume(self.node).copy()
 			img_data_kji=self.check_orientation(img_data_kji,self.node)
@@ -917,7 +917,7 @@ class frameDetection:
 
 				img_data[img_data < -1024] = -1024
 				img_data[img_data > 3071] = 3071
-
+				
 				if self.frame_settings['max_threshold'] == 'n/a':
 					thresh_img = (img_data > self.frame_settings['min_threshold'])
 				else:
@@ -1072,8 +1072,8 @@ class frameDetection:
 			
 			self.final_location_clusters=self.convert_ijk(combined, self.node)
 			final_location=self.convert_ijk_mean(combined, self.node)
+			final_location=self.remove_label_outliers(final_location)
 			self.final_location=self.remove_label_outliers(final_location)
-
 
 		fcsvNodeName = f"{self.derivFolder.split(os.path.sep)[-1]}_desc-%s_fids"
 
