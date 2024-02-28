@@ -1212,6 +1212,7 @@ class registrationLogic(ScriptedLoadableModuleLogic):
 
 			self.niftyBinDir = os.path.join(self.scriptPath, 'resources', 'ext_libs', 'niftyReg', 'windows')
 			self.niftyExe = 'reg_aladin.exe'
+			self.reg_f3d='reg_f3d.exe'
 
 			self.greedyBinDir = os.path.join(self.scriptPath, 'resources', 'ext_libs', 'greedy-1.2.0', 'bin')
 			self.greedyExe = 'greedy.exe'
@@ -1239,6 +1240,7 @@ class registrationLogic(ScriptedLoadableModuleLogic):
 
 			self.niftyBinDir = os.path.join(self.scriptPath, 'resources', 'ext_libs', 'niftyReg', 'linux', 'bin')
 			self.niftyExe = 'reg_aladin'
+			self.reg_f3d='reg_f3d'
 			
 			self.greedyBinDir = os.path.join(self.scriptPath, 'resources', 'ext_libs', 'greedy', 'linux')
 			self.greedyExe = 'greedy'
@@ -1268,7 +1270,8 @@ class registrationLogic(ScriptedLoadableModuleLogic):
 			
 			self.niftyBinDir = os.path.join(self.scriptPath, 'resources', 'ext_libs', 'niftyReg', 'osX', 'bin')
 			self.niftyExe = 'reg_aladin'
-			
+			self.reg_f3d='reg_f3d'
+
 			self.greedyBinDir = os.path.join(self.scriptPath, 'resources', 'ext_libs', 'greedy')
 			self.greedyExe = 'greedy.glnxa64'
 
@@ -1957,12 +1960,12 @@ class registrationLogic(ScriptedLoadableModuleLogic):
 				synGradientStep = '0.1,3,0'
 				synMetric = 'MI'
 				synMetricParams = '1,32'
-				synConvergence = "[ 200x50x10x0,1e-6,10 ]"
-				#synConvergence = "[ 100x100x70x50,1e-6,10 ]"
-				synShrinkFactors = "4x4x2x1"
-				#synShrinkFactors = '12x6x4x2x1'
-				synSmoothingSigmas = "2x2x1x1vox"
-				#synSmoothingSigmas = '6x3x2x1x0vox'
+				#synConvergence = "[ 200x50x10x0,1e-6,10 ]"
+				synConvergence = "[ 100x100x70x50,1e-6,10 ]"
+				#synShrinkFactors = "4x4x2x1"
+				synShrinkFactors = '12x6x4x2x1'
+				#synSmoothingSigmas = "2x2x1x1vox"
+				synSmoothingSigmas = '6x3x2x1x0vox'
 
 				
 				tx='Rigid'
@@ -2043,7 +2046,7 @@ class registrationLogic(ScriptedLoadableModuleLogic):
 				if self.regAlgo['regAlgoTemplateParams']['parameters']['dof'] == '6':
 					DOF='-rigOnly'
 				
-				reg_cmd = ' '.join([
+				affine_cmd = ' '.join([
 					f'"{os.path.join(self.niftyBinDir, self.niftyExe)}"',
 					f'-ref "{self.ref_template}"',
 					f'-flo "{fixedVolume}"',
@@ -2053,7 +2056,19 @@ class registrationLogic(ScriptedLoadableModuleLogic):
 					f'-res "{outputVolume}.nii.gz"',
 					'-speeeeed'
 				])
-			
+
+				deform_cmd = ' '.join([
+					f'"{os.path.join(self.niftyBinDir, self.reg_f3d)}"',
+					f'-ref "{self.ref_template}"',
+					f'-flo "{fixedVolume}"',
+					f'-aff "{resultTransformPath}_xfm.txt"',
+					f'-res "{outputVolume}.nii.gz"',
+					f'-cpp "{resultTransformPath}_coreg1Warp.nii.gz"',
+					"-ln 2"
+				])
+				
+				reg_cmd = affine_cmd + '&&' + deform_cmd
+
 			elif self.regAlgo['regAlgoTemplateParams']['regAlgo'] == 'greedy':
 
 				affine_cmd = ' '.join([
@@ -2072,6 +2087,7 @@ class registrationLogic(ScriptedLoadableModuleLogic):
 					f'-it "{resultTransformPath}_coregmatrix.txt"',
 					f'-o "{resultTransformPath}_coreg1Warp.nii.gz"',
 					f'-oinv "{resultTransformPath}_coreg1InverseWarp.nii.gz"',
+					'-sv',
 					f"-n {self.regAlgo['regAlgoTemplateParams']['parameters']['iterations']}",
 					f"-s {self.regAlgo['regAlgoTemplateParams']['parameters']['gradient_sigma']} {self.regAlgo['regAlgoTemplateParams']['parameters']['warp_sigma']}",
 				])
@@ -2091,12 +2107,14 @@ class registrationLogic(ScriptedLoadableModuleLogic):
 			ep=self.run_command(reg_cmd)
 			
 			if self.regAlgo['regAlgoTemplateParams']['regAlgo'] == 'reg_aladin':
-				transformMatrix = self.readRegMatrix(resultTransformPath+'_xfm.txt')
-				vtkTransformMatrix = self.getVTKMatrixFromNumpyMatrix(transformMatrix)
-				resultTransformNode = slicer.mrmlScene.AddNewNodeByClass('vtkMRMLTransformNode')
-				resultTransformNode.SetMatrixTransformFromParent(vtkTransformMatrix)
-				resultTransformNode.SetName(f"{os.path.basename(derivFolder).replace(' ', '_')}_desc-affine_from-subject_to-{self.regAlgo['templateSpace']}_xfm")
-				transformNodeFilename = os.path.join(derivFolderTemp, f"{os.path.basename(derivFolder).replace(' ', '_')}_desc-affine_from-subject_to-{self.regAlgo['templateSpace']}_xfm.tfm")
+				#transformMatrix = self.readRegMatrix(resultTransformPath+'_xfm.txt')
+				#vtkTransformMatrix = self.getVTKMatrixFromNumpyMatrix(transformMatrix)
+				#resultTransformNode = slicer.mrmlScene.AddNewNodeByClass('vtkMRMLTransformNode')
+				#resultTransformNode.SetMatrixTransformFromParent(vtkTransformMatrix)
+				#resultTransformNode.SetName(f"{os.path.basename(derivFolder).replace(' ', '_')}_desc-affine_from-subject_to-{self.regAlgo['templateSpace']}_xfm")
+				
+				resultTransformNode = slicer.util.loadTransform(f"{resultTransformPath}_coreg1Warp.nii.gz")
+				transformNodeFilename = os.path.join(derivFolderTemp, f"{os.path.basename(derivFolder).replace(' ', '_')}_from-subject_to-{self.regAlgo['templateSpace']}_type-composite_xfm.h5")
 				slicer.util.saveNode(resultTransformNode, transformNodeFilename, {'useCompression': False})
 			
 			elif self.regAlgo['regAlgoTemplateParams']['regAlgo'] == 'greedy':

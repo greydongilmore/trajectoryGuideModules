@@ -1243,7 +1243,7 @@ class preopPlanningWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 			self.ProbeEyeVolume = slicer.util.getNode(layoutManager.sliceWidget('Red').sliceLogic().GetSliceCompositeNode().GetBackgroundVolumeID())
 			self.ProbeEyeVolumeSpacing = self.ProbeEyeVolume.GetSpacing()
 			self.ProbeMagVec=mag_vec(self.ProbeEntryPoint, self.ProbeTargetPoint)
-			self.ProbeNormVec=norm_vec(self.ProbeEntryPoint, self.ProbeTargetPoint)
+			self.ProbeNormVec=norm_vec(self.ProbeTargetPoint,self.ProbeEntryPoint)
 			self.ui.trajectoryLen.value = self.ProbeMagVec
 			self.ui.MRMLSliderWidget.minimum = -1 * (self.ProbeMagVec + 30)
 			self.ui.MRMLSliderWidget.maximum = 20
@@ -1273,42 +1273,57 @@ class preopPlanningWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 		# Create vtk Transform
 		vtkTransform = vtk.vtkTransform()
 		vtkTransform.Translate(self.ProbeEyeModelNewPoint)
+		
+		entryTargetDirection = self.ProbeEntryPoint-self.ProbeEyeModelNewPoint
+		vtk.vtkMath().Normalize(entryTargetDirection)
+		superiorInferiorDirection = np.array([0,0,1])
 
-		arcAngle, ringAngle = frame_angles(self.ProbeTargetPoint,self.ProbeEntryPoint)
-		print(arcAngle, ringAngle)
-		# Get ring and arc directions
-		if mounting == 'lateral-right':
-			if arcAngle<45 and 180-ringAngle<45:
-				initDirection = [0, 1, 0]
-				ringDirection = [1, 0, 0]
-				arcDirection =  [0, np.sin(np.deg2rad(ringAngle)), -np.cos(np.deg2rad(ringAngle))]
-				vtkTransform.RotateWXYZ(arcAngle, arcDirection[0], arcDirection[1], arcDirection[2])
-			else:
-				initDirection = [0, 1, 0]
-				ringDirection = [1, 0, 0]
-				arcDirection =  [0, -np.sin(np.deg2rad(ringAngle)), np.cos(np.deg2rad(ringAngle))]
-				vtkTransform.RotateWXYZ(arcAngle, arcDirection[0], arcDirection[1], arcDirection[2])
-		elif mounting == 'lateral-left':
-			initDirection = [0, -1, 0]
-			ringDirection = [-1, 0, 0]
-			arcDirection  = [0, np.sin(np.deg2rad(ringAngle)), np.cos(np.deg2rad(ringAngle))]
-			vtkTransform.RotateWXYZ(arcAngle, arcDirection[0], arcDirection[1], arcDirection[2])
-		elif mounting == 'sagittal-anterior':
-			initDirection = [-1, 0, 0]
-			ringDirection = [0, 1, 0]
-			arcDirection  = [np.sin(np.deg2rad(ringAngle)), 0, np.cos(np.deg2rad(ringAngle))]
-			vtkTransform.RotateWXYZ(arcAngle, arcDirection[0], arcDirection[1], arcDirection[2])
+		ang_deg = np.rad2deg(np.arccos(vtk.vtkMath().Dot(entryTargetDirection, superiorInferiorDirection)))
+		cross = np.zeros(3)
+		vtk.vtkMath().Cross(entryTargetDirection, superiorInferiorDirection, cross)
 
-		elif mounting == 'sagittal-posterior':
-			initDirection = [1, 0, 0]
-			ringDirection = [0, -1, 0]
-			arcDirection  = [-np.sin(np.deg2rad(ringAngle)), 0, np.cos(np.deg2rad(ringAngle))]
-			vtkTransform.RotateWXYZ(arcAngle, arcDirection[0], arcDirection[1], arcDirection[2])
+		if vtk.vtkMath().Dot(cross,superiorInferiorDirection) >= 0:
+			ang_deg = -1 * ang_deg
 
-		vtkTransform.RotateWXYZ(ringAngle, ringDirection[0], ringDirection[1], ringDirection[2])
-		vtkTransform.RotateWXYZ(90, initDirection[0], initDirection[1], initDirection[2])
+		vtkTransform.RotateWXYZ(0, entryTargetDirection[0], entryTargetDirection[1], entryTargetDirection[2])
+		vtkTransform.RotateWXYZ(ang_deg, cross[0], cross[1], cross[2])
 
 		self.probeEyeTransformNode.SetAndObserveTransformToParent(vtkTransform)
+
+		#print(arcAngle, ringAngle)
+		## Get ring and arc directions
+		#if mounting == 'lateral-right':
+		#	if arcAngle<45 and (180-ringAngle)<45:
+		#		initDirection = [0, 1, 0]
+		#		ringDirection = [1, 0, 0]
+		#		arcDirection =  [0, np.sin(np.deg2rad((180-ringAngle))), np.cos(np.deg2rad((180-ringAngle)))]
+		#		vtkTransform.RotateWXYZ(arcAngle, arcDirection[0], arcDirection[1], arcDirection[2])
+		#	else:
+		#		initDirection = [0, 1, 0]
+		#		ringDirection = [1, 0, 0]
+		#		arcDirection =  [0, -np.sin(np.deg2rad(ringAngle)), np.cos(np.deg2rad(ringAngle))]
+		#		vtkTransform.RotateWXYZ(arcAngle, arcDirection[0], arcDirection[1], arcDirection[2])
+		#elif mounting == 'lateral-left':
+		#	initDirection = [0, -1, 0]
+		#	ringDirection = [-1, 0, 0]
+		#	arcDirection  = [0, np.sin(np.deg2rad(ringAngle)), np.cos(np.deg2rad(ringAngle))]
+		#	vtkTransform.RotateWXYZ(arcAngle, arcDirection[0], arcDirection[1], arcDirection[2])
+		#elif mounting == 'sagittal-anterior':
+		#	initDirection = [-1, 0, 0]
+		#	ringDirection = [0, 1, 0]
+		#	arcDirection  = [np.sin(np.deg2rad(ringAngle)), 0, np.cos(np.deg2rad(ringAngle))]
+		#	vtkTransform.RotateWXYZ(arcAngle, arcDirection[0], arcDirection[1], arcDirection[2])
+#
+		#elif mounting == 'sagittal-posterior':
+		#	initDirection = [1, 0, 0]
+		#	ringDirection = [0, -1, 0]
+		#	arcDirection  = [-np.sin(np.deg2rad(ringAngle)), 0, np.cos(np.deg2rad(ringAngle))]
+		#	vtkTransform.RotateWXYZ(arcAngle, arcDirection[0], arcDirection[1], arcDirection[2])
+#
+		#vtkTransform.RotateWXYZ(ringAngle, ringDirection[0], ringDirection[1], ringDirection[2])
+		#vtkTransform.RotateWXYZ(90, initDirection[0], initDirection[1], initDirection[2])
+
+		
 	
 	def onSpinBoxValueChanged(self, newValue):
 		if self.ui.probeEyeModelCBox.currentNode() is not None:

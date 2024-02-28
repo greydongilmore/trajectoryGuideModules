@@ -901,7 +901,11 @@ class dataViewWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 			for item in [x for x in slicer.util.getNodesByClass('vtkMRMLModelNode') if 'desc-' + objectType in x.GetName().lower()]:
 				item.GetDisplayNode().SetColor(hex2rgb(str(colorButton.color)))
 		else:
-			side = button.text
+
+			side = 'Left' if button.text =='L' else 'Right'
+			
+			print(button.text)
+			print(objectType + 'Model' + viewType + 'Vis' + side)
 			checkbox = self.uiWidget.findChild(qt.QCheckBox, objectType + 'Model' + viewType + 'Vis' + side)
 
 			if checkbox.isChecked():

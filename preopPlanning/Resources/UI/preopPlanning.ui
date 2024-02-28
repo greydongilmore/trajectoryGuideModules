@@ -3562,7 +3562,7 @@
                <bool>false</bool>
               </property>
               <property name="invertedControls">
-               <bool>false</bool>
+               <bool>true</bool>
               </property>
              </widget>
             </item>
@@ -3998,9 +3998,9 @@
  <resources/>
  <connections/>
  <buttongroups>
-  <buttongroup name="planShowMERTracksButtonGroup"/>
   <buttongroup name="planShowLeadButtonGroup"/>
-  <buttongroup name="originPointButtonGroup"/>
   <buttongroup name="merOrientationButtonGroup"/>
+  <buttongroup name="planShowMERTracksButtonGroup"/>
+  <buttongroup name="originPointButtonGroup"/>
  </buttongroups>
 </ui>

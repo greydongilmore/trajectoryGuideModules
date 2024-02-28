@@ -1,5 +1,5 @@
 {
-    "default_dir": "/home/greydon/Documents/data/uhn_frame/greydon/deriv/trajGuide/bids",
+    "default_dir": "/home/greydon/Documents/datasets/SEEG_peds/derivatives/trajGuide/bids",
     "surgical_targets": [
         "STN",
         "GPi",
