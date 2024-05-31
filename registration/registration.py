@@ -2073,7 +2073,7 @@ class registrationLogic(ScriptedLoadableModuleLogic):
 
 				affine_cmd = ' '.join([
 					f'"{os.path.join(self.greedyBinDir, self.greedyExe)}" -d 3 -threads 4',
-					f"-a -ia-image-centers",
+					f"-a -dof 12 -ia-image-centers",
 					f"-m {self.regAlgo['regAlgoTemplateParams']['parameters']['metric']}",
 					f'-i "{self.ref_template}" "{fixedVolume}"',
 					f'-o "{resultTransformPath}_coregmatrix.txt"',
@@ -2087,7 +2087,6 @@ class registrationLogic(ScriptedLoadableModuleLogic):
 					f'-it "{resultTransformPath}_coregmatrix.txt"',
 					f'-o "{resultTransformPath}_coreg1Warp.nii.gz"',
 					f'-oinv "{resultTransformPath}_coreg1InverseWarp.nii.gz"',
-					'-sv',
 					f"-n {self.regAlgo['regAlgoTemplateParams']['parameters']['iterations']}",
 					f"-s {self.regAlgo['regAlgoTemplateParams']['parameters']['gradient_sigma']} {self.regAlgo['regAlgoTemplateParams']['parameters']['warp_sigma']}",
 				])
@@ -2119,6 +2118,22 @@ class registrationLogic(ScriptedLoadableModuleLogic):
 			
 			elif self.regAlgo['regAlgoTemplateParams']['regAlgo'] == 'greedy':
 				
+				#transformNodeFilename_lps = os.path.join(derivFolderTemp, f"{os.path.basename(derivFolder).replace(' ', '_')}_desc-affine_from-subject_to-{self.regAlgo['templateSpace']}_xfm.txt")
+#
+				#transformMatrix = np.loadtxt(resultTransformPath+'_coregmatrix.txt')
+				#lps2ras=np.diag([-1, -1, 1, 1])
+				#ras2lps=np.diag([-1, -1, 1, 1])
+				#transform_lps=np.dot(ras2lps, np.dot(transformMatrix,lps2ras))
+#
+				#np.savetxt(transformNodeFilename_lps, transform_lps)
+				#
+				#vtkMatrix = self.getVTKMatrixFromNumpyMatrix(transform_lps)
+				#resultTransformNode = slicer.mrmlScene.AddNewNodeByClass('vtkMRMLTransformNode')
+				#resultTransformNode.SetMatrixTransformFromParent(vtkMatrix)
+				#resultTransformNode.SetName(f"{os.path.basename(derivFolder).replace(' ', '_')}_desc-rigid_from-subject_to-{self.regAlgo['templateSpace']}_xfm")
+				#transformNodeFilename = os.path.join(derivFolderTemp, f"{os.path.basename(derivFolder).replace(' ', '_')}_desc-rigid_from-subject_to-{self.regAlgo['templateSpace']}_xfm.tfm")
+				#slicer.util.saveNode(resultTransformNode, transformNodeFilename, {'useCompression': False})
+
 				transformNodeFilenameNew = os.path.join(derivFolderTemp, f"{os.path.basename(derivFolder).replace(' ', '_')}_from-subject_to-{self.regAlgo['templateSpace']}_type-composite_xfm.nii.gz")
 				
 				convert_cmd=' '.join([

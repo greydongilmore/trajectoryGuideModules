@@ -408,6 +408,50 @@ D0818AM = {
 
 electrodeModels['D08-18AM'] = D0818AM
 
+D0815BM = {
+		'num_groups': 15,
+		'num_contacts': 15,
+		'encapsultation': 0,
+		'diameter': 0.8,
+		'lead_thickness': 0.2,
+		'lead_shift':0,
+		'lead_tail': 15,
+		'contact_thickness': 0.2,
+		'contact_size': 2.0,
+		'contact_inflate': .1,
+		'contact_spacing': [1.5, 1.5, 1.5, 1.5, 7.0, 1.5, 1.5, 1.5, 1.5, 7.0, 1.5, 1.5, 1.5, 1.5],
+		'diameter': 0.8,
+		'electrode_1': [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15],
+		'electrode_2': [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15],
+		'contact_label':['','','','','','','','','','','','','','',''],
+		'lead_type': 'linear',
+		'filename': 'd0815bm'
+	 }
+
+electrodeModels['D08-15BM'] = D0815BM
+
+D0815CM = {
+		'num_groups': 15,
+		'num_contacts': 15,
+		'encapsultation': 0,
+		'diameter': 0.8,
+		'lead_thickness': 0.2,
+		'lead_shift':0,
+		'lead_tail': 15,
+		'contact_thickness': 0.2,
+		'contact_size': 2.0,
+		'contact_inflate': .1,
+		'contact_spacing': [1.5, 1.5, 1.5, 1.5, 11.0, 1.5, 1.5, 1.5, 1.5, 11.0, 1.5, 1.5, 1.5, 1.5],
+		'diameter': 0.8,
+		'electrode_1': [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15],
+		'electrode_2': [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15],
+		'contact_label':['','','','','','','','','','','','','','',''],
+		'lead_type': 'linear',
+		'filename': 'd0815cm'
+	 }
+
+electrodeModels['D08-15CM'] = D0815CM
+
 microelectrodeModels = {
 		'probes':{
 				'AO 3mm MicroMacro 25 above':'alphaomega-neuroprobe_micromacro-3mm_above-25mm.stl',
