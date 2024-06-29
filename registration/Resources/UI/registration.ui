@@ -638,7 +638,7 @@
                <string>NiftyReg  - reg_aladin</string>
               </property>
               <property name="checked">
-               <bool>true</bool>
+               <bool>false</bool>
               </property>
               <attribute name="buttonGroup">
                <string notr="true">regAlgoBG</string>
@@ -1956,7 +1956,7 @@
                <string>greedy</string>
               </property>
               <property name="checked">
-               <bool>false</bool>
+               <bool>true</bool>
               </property>
               <attribute name="buttonGroup">
                <string notr="true">regAlgoBG</string>
@@ -2395,7 +2395,7 @@
             </font>
            </property>
            <property name="currentText">
-            <string/>
+            <string>Select template</string>
            </property>
            <property name="placeholderText">
             <string>Select template</string>
@@ -2458,7 +2458,7 @@
             </font>
            </property>
            <property name="currentText">
-            <string/>
+            <string>Select template volume</string>
            </property>
            <property name="placeholderText">
             <string>Select template volume</string>
@@ -4995,8 +4995,8 @@
  <resources/>
  <connections/>
  <buttongroups>
-  <buttongroup name="regAlgoBG"/>
-  <buttongroup name="regAlgoTemplateBG"/>
   <buttongroup name="histMatchBG"/>
+  <buttongroup name="regAlgoTemplateBG"/>
+  <buttongroup name="regAlgoBG"/>
  </buttongroups>
 </ui>

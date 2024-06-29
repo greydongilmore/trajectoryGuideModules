@@ -625,10 +625,12 @@ class dataViewWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
 			viewNodes = slicer.util.getNodesByClass('vtkMRMLAbstractViewNode')
 			for viewNode in viewNodes:
-				viewNode.SetOrientationMarkerType(slicer.vtkMRMLAbstractViewNode.OrientationMarkerTypeCube)
+				if viewNode.GetName() not in ('Red','Green','Yellow'):
+					viewNode.SetOrientationMarkerType(slicer.vtkMRMLAbstractViewNode.OrientationMarkerTypeCube)
 
 		if button.text == 'No':
 
+			self.ui.templateAtlasCB.clear()
 			self.ui.templateModelsVisGB.collapsed = 1
 			models = [x for x in slicer.util.getNodesByClass('vtkMRMLModelNode') if not slicer.vtkMRMLSliceLogic.IsSliceModelNode(x)]
 			for imodel in models:

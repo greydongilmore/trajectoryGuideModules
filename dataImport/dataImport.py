@@ -271,7 +271,9 @@ class dataImportWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 				self.patient_data_directory=self.ui.directoryLabel.text
 
 		if self.patient_data_directory is not None:
+			self.ui.LoadScansButton.blockSignals(1)
 			self.logic.importData(self.patient_data_directory, self.usePreviousValues, self.RenameScans)
+			self.ui.LoadScansButton.blockSignals(0)
 
 	def setExistingDirectory(self):
 		with open(self._parameterNode.GetParameter('trajectoryGuide_settings'), 'r') as (settings_file):

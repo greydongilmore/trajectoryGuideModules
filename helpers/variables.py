@@ -150,6 +150,46 @@ bsci_nondirectional = {
 electrodeModels['B.Sci. non-directional'] = bsci_nondirectional
 
 
+sjm_directional_005 = {
+		'num_groups': 4,
+		'num_contacts': 8,
+		'encapsultation': 0,
+		'diameter': 1.29,
+		'lead_thickness': 0.2,
+		'lead_shift':0,
+		'lead_tail': 15,
+		'contact_thickness': 0.3,
+		'contact_size': 1.5,
+		'contact_inflate': .05,
+		'contact_spacing': 0.5,
+		'electrode_1': [1,2,3,4,5,6,7,8],
+		'electrode_2': [9,10,11,12,13,14,15,16],
+		'contact_label':['','','','','','','', ''],
+		'lead_type': 'directional',
+		'filename': 'sjmdirectional005'
+	 }
+electrodeModels['SJM Directional 005'] = sjm_directional_005
+
+sjm_directional_015 = {
+		'num_groups': 4,
+		'num_contacts': 8,
+		'encapsultation': 0,
+		'diameter': 1.29,
+		'lead_thickness': 0.2,
+		'lead_shift':0,
+		'lead_tail': 15,
+		'contact_thickness': 0.3,
+		'contact_size': 1.5,
+		'contact_inflate': .05,
+		'contact_spacing': 1.5,
+		'electrode_1': [1,2,3,4,5,6,7,8],
+		'electrode_2': [9,10,11,12,13,14,15,16],
+		'contact_label':['','','','','','','', ''],
+		'lead_type': 'directional',
+		'filename': 'sjmdirectional015'
+	 }
+electrodeModels['SJM Directional 015'] = sjm_directional_015
+
 RD10RSP03 = {
 		'num_groups': 10,
 		'num_contacts': 10,

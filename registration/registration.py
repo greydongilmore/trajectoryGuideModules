@@ -159,7 +159,7 @@ class registrationWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 		#self.ui.antsMetricCB.setCurrentIndex(self.ui.antsMetricCB.findText('CC'))
 		
 		self.ui.fslParametersGB.collapsed = 1
-		self.ui.greedyParametersGB.collapsed = 1
+		self.ui.niftyRegParametersGB.collapsed = 1
 		self.ui.antsParametersGB.collapsed = 1
 		self.ui.antsQuickParametersGB.collapsed = 1
 
