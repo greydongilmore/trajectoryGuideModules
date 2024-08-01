@@ -1242,11 +1242,11 @@ class registrationLogic(ScriptedLoadableModuleLogic):
 			self.niftyExe = 'reg_aladin'
 			self.reg_f3d='reg_f3d'
 			
-			self.greedyBinDir = os.path.join(self.scriptPath, 'resources', 'ext_libs', 'greedy', 'linux')
-			self.greedyExe = 'greedy'
+			self.greedyBinDir = os.path.join(self.scriptPath, 'resources', 'ext_libs', 'greedy')
+			self.greedyExe = 'greedy.glnxa64'
 
 			self.c3dBinDir = os.path.join(self.scriptPath, 'resources', 'ext_libs', 'c3d')
-			self.c3dExe = 'c3d_affine_tool'
+			self.c3dExe = 'c3d_affine_tool.glnxa64'
 			
 			os.chmod(os.path.join(self.niftyBinDir, self.niftyExe), 511)
 			os.chmod(os.path.join(self.c3dBinDir, self.c3dExe), 511)
@@ -1273,10 +1273,10 @@ class registrationLogic(ScriptedLoadableModuleLogic):
 			self.reg_f3d='reg_f3d'
 
 			self.greedyBinDir = os.path.join(self.scriptPath, 'resources', 'ext_libs', 'greedy')
-			self.greedyExe = 'greedy.glnxa64'
+			self.greedyExe = 'greedy.maci64'
 
 			self.c3dBinDir = os.path.join(self.scriptPath, 'resources', 'ext_libs', 'c3d')
-			self.c3dExe = 'c3d_affine_tool'
+			self.c3dExe = 'c3d_affine_tool.maci64'
 
 	def getParameterNode(self, replace=False):
 		"""Get the registration parameter node.
