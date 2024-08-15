@@ -44,7 +44,7 @@ medtronic_3387 = {
 		'electrode_2': [8,9,10,11],
 		'contact_label':['','','',''],
 		'lead_type': 'linear',
-		'filename': '3387'
+		'filename': 'mdt3387'
 	 }
 electrodeModels['Medtronic 3387'] = medtronic_3387
 
@@ -64,11 +64,11 @@ medtronic_3389 = {
 		'electrode_2': [8,9,10,11],
 		'contact_label':['','','',''],
 		'lead_type': 'linear',
-		'filename': '3389'
+		'filename': 'mdt3389'
 	 }
 electrodeModels['Medtronic 3389'] = medtronic_3389
 
-medtronic_33005 = {
+medtronic_sensight_33005 = {
 		'num_groups': 4,
 		'num_contacts': 8,
 		'encapsultation': 1.0,
@@ -84,11 +84,12 @@ medtronic_33005 = {
 		'electrode_2': [8,9,10,11,12,13,14,15],
 		'contact_label':['','','',''],
 		'lead_type': 'directional',
-		'filename': '33005'
+		'filename': 'mdtsensight33005'
 	 }
-electrodeModels['Medtronic 33005'] = medtronic_33005
+electrodeModels['Medtronic Sensight 33005'] = medtronic_sensight_33005
+electrodeModels['Medtronic 33005'] = medtronic_sensight_33005
 
-medtronic_33015 = {
+medtronic_sensight_33015 = {
 		'num_groups': 4,
 		'num_contacts': 8,
 		'encapsultation': 1.0,
@@ -104,11 +105,12 @@ medtronic_33015 = {
 		'electrode_2': [8,9,10,11,12,13,14,15],
 		'contact_label':['','','',''],
 		'lead_type': 'directional',
-		'filename': '33015'
+		'filename': 'mdtsensight33015'
 	 }
-electrodeModels['Medtronic 33015'] = medtronic_33015
+electrodeModels['Medtronic Sensight 33015'] = medtronic_sensight_33015
+electrodeModels['Medtronic 33015'] = medtronic_sensight_33015
 
-bsci_directional = {
+bsci_directional_2202 = {
 		'num_groups': 4,
 		'num_contacts': 8,
 		'encapsultation': 0,
@@ -124,11 +126,12 @@ bsci_directional = {
 		'electrode_2': [9,10,11,12,13,14,15,16],
 		'contact_label':['','seg ','seg ','seg ','seg ','seg ','seg ', ''],
 		'lead_type': 'directional',
-		'filename': 'directional'
+		'filename': 'bsci2202'
 	 }
-electrodeModels['B.Sci. directional'] = bsci_directional
+electrodeModels['BSci directional 2202'] = bsci_directional_2202
+electrodeModels['B.Sci. directional'] = bsci_directional_2202
 
-bsci_nondirectional = {
+bsci_nondirectional_2201 = {
 		'num_groups': 8,
 		'num_contacts': 8,
 		'encapsultation': 1.1,
@@ -144,16 +147,17 @@ bsci_nondirectional = {
 		'electrode_2': [9,10,11,12,13,14,15,16],
 		'contact_label':['','','','','','','', ''],
 		'lead_type': 'linear',
-		'filename': 'nondirectional'
+		'filename': 'bsci2201'
 	 }
 
-electrodeModels['B.Sci. non-directional'] = bsci_nondirectional
+electrodeModels['BSci nondirectional 2201'] = bsci_nondirectional_2201
+electrodeModels['B.Sci. nondirectional'] = bsci_nondirectional_2201
 
 
-sjm_directional_005 = {
+abt_directional_6172 = {
 		'num_groups': 4,
 		'num_contacts': 8,
-		'encapsultation': 0,
+		'encapsultation': 1,
 		'diameter': 1.29,
 		'lead_thickness': 0.2,
 		'lead_shift':0,
@@ -166,14 +170,14 @@ sjm_directional_005 = {
 		'electrode_2': [9,10,11,12,13,14,15,16],
 		'contact_label':['','','','','','','', ''],
 		'lead_type': 'directional',
-		'filename': 'sjmdirectional005'
+		'filename': 'abtdirectional6172'
 	 }
-electrodeModels['SJM Directional 005'] = sjm_directional_005
+electrodeModels['ABT Directional 6172'] = abt_directional_6172
 
-sjm_directional_015 = {
+abt_directional_6173 = {
 		'num_groups': 4,
 		'num_contacts': 8,
-		'encapsultation': 0,
+		'encapsultation': 1,
 		'diameter': 1.29,
 		'lead_thickness': 0.2,
 		'lead_shift':0,
@@ -186,9 +190,9 @@ sjm_directional_015 = {
 		'electrode_2': [9,10,11,12,13,14,15,16],
 		'contact_label':['','','','','','','', ''],
 		'lead_type': 'directional',
-		'filename': 'sjmdirectional015'
+		'filename': 'abtdirectional6173'
 	 }
-electrodeModels['SJM Directional 015'] = sjm_directional_015
+electrodeModels['ABT Directional 6173'] = abt_directional_6173
 
 RD10RSP03 = {
 		'num_groups': 10,

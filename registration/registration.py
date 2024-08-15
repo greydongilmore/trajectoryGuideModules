@@ -1039,6 +1039,7 @@ class registrationWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 		self.regAlgo['registerTemplate']=registerTemplate
 		self.regAlgo['templateSpace']=templateSpace
 		self.regAlgo['regAlgoTemplateParams']=regAlgoTemplate
+		self.regAlgo['regAlgoTemplateParams']['tplSuffix']='T1w'
 		if self.ui.templateVolCB.currentText != 'Select template volume' and self.ui.templateVolCB.currentText != 'None':
 			self.regAlgo['regAlgoTemplateParams']['tplSuffix']=self.ui.templateVolCB.currentText
 
@@ -1723,6 +1724,7 @@ class registrationLogic(ScriptedLoadableModuleLogic):
 			logText = 'Register volumes {} of {}: {} to {}'.format(str(cnt), str(len(movingVolumeNode)), ivol[0].GetName(), fixedVolumeNode[0].GetName())
 			cnt += 1
 			#ep=self.startReg(reg_cmd, logText, self.regAlgo)
+			print(reg_cmd)
 			ep=self.run_command(reg_cmd)
 						
 			if 'acq-' in ivol[0].GetName().lower():
@@ -1963,9 +1965,9 @@ class registrationLogic(ScriptedLoadableModuleLogic):
 				#synConvergence = "[ 200x50x10x0,1e-6,10 ]"
 				synConvergence = "[ 100x100x70x50,1e-6,10 ]"
 				#synShrinkFactors = "4x4x2x1"
-				synShrinkFactors = '12x6x4x2x1'
+				synShrinkFactors = '12x6x4x1'
 				#synSmoothingSigmas = "2x2x1x1vox"
-				synSmoothingSigmas = '6x3x2x1x0vox'
+				synSmoothingSigmas = '6x3x1x0vox'
 
 				
 				tx='Rigid'
@@ -1974,7 +1976,7 @@ class registrationLogic(ScriptedLoadableModuleLogic):
 
 				rigidStage=' '.join([
 					f"--initial-moving-transform '[{self.ref_template},{fixedVolume},1]'",
-					f"--transform {tx}[{rigidGradientStep}]",
+					f"--transform '{tx}[{rigidGradientStep}]'",
 					f"--metric '{rigidMetric}[{self.ref_template},{fixedVolume},{rigidMetricParams}]'",
 					f"--convergence {rigidConvergence}",
 					f"--shrink-factors {rigidShrinkFactors}",
@@ -1990,7 +1992,7 @@ class registrationLogic(ScriptedLoadableModuleLogic):
 				])
 
 				synStage=' '.join([
-					f'--metric {synMetric}["{self.ref_template}","{fixedVolume}",{synMetricParams}]',
+					f"--metric '{synMetric}[{self.ref_template},{fixedVolume},{synMetricParams}]'",
 					f"--convergence {synConvergence}",
 					f"--shrink-factors {synShrinkFactors}",
 					f"--smoothing-sigmas {synSmoothingSigmas}"
@@ -1998,7 +2000,7 @@ class registrationLogic(ScriptedLoadableModuleLogic):
 
 				if any(transform == self.regAlgo['regAlgoTemplateParams']['parameters']['transform'] for transform in ('sr','br')):
 					synStage=' '.join([
-						f'--metric MI["{self.ref_template}","{fixedVolume}",{synMetricParams}]',
+						f"--metric 'MI[{self.ref_template},{fixedVolume},{synMetricParams}]'",
 						f"--convergence [50x0,1e-6,10]",
 						f"--shrink-factors 2x1",
 						f"--smoothing-sigmas 1x0vox"
@@ -2029,10 +2031,10 @@ class registrationLogic(ScriptedLoadableModuleLogic):
 					'--dimensionality 3',
 					'--float 1',
 					f"--collapse-output-transforms {collapseOutputTransforms}",
-					f'--output ["{resultTransformPath}_coreg","{outputVolume}.nii.gz"]',
+					f"--output '[{resultTransformPath}_coreg,{outputVolume}.nii.gz]'",
 					f"--interpolation {self.regAlgo['regAlgoTemplateParams']['parameters']['interpolation']}",
 					f"--use-histogram-matching {self.regAlgo['regAlgoTemplateParams']['parameters']['histMatch']}",
-					'--winsorize-image-intensities [0.005,0.995]',
+					'--winsorize-image-intensities [ 0.005,0.995 ]',
 					'--write-composite-transform 1',
 					stages
 				])
@@ -2103,6 +2105,7 @@ class registrationLogic(ScriptedLoadableModuleLogic):
 			
 			logText = f"Registering {fixedVolumeNode[0].GetName()} to {self.regAlgo['templateSpace']} space"
 			#ep=self.startReg(reg_cmd, logText, self.regAlgo['regAlgoTemplateParams'])
+			print(reg_cmd)
 			ep=self.run_command(reg_cmd)
 			
 			if self.regAlgo['regAlgoTemplateParams']['regAlgo'] == 'reg_aladin':
