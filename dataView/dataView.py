@@ -97,7 +97,7 @@ class dataViewWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
 		templateSpaces = sorted([x.split('tpl-')[(-1)] for x in os.listdir(default_template_path) if os.path.isdir(os.path.join(default_template_path, x))])
 		self.ui.templateSpaceCB.blockSignals(1)
-		self.ui.templateSpaceCB.addItems(templateSpaces)
+		self.ui.templateSpaceCB.addItems(sorted(list(set(templateSpaces))))
 		#self.ui.templateSpaceCB.setCurrentIndex(self.ui.templateSpaceCB.findText(defaultTemplateSpace))
 		self.ui.templateSpaceCB.blockSignals(0)
 		
@@ -325,9 +325,9 @@ class dataViewWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 				#modelGridLayout.addWidget(mainLabel,0,0,1,1)
 			
 			atlas_path = os.path.join(self._parameterNode.GetParameter('trajectoryGuidePath'), 'resources', 'ext_libs', 'space', 'tpl-' + space, 'atlases')
-			templateAtlases = [x for x in os.listdir(atlas_path) if os.path.isdir(os.path.join(atlas_path, x))]
+			templateAtlases = sorted([x for x in os.listdir(atlas_path) if os.path.isdir(os.path.join(atlas_path, x))])
 			self.ui.templateAtlasCB.blockSignals(1)
-			self.ui.templateAtlasCB.addItems(templateAtlases)
+			self.ui.templateAtlasCB.addItems(sorted(list(set(templateAtlases))))
 			self.ui.templateAtlasCB.blockSignals(0)
 
 	def setupModelWigets(self):

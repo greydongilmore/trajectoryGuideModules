@@ -222,7 +222,7 @@ class registrationWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 		self.ui.compareVolumesButton.connect('clicked(bool)', self.onCompareVolumes)
 		self.ui.layerRevealCheckBox.connect('toggled(bool)', self.onlayerRevealCheckBox)
 
-		templateSpaces = [x.split('tpl-')[(-1)] for x in os.listdir(os.path.join(self._parameterNode.GetParameter('trajectoryGuidePath'), 'resources', 'ext_libs', 'space')) if os.path.isdir(os.path.join(self._parameterNode.GetParameter('trajectoryGuidePath'), 'resources', 'ext_libs', 'space', x))]
+		templateSpaces = sorted([x.split('tpl-')[(-1)] for x in os.listdir(os.path.join(self._parameterNode.GetParameter('trajectoryGuidePath'), 'resources', 'ext_libs', 'space')) if os.path.isdir(os.path.join(self._parameterNode.GetParameter('trajectoryGuidePath'), 'resources', 'ext_libs', 'space', x))])
 		self.ui.templateSpaceCB.addItems(['None']+templateSpaces)
 		self.ui.templateSpaceCB.setCurrentIndex(self.ui.templateSpaceCB.findText('None'))
 		self.ui.templateSpaceCB.connect('currentIndexChanged(int)', self.onTemplateSpaceCB)
