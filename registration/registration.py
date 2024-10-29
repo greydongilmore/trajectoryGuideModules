@@ -867,6 +867,15 @@ class registrationWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 			self.frameVolume.SetAttribute('regVol', '0')
 
 	def getRegParameters(self,regAlgorithm,templateParams=False):
+		antsTransform = {
+				'Rig':'r', 
+				'Rig+Affine': 'a',
+				'Rig+Affine+Syn': 's',
+				'Rig+Syn': 'sr',
+				'Rig+Affine+BSpline Syn':'b',
+				'Rig+BSpline Syn':'br',
+			}
+
 		if regAlgorithm.startswith('flirtRegAlgo'):
 			interp = {
 				'TriLinear':'trilinear', 
@@ -912,6 +921,16 @@ class registrationWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 				}
 			}
 		elif regAlgorithm.startswith('greedyAlgo'):
+			svModel = 0
+			if templateParams:
+				children = self.ui.greedyParametersTemplateGB.findChildren('QRadioButton')
+			
+				for i in children:
+					if i.isChecked():
+						if i.text == 'Yes':
+							svModel = 1
+						else:
+							svModel = 0
 			DOF = {
 				'6': '6', 
 				'12': '12'
@@ -930,6 +949,7 @@ class registrationWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 					'metric': metric_params[self.ui.greedyMetricCB.currentText] if not templateParams else metric_params[self.ui.greedyMetricTemplateCB.currentText],
 					'gradient_sigma':  self.ui.greedyGradientSigmaTemplate.text if templateParams else None,
 					'warp_sigma':  self.ui.greedyWarpSigmaTemplate.text if templateParams else None,
+					'svModel': svModel
 				}
 			}
 		elif regAlgorithm.startswith('antsAlgo'):
@@ -947,6 +967,7 @@ class registrationWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 			regAlgo = {
 				'regAlgo':'antsRegistration',
 				'parameters':{
+					'transform': antsTransform[self.ui.antsTransformTypeCB.currentText],
 					'gradientstep': self.ui.gradientStepSB.value if not templateParams else self.ui.gradientStepTemplateSB.value,
 					'interpolation': interp[self.ui.antsInterpCB.currentText] if not templateParams else interp[self.ui.antsInterpTemplateCB.currentText],
 					'metric': self.ui.antsMetricCB.currentText if not templateParams else self.ui.antsMetricTemplateCB.currentText,
@@ -974,18 +995,10 @@ class registrationWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 				'BSpline': 'BSpline[3]',
 				'GenericLabel':'GenericLabel[Linear]'
 			}
-			transform = {
-				'Rig':'r', 
-				'Rig+Affine': 'a',
-				'Rig+Affine+Syn': 's',
-				'Rig+Syn': 'sr',
-				'Rig+Affine+BSpline Syn':'b',
-				'Rig+BSpline Syn':'br',
-			}
 			regAlgo = {
 				'regAlgo':'antsRegistrationQuick',
 				'parameters':{
-					'transform': transform[self.ui.antsQuickTransformTypeCB.currentText] if not templateParams else transform[self.ui.transformTypeTemplateCB.currentText],
+					'transform': antsTransform[self.ui.antsQuickTransformTypeCB.currentText] if not templateParams else antsTransform[self.ui.transformTypeTemplateCB.currentText],
 					'interpolation': interp[self.ui.antsQuickInterpCB.currentText] if not templateParams else interp[self.ui.antsQuickInterpTemplateCB.currentText],
 					'num_threads': self.ui.antsQuickNumThreads.value if not templateParams else self.ui.numThreadsTemplate.value,
 					'histMatch': histMatch
@@ -1609,6 +1622,21 @@ class registrationLogic(ScriptedLoadableModuleLogic):
 					f"--smoothing-sigmas {self.regAlgo['parameters']['smoothing-sigmas']}"
 				])
 
+				affineStage=' '.join([
+					f"--transform 'Affine[0.1]'",
+					f'--metric MI["{fixedVolume}","{movingVolume}",1,32,Regular,0.25 ]',
+					f"--convergence [ {self.regAlgo['parameters']['convergence']} ]",
+					f"--shrink-factors {self.regAlgo['parameters']['shrink-factors']}",
+					f"--smoothing-sigmas {self.regAlgo['parameters']['smoothing-sigmas']}"
+				])
+
+				if any(transform == self.regAlgo['parameters']['transform'] for transform in ("r","t")):
+					stages=f"{rigidStage}"
+					numRegStages=1
+				elif self.regAlgo['parameters']['transform'] == "a":
+					stages=f"{rigidStage} {affineStage}"
+					numRegStages=2
+
 				reg_cmd = ' '.join([
 					f'"{os.path.join(self.antsBinDir, self.antsExe)}"',
 					'--verbose 1',
@@ -1620,7 +1648,7 @@ class registrationLogic(ScriptedLoadableModuleLogic):
 					'--use-histogram-matching 1',
 					'--winsorize-image-intensities [0.005,0.995]',
 					'--write-composite-transform 1',
-					rigidstage
+					stages
 				])
 
 			elif self.regAlgo['regAlgo'] == 'antsRegistrationQuick':
@@ -1724,7 +1752,6 @@ class registrationLogic(ScriptedLoadableModuleLogic):
 			logText = 'Register volumes {} of {}: {} to {}'.format(str(cnt), str(len(movingVolumeNode)), ivol[0].GetName(), fixedVolumeNode[0].GetName())
 			cnt += 1
 			#ep=self.startReg(reg_cmd, logText, self.regAlgo)
-			print(reg_cmd)
 			ep=self.run_command(reg_cmd)
 						
 			if 'acq-' in ivol[0].GetName().lower():
@@ -2093,6 +2120,9 @@ class registrationLogic(ScriptedLoadableModuleLogic):
 					f"-s {self.regAlgo['regAlgoTemplateParams']['parameters']['gradient_sigma']} {self.regAlgo['regAlgoTemplateParams']['parameters']['warp_sigma']}",
 				])
 
+				if self.regAlgo['regAlgoTemplateParams']['parameters']['svModel'] == 1:
+					deform_cmd=deform_cmd+' -sv'
+				
 				warp_cmd = ' '.join([
 					f'"{os.path.join(self.greedyBinDir, self.greedyExe)}"',
 					'-d 3',
