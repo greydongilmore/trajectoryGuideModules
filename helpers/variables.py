@@ -496,6 +496,183 @@ D0815CM = {
 
 electrodeModels['D08-15CM'] = D0815CM
 
+
+NSEEG2708 = {
+		'num_groups': 8,
+		'num_contacts': 8,
+		'encapsultation': 0,
+		'diameter': 0.8,
+		'lead_thickness': 0.2,
+		'lead_shift':0,
+		'lead_tail': 15,
+		'contact_thickness': 0.2,
+		'contact_size': 2.0,
+		'contact_inflate': .1,
+		'contact_spacing': [1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5],
+		'diameter': 0.8,
+		'electrode_1': [1,2,3,4,5,6,7,8],
+		'electrode_2': [1,2,3,4,5,6,7,8],
+		'contact_label':['','','','','','','',''],
+		'lead_type': 'linear',
+		'filename': 'nseeg2708'
+	 }
+
+electrodeModels['NSEEG2708'] = NSEEG2708
+
+NSEEG3410 = {
+		'num_groups': 10,
+		'num_contacts': 10,
+		'encapsultation': 0,
+		'diameter': 0.8,
+		'lead_thickness': 0.2,
+		'lead_shift':0,
+		'lead_tail': 15,
+		'contact_thickness': 0.2,
+		'contact_size': 2.0,
+		'contact_inflate': .1,
+		'contact_spacing': [1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5],
+		'diameter': 0.8,
+		'electrode_1': [1,2,3,4,5,6,7,8,9,10],
+		'electrode_2': [1,2,3,4,5,6,7,8,9,10],
+		'contact_label':['','','','','','','','','',''],
+		'lead_type': 'linear',
+		'filename': 'nseeg3410'
+	 }
+
+electrodeModels['NSEEG3410'] = NSEEG3410
+
+NSEEG4112 = {
+		'num_groups': 12,
+		'num_contacts': 12,
+		'encapsultation': 0,
+		'diameter': 0.8,
+		'lead_thickness': 0.2,
+		'lead_shift':0,
+		'lead_tail': 15,
+		'contact_thickness': 0.2,
+		'contact_size': 2.0,
+		'contact_inflate': .1,
+		'contact_spacing': [1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5],
+		'diameter': 0.8,
+		'electrode_1': [1,2,3,4,5,6,7,8,9,10,11,12],
+		'electrode_2': [1,2,3,4,5,6,7,8,9,10,11,12],
+		'contact_label':['','','','','','','','','','','',''],
+		'lead_type': 'linear',
+		'filename': 'nseeg4112'
+	 }
+
+electrodeModels['NSEEG4112'] = NSEEG4112
+
+NSEEG4814 = {
+		'num_groups': 14,
+		'num_contacts': 14,
+		'encapsultation': 0,
+		'diameter': 0.8,
+		'lead_thickness': 0.2,
+		'lead_shift':0,
+		'lead_tail': 15,
+		'contact_thickness': 0.2,
+		'contact_size': 2.0,
+		'contact_inflate': .1,
+		'contact_spacing': [1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5],
+		'diameter': 0.8,
+		'electrode_1': [1,2,3,4,5,6,7,8,9,10,11,12,13,14],
+		'electrode_2': [1,2,3,4,5,6,7,8,9,10,11,12,13,14],
+		'contact_label':['','','','','','','','','','','','','',''],
+		'lead_type': 'linear',
+		'filename': 'nseeg4814'
+	 }
+
+electrodeModels['NSEEG4814'] = NSEEG4814
+
+NSEEG5516 = {
+		'num_groups': 16,
+		'num_contacts': 16,
+		'encapsultation': 0,
+		'diameter': 0.8,
+		'lead_thickness': 0.2,
+		'lead_shift':0,
+		'lead_tail': 15,
+		'contact_thickness': 0.2,
+		'contact_size': 2.0,
+		'contact_inflate': .1,
+		'contact_spacing': [1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5],
+		'diameter': 0.8,
+		'electrode_1': [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16],
+		'electrode_2': [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16],
+		'contact_label':['','','','','','','','','','','','','','','',''],
+		'lead_type': 'linear',
+		'filename': 'nseeg5516'
+	 }
+
+electrodeModels['NSEEG5516-54.5'] = NSEEG5516
+
+NSEEG6216 = {
+		'num_groups': 16,
+		'num_contacts': 16,
+		'encapsultation': 0,
+		'diameter': 0.8,
+		'lead_thickness': 0.2,
+		'lead_shift':0,
+		'lead_tail': 15,
+		'contact_thickness': 0.2,
+		'contact_size': 2.0,
+		'contact_inflate': .1,
+		'contact_spacing': [2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0],
+		'diameter': 0.8,
+		'electrode_1': [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16],
+		'electrode_2': [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16],
+		'contact_label':['','','','','','','','','','','','','','','',''],
+		'lead_type': 'linear',
+		'filename': 'nseeg6216'
+	 }
+
+electrodeModels['NSEEG6216-61.5'] = NSEEG6216
+
+NSEEG6916 = {
+		'num_groups': 16,
+		'num_contacts': 16,
+		'encapsultation': 0,
+		'diameter': 0.8,
+		'lead_thickness': 0.2,
+		'lead_shift':0,
+		'lead_tail': 15,
+		'contact_thickness': 0.2,
+		'contact_size': 2.0,
+		'contact_inflate': .1,
+		'contact_spacing': [2.4, 2.4, 2.4, 2.4, 2.4, 2.4, 2.4, 2.4, 2.4, 2.4, 2.4, 2.4, 2.4, 2.4, 2.4],
+		'diameter': 0.8,
+		'electrode_1': [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16],
+		'electrode_2': [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16],
+		'contact_label':['','','','','','','','','','','','','','','',''],
+		'lead_type': 'linear',
+		'filename': 'nseeg6916'
+	 }
+
+electrodeModels['NSEEG6916-68.5'] = NSEEG6916
+
+NSEEG8016 = {
+		'num_groups': 16,
+		'num_contacts': 16,
+		'encapsultation': 0,
+		'diameter': 0.8,
+		'lead_thickness': 0.2,
+		'lead_shift':0,
+		'lead_tail': 15,
+		'contact_thickness': 0.2,
+		'contact_size': 2.0,
+		'contact_inflate': .1,
+		'contact_spacing': [3.2, 3.2, 3.2, 3.2, 3.2, 3.2, 3.2, 3.2, 3.2, 3.2, 3.2, 3.2, 3.2, 3.2, 3.2],
+		'diameter': 0.8,
+		'electrode_1': [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16],
+		'electrode_2': [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16],
+		'contact_label':['','','','','','','','','','','','','','','',''],
+		'lead_type': 'linear',
+		'filename': 'nseeg8016'
+	 }
+
+electrodeModels['NSEEG8016-80.0'] = NSEEG8016
+
 microelectrodeModels = {
 		'probes':{
 				'AO 3mm MicroMacro 25 above':'alphaomega-neuroprobe_micromacro-3mm_above-25mm.stl',
