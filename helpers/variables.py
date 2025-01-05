@@ -194,6 +194,46 @@ abt_directional_6173 = {
 	 }
 electrodeModels['ABT Directional 6173'] = abt_directional_6173
 
+NP_DL330_35K = {
+		'num_groups': 4,
+		'num_contacts': 4,
+		'encapsultation': 1.1,
+		'diameter': 1.27,
+		'lead_thickness': 0.2,
+		'lead_shift':0,
+		'lead_tail': 15,
+		'contact_thickness': 0.3,
+		'contact_size': 2.0,
+		'contact_inflate': .05,
+		'contact_spacing': 3.5,
+		'electrode_1': [1,2,3,4],
+		'electrode_2': [1,2,3,4],
+		'contact_label':['','','','','','','', ''],
+		'lead_type': 'linear',
+		'filename': 'NPDL33035'
+	 }
+electrodeModels['NP DL-330-3.5'] = NP_DL330_35K
+
+NP_DL330_10K = {
+		'num_groups': 4,
+		'num_contacts': 4,
+		'encapsultation': 1.1,
+		'diameter': 1.27,
+		'lead_thickness': 0.2,
+		'lead_shift':0,
+		'lead_tail': 15,
+		'contact_thickness': 0.3,
+		'contact_size': 2.0,
+		'contact_inflate': .05,
+		'contact_spacing': 10.0,
+		'electrode_1': [1,2,3,4],
+		'electrode_2': [1,2,3,4],
+		'contact_label':['','','','','','','', ''],
+		'lead_type': 'linear',
+		'filename': 'NPDL33010'
+	 }
+electrodeModels['NP DL-330-10'] = NP_DL330_10K
+
 RD10RSP03 = {
 		'num_groups': 10,
 		'num_contacts': 10,
