@@ -7,9 +7,7 @@ dataImport/__pycache__/*.pyc
 */__pycache__/*.pyc
 resources/settings/trajectoryGuide_settings.json
 resources/frames/frame-leksellg_acq-phantom_desc-bone_run-01.nii.gz
-
 resources/ext_libs/greedy-1.2.0/bin/greedy
 resources/ext_libs/greedy-1.2.0/bin/greedy.exe
 resources/settings/trajectoryGuide_settings.json
-resources/ext_libs/space
-resources/ext_libs/space.zip
+
