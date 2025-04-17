@@ -1,5 +1,5 @@
 {
-    "default_dir": "C:\\Users\\greydongilmore\\Documents\\data\\emory\\DBS\\derivatives\\trajGuide\\bids",
+    "default_dir": "/home/greydon/Documents/data/emory_seeg/derivatives/trajGuide/bids",
     "surgical_targets": [
         "STN",
         "GPi",

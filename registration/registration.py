@@ -1642,12 +1642,11 @@ class registrationLogic(ScriptedLoadableModuleLogic):
 					'--verbose 1',
 					'--dimensionality 3',
 					'--float 1',
-					"--collapse-output-transforms 1",
+					"--write-composite-transform ",
 					f'--output ["{resultTransformPath}_coreg","{outputVolume}.nii.gz"]',
 					f"--interpolation {self.regAlgo['parameters']['interpolation']}",
 					'--use-histogram-matching 1',
 					'--winsorize-image-intensities [0.005,0.995]',
-					'--write-composite-transform 1',
 					stages
 				])
 
@@ -1700,12 +1699,11 @@ class registrationLogic(ScriptedLoadableModuleLogic):
 					'--verbose 1',
 					'--dimensionality 3',
 					'--float 1',
-					f"--collapse-output-transforms {collapseOutputTransforms}",
+					f"--write-composite-transform ",
 					f'--output ["{resultTransformPath}_coreg","{outputVolume}.nii.gz"]',
 					f"--interpolation {self.regAlgo['parameters']['interpolation']}",
 					f"--use-histogram-matching {self.regAlgo['parameters']['histMatch']}",
 					'--winsorize-image-intensities [0.005,0.995]',
-					'--write-composite-transform 1',
 					stages
 				])
 
@@ -1955,15 +1953,14 @@ class registrationLogic(ScriptedLoadableModuleLogic):
 					'--verbose 1',
 					'--dimensionality 3',
 					'--float 1',
-					"--collapse-output-transforms 1",
+					"--write-composite-transform ",
 					f'--output ["{resultTransformPath}_coreg","{outputVolume}.nii.gz"]',
 					f"--interpolation {self.regAlgo['regAlgoTemplateParams']['parameters']['interpolation']}",
 					'--use-histogram-matching 1',
 					'--winsorize-image-intensities [ 0.005,0.995 ]',
 					rigidstage,
 					affinestage,
-					synStage,
-					'--write-composite-transform 1',
+					synStage
 				])
 			
 			elif self.regAlgo['regAlgoTemplateParams']['regAlgo'] == 'antsRegistrationQuick':
@@ -2057,12 +2054,11 @@ class registrationLogic(ScriptedLoadableModuleLogic):
 					'--verbose 1',
 					'--dimensionality 3',
 					'--float 1',
-					f"--collapse-output-transforms {collapseOutputTransforms}",
+					f"--write-composite-transform ",
 					f"--output '[{resultTransformPath}_coreg,{outputVolume}.nii.gz]'",
 					f"--interpolation {self.regAlgo['regAlgoTemplateParams']['parameters']['interpolation']}",
 					f"--use-histogram-matching {self.regAlgo['regAlgoTemplateParams']['parameters']['histMatch']}",
 					'--winsorize-image-intensities [ 0.005,0.995 ]',
-					'--write-composite-transform 1',
 					stages
 				])
 				
