@@ -54,7 +54,7 @@ class anatomicalLandmarksWidget(ScriptedLoadableModuleWidget, VTKObservationMixi
 		Called when the user opens the module the first time and the widget is initialized.
 		"""
 		ScriptedLoadableModuleWidget.__init__(self, parent)
-		VTKObservationMixin.__init__(self)  # needed for parameter node observation
+		VTKObservationMixin.__init__(self)	# needed for parameter node observation
 		self.logic = None
 		self._parameterNode = None
 		self._updatingGUIFromParameterNode = False
@@ -328,7 +328,7 @@ class anatomicalLandmarksWidget(ScriptedLoadableModuleWidget, VTKObservationMixi
 		if self._parameterNode is None or self._updatingGUIFromParameterNode:
 			return
 
-		wasModified = self._parameterNode.StartModify()  # Modify all properties in a single batch
+		wasModified = self._parameterNode.StartModify()	# Modify all properties in a single batch
 
 		if self.ui.frameFidVolumeCBox.currentNode() is not None:
 			derivFolder = os.path.dirname(self.ui.frameFidVolumeCBox.currentNode().GetStorageNode().GetFileName())
@@ -713,14 +713,14 @@ class anatomicalLandmarksWidget(ScriptedLoadableModuleWidget, VTKObservationMixi
 							[ -1, 0, 0, -fc[0]],
 							[ 0, 1, 0, -fc[1]],
 							[ 0, 0, -1, -fc[2]],
-							[ 0, 0, 0,   1]
+							[ 0, 0, 0,	 1]
 						])
 						coordsFrame=np.dot(RASToFrame, np.append(crossHairRAS,1))[:3]
 						frameToRAS = np.array([
 							[ 1, 0, 0, 100],
 							[ 0, 1, 0, 100],
 							[ 0, 0, 1, 100],
-							[ 0, 0, 0,   1]
+							[ 0, 0, 0,	 1]
 						])
 						coordsFrame=np.dot(frameToRAS, np.append(coordsFrame,1))[:3]
 					else:
@@ -745,14 +745,14 @@ class anatomicalLandmarksWidget(ScriptedLoadableModuleWidget, VTKObservationMixi
 					[ 1, 0, 0, fc[0]],
 					[ 0, 1, 0, fc[1]],
 					[ 0, 0, 1, fc[2]],
-					[ 0, 0, 0,   1]
+					[ 0, 0, 0,	 1]
 				])
 				coordsRAS=np.dot(RASToFrame, np.append(coordsFrame,1))[:3]
 				frameToRAS = np.array([
 					[ -1, 0, 0, 100],
-					[  0, 1, 0,-100],
-					[  0, 0,-1, 100],
-					[  0, 0, 0,   1]
+					[	0, 1, 0,-100],
+					[	0, 0,-1, 100],
+					[	0, 0, 0,	 1]
 				])
 				coordsRAS=np.dot(frameToRAS, np.append(coordsRAS,1))[:3]
 			else:
@@ -760,7 +760,7 @@ class anatomicalLandmarksWidget(ScriptedLoadableModuleWidget, VTKObservationMixi
 					[ 1, 0, 0, fc[0]],
 					[ 0, 1, 0, fc[1]],
 					[ 0, 0, 1, fc[2]],
-					[ 0, 0, 0,   1]
+					[ 0, 0, 0,	 1]
 				])
 				coordsRAS=np.dot(RASToFrame, np.append(coordsFrame,1))[:3]
 
@@ -784,14 +784,14 @@ class anatomicalLandmarksWidget(ScriptedLoadableModuleWidget, VTKObservationMixi
 						[ -1, 0, 0, -fc[0]],
 						[ 0, 1, 0, -fc[1]],
 						[ 0, 0, -1, -fc[2]],
-						[ 0, 0, 0,   1]
+						[ 0, 0, 0,	 1]
 					])
 					coordsFrame=np.dot(RASToFrame, np.append(crossHairRAS,1))[:3]
 					frameToRAS = np.array([
 						[ 1, 0, 0, 100],
 						[ 0, 1, 0, 100],
 						[ 0, 0, 1, 100],
-						[ 0, 0, 0,   1]
+						[ 0, 0, 0,	 1]
 					])
 					coordsFrame=np.dot(frameToRAS, np.append(coordsFrame,1))[:3]
 				else:
@@ -935,7 +935,7 @@ class anatomicalLandmarksWidget(ScriptedLoadableModuleWidget, VTKObservationMixi
 			coordsystem_file_json['IntendedFor'] = os.path.join(self._parameterNode.GetParameter('derivFolder').split(os.path.sep)[-1],volNode.GetName())
 			coordsystem_file_json['FiducialsCoordinateSystem'] = 'RAS'
 			coordsystem_file_json['FiducialsCoordinateUnits'] = 'mm'
-			coordsystem_file_json['FiducialsCoordinateSystemDescription'] = "RAS orientation: Origin halfway between LPA and RPA, positive x-axis towards RPA, positive y-axis orthogonal to x-axis through Nasion,  z-axis orthogonal to xy-plane, pointing in superior direction."
+			coordsystem_file_json['FiducialsCoordinateSystemDescription'] = "RAS orientation: Origin halfway between LPA and RPA, positive x-axis towards RPA, positive y-axis orthogonal to x-axis through Nasion,	z-axis orthogonal to xy-plane, pointing in superior direction."
 			coordsystem_file_json['FiducialsCoordinates'] = {}
 		else:
 			with open(os.path.join(self._parameterNode.GetParameter('derivFolder'), f"{self._parameterNode.GetParameter('derivFolder').split(os.path.sep)[-1]}_coordsystem.json")) as coordsystem_file:
@@ -1047,6 +1047,11 @@ class anatomicalLandmarksWidget(ScriptedLoadableModuleWidget, VTKObservationMixi
 		acpc_line.AddDefaultStorageNode()
 		acpc_line.GetStorageNode().SetCoordinateSystem(coordSys)
 
+		acpcFid = slicer.mrmlScene.AddNewNodeByClass('vtkMRMLMarkupsFiducialNode')
+		acpcFid.SetName('acpcFid')
+		acpcFid.AddDefaultStorageNode()
+		acpcFid.GetStorageNode().SetCoordinateSystem(coordSys)
+
 		midlineNode = slicer.util.getNode('midline')
 		
 		pcCoords = getPointCoords('pc', 'pc')
@@ -1061,6 +1066,10 @@ class anatomicalLandmarksWidget(ScriptedLoadableModuleWidget, VTKObservationMixi
 		acpc_line.SetNthControlPointLabel(n, 'ac')
 		acpc_line.SetNthControlPointLocked(n, 1)
 
+		n = acpcFid.AddControlPointWorld(vtk.vtkVector3d(acCoords[0], acCoords[1], acCoords[2]))
+		acpcFid.SetNthControlPointLabel(n, 'ac')
+		acpcFid.SetNthControlPointLocked(n, 1)
+
 		n = midlineNode.AddControlPointWorld(vtk.vtkVector3d(acCoords[0], acCoords[1], acCoords[2]))
 		midlineNode.SetNthControlPointLabel(n, 'ac')
 		midlineNode.SetNthControlPointLocked(n, True)
@@ -1069,16 +1078,32 @@ class anatomicalLandmarksWidget(ScriptedLoadableModuleWidget, VTKObservationMixi
 		acpc_line.SetNthControlPointLabel(n, 'pc')
 		acpc_line.SetNthControlPointLocked(n, 1)
 
+		n = acpcFid.AddControlPointWorld(vtk.vtkVector3d(pcCoords[0], pcCoords[1], pcCoords[2]))
+		acpcFid.SetNthControlPointLabel(n, 'pc')
+		acpcFid.SetNthControlPointLocked(n, 1)
+
 		n = midlineNode.AddControlPointWorld(vtk.vtkVector3d(pcCoords[0], pcCoords[1], pcCoords[2]))
 		midlineNode.SetNthControlPointLabel(n, 'pc')
 		midlineNode.SetNthControlPointLocked(n, True)
 		
-		params = {'ACPC':acpc_line, 'Midline':midlineNode,  'OutputTransform':outputTransform}
-		slicer.cli.runSync((slicer.modules.acpctransform), None, params, update_display=True)
+		for ifid in range(midlineNode.GetNumberOfControlPoints()):
+			rasCoord = np.zeros(3)
+			midlineNode.GetNthControlPointPositionWorld(ifid, rasCoord)
+			if 'mid1' in midlineNode.GetNthControlPointLabel(ifid):
+				n = acpcFid.AddControlPointWorld(vtk.vtkVector3d(rasCoord[0], rasCoord[1], rasCoord[2]))
+				acpcFid.SetNthControlPointLabel(n, 'ih')
+				acpcFid.SetNthControlPointLocked(n, True)
+
+		logic = anatomicalLandmarksLogic()
+		logic.run(acpcFid = acpcFid, transformNode = outputTransform)
+
+		#params = {'ACPC':acpc_line, 'Midline':midlineNode,	'OutputTransform':outputTransform}
+		#slicer.cli.runSync((slicer.modules.acpctransform), None, params, update_display=True)
 		slicer.util.saveNode(outputTransform, os.path.join(self._parameterNode.GetParameter('derivFolder'), 'acpc_transform.h5'))
 		
 		self.ui.acpcTransformCBox.setCurrentNode(outputTransform)
 		slicer.mrmlScene.RemoveNode(acpc_line)
+		slicer.mrmlScene.RemoveNode(acpcFid)
 		
 		for ifid in range(midlineNode.GetNumberOfControlPoints()):
 			if 'ac' in midlineNode.GetNthControlPointLabel(ifid):
@@ -1235,7 +1260,7 @@ class anatomicalLandmarksWidget(ScriptedLoadableModuleWidget, VTKObservationMixi
 
 class anatomicalLandmarksLogic(ScriptedLoadableModuleLogic):
 	"""This class should implement all the actual
-	computation done by your module.  The interface
+	computation done by your module.	The interface
 	should be such that other python code can import
 	this class and make use of the functionality without
 	requiring an instance of the Widget.
@@ -1323,6 +1348,78 @@ class anatomicalLandmarksLogic(ScriptedLoadableModuleLogic):
 		addCustomLayouts()
 		slicer.app.layoutManager().setLayout(slicerLayout)
 
+	def getMatrixToACPC(self, ac, pc, ih):
+		# Anteroposterior axis
+		pcAc = ac - pc # Vector of acpc direction
+		yAxis = pcAc / np.linalg.norm(pcAc) # Unit vector of pcAc
+
+		# Lateral axis
+		acIhDir = ih - ac #	Vector in direction of ac ih
+		xAxis = np.cross(yAxis, acIhDir) # cross product, so it's x axis
+		xAxis /= np.linalg.norm(xAxis) # norm of x axis
+
+		# Rostrocaudal axis
+		zAxis = np.cross(xAxis, yAxis) #why? Because acIhDir isn't exactly z axis only
+
+		# Rotation matrix
+		rotation = np.vstack([xAxis, yAxis, zAxis])
+		# AC in rotated space
+
+		# This code is changed from the script repository. The default code moves it to AC, whereas
+		# we want the origin to be at MCP. As such we need to offset it by half the pcAc distance
+		translation = -np.dot(rotation, ac - (np.dot(yAxis, 0.5*np.linalg.norm(pcAc))))
+
+		# This is the original code
+		# translation = -np.dot(rotation, ac) 
+
+		# Build homogeneous matrix
+		matrix = np.eye(4)
+		matrix[:3, :3] = rotation
+		matrix[:3, 3] = translation
+		return matrix
+
+	def run(self, acpcFid, transformNode):
+
+		for i in range(acpcFid.GetNumberOfControlPoints()):
+			ras = [0,0,0]
+			acpcFid.GetNthControlPointPosition(i,ras)
+			point_lbl=acpcFid.GetNthControlPointLabel(i)
+		
+			if point_lbl != '':
+				if point_lbl.lower() == 'ac':
+					ac = np.array(ras)
+				elif point_lbl.lower() == 'pc':
+					pc = np.array(ras)
+				elif any(x==point_lbl.lower() for x in ('mid','ih')):
+					ih = np.array(ras)
+			else:
+				if i == 0:
+					ac = np.array(ras)
+				elif i == 1:
+					pc = np.array(ras)
+				elif i == 2:
+					ih = np.array(ras)
+
+		# Translate the matrix to vtkMatrix
+		matrix = self.getMatrixToACPC(ac, pc, ih)
+		vtkMatrix = vtk.vtkMatrix4x4()
+		for row in range(4):
+			for col in range(4):
+				vtkMatrix.SetElement(row, col, matrix[row, col])
+
+		# Apply transformation
+		transformNode.SetMatrixTransformToParent(vtkMatrix)
+		
+		# Apply transform to volume node and markups node
+		acpcFid.SetAndObserveTransformNodeID(transformNode.GetID())
+		#volumeNode.SetAndObserveTransformNodeID(transformNode.GetID())
+
+		#if autoHarden:
+		#	logic = slicer.vtkSlicerTransformLogic()
+		#	logic.hardenTransform(acpcFid)
+		#	logic.hardenTransform(volumeNode)
+
+
 
 #
 # anatomicalLandmarksTest
@@ -1347,14 +1444,14 @@ class anatomicalLandmarksTest(ScriptedLoadableModuleTest):
 		self.test_anatomicalLandmarks1()
 
 	def test_anatomicalLandmarks1(self):
-		""" Ideally you should have several levels of tests.  At the lowest level
+		""" Ideally you should have several levels of tests.	At the lowest level
 		tests should exercise the functionality of the logic with different inputs
-		(both valid and invalid).  At higher levels your tests should emulate the
+		(both valid and invalid).	At higher levels your tests should emulate the
 		way the user would interact with your code and confirm that it still works
 		the way you intended.
 		One of the most important features of the tests is that it should alert other
 		developers when their changes will have an impact on the behavior of your
-		module.  For example, if a developer removes a feature that you depend on,
+		module.	For example, if a developer removes a feature that you depend on,
 		your test should break so they know that the feature is needed.
 		"""
 
