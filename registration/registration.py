@@ -1613,7 +1613,7 @@ class registrationLogic(ScriptedLoadableModuleLogic):
 				rigidMetric = self.regAlgo['parameters']['metric']
 				rigidMetricParams = self.regAlgo['parameters']['metric_params']
 
-				rigidstage = ' '.join([
+				rigidStage = ' '.join([
 					f'--initial-moving-transform ["{fixedVolume}","{movingVolume}",1]',
 					f"--transform Rigid[{self.regAlgo['parameters']['gradientstep']}]",
 					f'--metric {rigidMetric}["{fixedVolume}","{movingVolume}",{rigidMetricParams}]',
